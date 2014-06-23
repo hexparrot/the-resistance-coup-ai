@@ -141,15 +141,18 @@ class TestCoup(unittest.TestCase):
         pp.right = Influence()
 
         self.assertEquals(pp.influence_remaining, 2)
+        position, influence = pp.random_remaining_influence
 
         with self.assertRaises(RuntimeError):
-            p.perform('assassinate', pp)
+            p.perform('assassinate', influence)
 
         self.assertEquals(pp.influence_remaining, 2)
         self.assertEquals(p.coins, 2)
         p.income()
+
+        position, influence = pp.random_remaining_influence
         
-        p.perform('assassinate', pp)
+        p.perform('assassinate', influence)
         self.assertEquals(p.coins, 0)
         self.assertEquals(pp.influence_remaining, 1)
 

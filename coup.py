@@ -111,10 +111,10 @@ class Assassin(Influence):
     BLOCKS = []
     
     @staticmethod
-    def assassinate(active_player, player_target):
+    def assassinate(active_player, inf_target):
         if active_player.coins >= 3:
             active_player.coins -= 3
-            player_target.left.reveal()
+            inf_target.reveal()
         else:
             raise RuntimeError("insufficient currency to assassinate")
 

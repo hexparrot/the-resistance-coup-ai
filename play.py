@@ -21,7 +21,6 @@ class Play_Coup(object):
             self.players[p].right = self.court_deck.pop()
 
     def player_summary(self, player):
-        print
         print "***************"
         print "you are %s" % self.players[player].status
         print "you have %s coins" % self.players[player].coins
@@ -36,6 +35,10 @@ if __name__ == "__main__":
     a = Play_Coup(PLAYERS)
 
     for i in cycle(xrange(PLAYERS)):
+
+        if not a.players[i].influence_remaining:
+            continue
+        
         print 'place in order:', i
         a.player_summary(i)
         action = raw_input('what would you like to do? ')
@@ -44,6 +47,13 @@ if __name__ == "__main__":
             a.players[i].perform(action)
         except TypeError:
             target = int(raw_input('whom will you target (#0-4)? '))
-            a.players[i].perform(action, a.players[target])
+            if action in ['assassinate', 'coup']:
+                position, influence = a.players[target].random_remaining_influence
+                a.players[i].perform(action, influence)
+            else:
+                a.players[i].perform(action, a.players[target])
+
+        print
+        print
         
         #print a.players[i].alpha, round(float(Counter(a.all_combinations)[a.players[i].alpha])/float(len(a.all_combinations)) * 100,2)
