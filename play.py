@@ -26,6 +26,5 @@ if __name__ == "__main__":
 
     print a.players[0]
 
-
     for i in xrange(PLAYERS):
         print a.players[i].alpha, round(float(Counter(a.all_combinations)[a.players[i].alpha])/float(len(a.all_combinations)) * 100,2)
