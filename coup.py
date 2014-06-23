@@ -18,7 +18,7 @@ class Player(object):
             self.coins -= 7
             inf_target.reveal()
         else:
-            raise RuntimeError("insufficient currency to coup")
+            raise IllegalAction("insufficient currency to coup")
 
     def perform(self, action, player_target=None):
         for inf in Influence.__subclasses__():
@@ -29,7 +29,7 @@ class Player(object):
                     getattr(inf, action)(self, player_target)
                 break
         else:
-            raise RuntimeError("no action %s" % action)
+            raise IllegalAction("no action %s" % action)
 
     @property
     def valid_actions(self):
@@ -72,7 +72,7 @@ class Player(object):
                 return ('right', self.right)
             return ('left', self.left)
         else:
-            raise RuntimeError("player already has no remaining influence")
+            raise IllegalTarget("player already has no remaining influence")
 
 class Influence(object):
     def __init__(self):
@@ -116,7 +116,7 @@ class Assassin(Influence):
             active_player.coins -= 3
             inf_target.reveal()
         else:
-            raise RuntimeError("insufficient currency to assassinate")
+            raise IllegalAction("insufficient currency to assassinate")
 
 class Ambassador(Influence):
     ACTIONS = ['exchange']
@@ -130,3 +130,8 @@ class Contessa(Influence):
     ACTIONS = []
     BLOCKS = ['assassinate']
 
+class IllegalAction(Exception):
+    pass
+
+class IllegalTarget(Exception):
+    pass

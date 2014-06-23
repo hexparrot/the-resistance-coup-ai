@@ -1,17 +1,18 @@
 import random
+import coup
 from itertools import combinations, cycle
 from collections import Counter
-from coup import *
+
 
 class Play_Coup(object):
     def __init__(self, players=5):
-        self.players = {i:Player() for i in xrange(players)}
+        self.players = {i:coup.Player() for i in xrange(players)}
         
-        self.court_deck = [Contessa() for _ in xrange(3)] + \
-                          [Ambassador() for _ in xrange(3)] + \
-                          [Duke() for _ in xrange(3)] + \
-                          [Assassin() for _ in xrange(3)] + \
-                          [Captain() for _ in xrange(3)]
+        self.court_deck = [coup.Contessa() for _ in xrange(3)] + \
+                          [coup.Ambassador() for _ in xrange(3)] + \
+                          [coup.Duke() for _ in xrange(3)] + \
+                          [coup.Assassin() for _ in xrange(3)] + \
+                          [coup.Captain() for _ in xrange(3)]
         random.shuffle(self.court_deck)
 
         self.all_combinations = list(' '.join(sorted(x)) for x in combinations([str(a) for a in self.court_deck], 2))
@@ -41,17 +42,34 @@ if __name__ == "__main__":
         
         print 'place in order:', i
         a.player_summary(i)
-        action = raw_input('what would you like to do? ')
 
-        try:
-            a.players[i].perform(action)
-        except TypeError:
-            target = int(raw_input('whom will you target (#0-4)? '))
-            if action in ['assassinate', 'coup']:
-                position, influence = a.players[target].random_remaining_influence
-                a.players[i].perform(action, influence)
+        while 1:
+            action = raw_input('what would you like to do? ')
+
+            try:
+                a.players[i].perform(action)
+            except TypeError:
+                try:
+                    while 1:
+                        try:
+                            target = int(raw_input('whom will you target (#0-4)? '))
+                            if action in ['assassinate', 'coup']:
+                                position, influence = a.players[target].random_remaining_influence
+                                a.players[i].perform(action, influence)
+                            else:
+                                a.players[i].perform(action, a.players[target])
+                        except coup.IllegalTarget as e:
+                            raise
+                        else:
+                            break
+                except (coup.IllegalAction, coup.IllegalTarget) as e:
+                    print e.message
+                
+                else:
+                    break
             else:
-                a.players[i].perform(action, a.players[target])
+                break
+                    
 
         print
         print

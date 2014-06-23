@@ -70,20 +70,31 @@ class TestCoup(unittest.TestCase):
         self.assertTrue(getattr(pp, position).revealed)
         self.assertEqual(p.coins, 0)
 
-        with self.assertRaises(RuntimeError): 
+        with self.assertRaises(IllegalAction): 
             p.coup(pp.right)
 
     def test_perform(self):
         p = Player()
         pp = Player()
-        with self.assertRaises(RuntimeError): 
+        pp.left = Duke()
+        
+        with self.assertRaises(IllegalAction): 
             p.perform('dance')
 
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(IllegalAction):
             p.perform('dance', pp)
 
-        with self.assertRaises(RuntimeError):
-            p.perform('assasinate')
+        with self.assertRaises(IllegalAction):
+            p.perform('dance', pp.left)
+
+        with self.assertRaises(IllegalAction):
+            p.perform('assassinate')
+
+        p.coins = 3
+        p.perform('assasinate', pp.left)
+        
+        with self.assertRaises(IllegalTarget):
+            p.perform('assasinate', pp.left)
 
     def test_subclass_class(self):
         for i in (Captain, Duke, Assassin, Ambassador, Contessa):
@@ -143,7 +154,7 @@ class TestCoup(unittest.TestCase):
         self.assertEquals(pp.influence_remaining, 2)
         position, influence = pp.random_remaining_influence
 
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(IllegalAction):
             p.perform('assassinate', influence)
 
         self.assertEquals(pp.influence_remaining, 2)
