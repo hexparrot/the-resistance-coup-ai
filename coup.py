@@ -4,6 +4,9 @@ class Player(object):
         self.left = None
         self.right = None
 
+    def __str__(self):
+        return ' '.join([str(self.left), str(self.right)])
+
     def income(self):
         self.coins += 1
 
@@ -29,6 +32,10 @@ class Player(object):
             raise RuntimeError("no action %s" % action)
 
     @property
+    def alpha(self):
+        return ' '.join(sorted([str(self.left), str(self.right)]))
+
+    @property
     def influence_remaining(self):
         return sum(1 for i in (self.left, self.right) if not i.revealed)
 
@@ -38,6 +45,9 @@ class Influence(object):
 
     def reveal(self):
         self.revealed = True
+
+    def __str__(self):
+        return str(self.__class__.__name__)
 
 class Captain(Influence):
     @staticmethod
