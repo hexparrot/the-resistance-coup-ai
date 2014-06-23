@@ -33,15 +33,29 @@ class Player(object):
 
     @property
     def valid_actions(self):
-        return list(set(self.left.ACTIONS + self.right.ACTIONS))
+        actions = set()
+        if not self.left.revealed:
+            actions.update(self.left.ACTIONS)
+        if not self.right.revealed:
+            actions.update(self.right.ACTIONS)
+        return list(actions)
 
     @property
     def valid_blocks(self):
-        return list(set(self.left.BLOCKS + self.right.BLOCKS))
+        blocks = set()
+        if not self.left.revealed:
+            blocks.update(self.left.BLOCKS)
+        if not self.right.revealed:
+            blocks.update(self.right.BLOCKS)
+        return list(blocks)
 
     @property
     def alpha(self):
         return ' '.join(sorted([str(self.left), str(self.right)]))
+
+    @property
+    def status(self):
+        return ' '.join([str(i) if not i.revealed else '<%s>' % str(i) for i in (self.left, self.right) ])
 
     @property
     def influence_remaining(self):

@@ -1,5 +1,5 @@
 import random
-from itertools import combinations
+from itertools import combinations, cycle
 from collections import Counter
 from coup import *
 
@@ -20,11 +20,30 @@ class Play_Coup(object):
             self.players[p].left = self.court_deck.pop()
             self.players[p].right = self.court_deck.pop()
 
+    def player_summary(self, player):
+        print
+        print "***************"
+        print "you are %s" % self.players[player].status
+        print "you have %s coins" % self.players[player].coins
+        print "you can truthfully perform:", ', '.join(self.players[player].valid_actions)
+        print
+        print "all available actions:"
+        print "income, foreign_aid, coup, steal, tax, assassinate, exchange"
+        print
+
 if __name__ == "__main__":
     PLAYERS = 5
     a = Play_Coup(PLAYERS)
 
-    print a.players[0]
+    for i in cycle(xrange(PLAYERS)):
+        print 'place in order:', i
+        a.player_summary(i)
+        action = raw_input('what would you like to do? ')
 
-    for i in xrange(PLAYERS):
-        print a.players[i].alpha, round(float(Counter(a.all_combinations)[a.players[i].alpha])/float(len(a.all_combinations)) * 100,2)
+        try:
+            a.players[i].perform(action)
+        except TypeError:
+            target = int(raw_input('whom will you target (#0-4)? '))
+            a.players[i].perform(action, a.players[target])
+        
+        #print a.players[i].alpha, round(float(Counter(a.all_combinations)[a.players[i].alpha])/float(len(a.all_combinations)) * 100,2)

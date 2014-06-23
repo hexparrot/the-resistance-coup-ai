@@ -197,10 +197,6 @@ class TestCoup(unittest.TestCase):
 
     def test_player_available_actions(self):
         p = Player()
-        
-        p.left = Assassin()
-        p.right = Duke()
-        self.assertEqual(p.valid_actions, ['assassinate', 'tax'])
 
         p.left = Contessa()
         p.right = Ambassador()
@@ -209,6 +205,13 @@ class TestCoup(unittest.TestCase):
         p.left = Captain()
         p.right = Captain()
         self.assertEqual(p.valid_actions, ['steal'])
+
+        p.left = Assassin()
+        p.right = Duke()
+        self.assertEqual(p.valid_actions, ['assassinate', 'tax'])
+
+        p.left.reveal()
+        self.assertEqual(p.valid_actions, ['tax'])
 
     def test_player_available_blocks(self):
         p = Player()
@@ -220,6 +223,9 @@ class TestCoup(unittest.TestCase):
         p.left = Contessa()
         p.right = Ambassador()
         self.assertEqual(p.valid_blocks, ['assassinate', 'steal'])
+
+        p.right.reveal()
+        self.assertEqual(p.valid_blocks, ['assassinate'])
 
         p.left = Captain()
         p.right = Captain()
@@ -255,6 +261,21 @@ class TestCoup(unittest.TestCase):
         with self.assertRaises(RuntimeError): 
             position, influence = pp.random_remaining_influence
 
+    def test_player_list_remaining_influences_friendly(self):
+        p = Player()
+
+        p.left = Assassin()
+        p.right = Duke()
+
+        self.assertEqual(p.status, "Assassin Duke")
+
+        p.left.reveal()
+        self.assertEqual(p.status, "<Assassin> Duke")
+
+        p.right.reveal()
+        self.assertEqual(p.status, "<Assassin> <Duke>")
+
+        
 
 if __name__ == "__main__":
     unittest.main()
