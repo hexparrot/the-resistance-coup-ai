@@ -295,7 +295,6 @@ class TestCoup(unittest.TestCase):
         self.assertEqual(p.status, "<Assassin> <Duke>")
 
     def test_gameplay_no_blocks(self):
-        from play import Play_Coup
         from itertools import cycle
         from random import choice, randint
 

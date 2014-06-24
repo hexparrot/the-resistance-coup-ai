@@ -1,3 +1,20 @@
+class Play_Coup(object):
+    def __init__(self, players=5):
+        from random import shuffle
+        
+        self.players = {i:Player() for i in xrange(players)}
+        self.court_deck = [Contessa() for _ in xrange(3)] + \
+                          [Ambassador() for _ in xrange(3)] + \
+                          [Duke() for _ in xrange(3)] + \
+                          [Assassin() for _ in xrange(3)] + \
+                          [Captain() for _ in xrange(3)]
+        
+        shuffle(self.court_deck)
+
+        for p in xrange(players):
+            self.players[p].left = self.court_deck.pop()
+            self.players[p].right = self.court_deck.pop()
+
 class Player(object):
     def __init__(self):
         self.coins = 2
@@ -5,7 +22,7 @@ class Player(object):
         self.right = None
 
     def __str__(self):
-        return ' '.join([str(self.left), str(self.right)])
+        return '{0} {1}'.format(self.left, self.right)
 
     def perform(self, action, player_target=None):
         from itertools import chain
