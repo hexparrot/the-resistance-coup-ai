@@ -346,7 +346,7 @@ class TestCoup(unittest.TestCase):
             acting_player = testgame.players[i]
             
             if not acting_player.influence_remaining:
-                return testgame.players[i].alpha
+                continue
             elif sum(1 for p in xrange(PLAYERS) if testgame.players[p].influence_remaining) == 1:
                 break
             
@@ -377,7 +377,7 @@ class TestCoup(unittest.TestCase):
             acting_player = testgame.players[i]
             
             if not acting_player.influence_remaining:
-                return testgame.players[i].alpha
+                continue
             elif sum(1 for p in xrange(PLAYERS) if testgame.players[p].influence_remaining) == 1:
                 break
             

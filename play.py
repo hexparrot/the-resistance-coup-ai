@@ -45,7 +45,7 @@ def play_game():
         print
 
 class simulations(object):
-    def test_gameplay_random_actions_random_targets_no_blocks(self):
+    def test_gameplay_random_actions_random_targets_honest_blocks_no_doubts(self):
         from itertools import cycle
         from random import choice, randint
 
@@ -56,22 +56,28 @@ class simulations(object):
             acting_player = testgame.players[i]
             
             if not acting_player.influence_remaining:
-                return testgame.players[i].alpha
+                continue
             elif sum(1 for p in xrange(PLAYERS) if testgame.players[p].influence_remaining) == 1:
-                break
+                return testgame.players[i].alpha
             
             while 1:
                 try:
                     action = choice(Play_Coup.ACTIONS['all'])
-                    if action in Play_Coup.ACTIONS['targets_influence']:
+                    if action in Play_Coup.ACTIONS['blockable']:
                         random_player = testgame.random_targetable_player(acting_player)
-                        position, random_target = random_player.random_remaining_influence
-                        testgame.players[i].perform(action, random_target)
-                    elif action in Play_Coup.ACTIONS['targets_player']:
-                        random_player = testgame.random_targetable_player(acting_player)
-                        testgame.players[i].perform(action, random_player)
+                        if action not in random_player.valid_blocks:
+                            if action in Play_Coup.ACTIONS['targets_influence']:
+                                position, random_target = random_player.random_remaining_influence
+                                testgame.players[i].perform(action, random_target)
+                            elif action in Play_Coup.ACTIONS['targets_player']:
+                                testgame.players[i].perform(action, random_player)
                     else:
-                        testgame.players[i].perform(action)
+                        if action in Play_Coup.ACTIONS['targets_influence']:
+                            random_player = testgame.random_targetable_player(acting_player)
+                            position, random_target = random_player.random_remaining_influence
+                            testgame.players[i].perform(action, random_target)
+                        else:
+                            testgame.players[i].perform(action)
                     break
                 except (IllegalTarget, IllegalAction):
                     pass
@@ -79,5 +85,5 @@ class simulations(object):
 if __name__ == "__main__":
     c = Counter()
     for _ in xrange(5000):
-        c.update([simulations().test_gameplay_random_actions_random_targets_no_blocks(),])
+        c.update([simulations().test_gameplay_random_actions_random_targets_honest_blocks_no_doubts(),])
     print c
