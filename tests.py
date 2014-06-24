@@ -173,19 +173,28 @@ class TestCoup(unittest.TestCase):
         self.assertEquals(pp.influence_remaining, 1)
 
     def test_ambassador_exchange(self):
-        #badtest
-        p = Player()
+        testgame = Play_Coup(5)
+        
+        p = testgame.players[0]
         p.left = Assassin()
         p.right = Contessa()
 
+        self.assertEquals(len(testgame.court_deck), 5)
+
         self.assertEquals(p.influence_remaining, 2)
-        p.perform('exchange')
+        p.perform('exchange', testgame.court_deck)
         self.assertEquals(p.influence_remaining, 2)
+
+        self.assertTrue(all([not c.revealed for c in testgame.court_deck]))
 
         p.left.reveal()
         self.assertEquals(p.influence_remaining, 1)
-        p.perform('exchange')
+        p.perform('exchange', testgame.court_deck)
         self.assertEquals(p.influence_remaining, 1)
+
+        self.assertTrue(all([not c.revealed for c in testgame.court_deck]))
+
+        self.assertEquals(len(testgame.court_deck), 5)
 
     def test_friendly_influence_strings(self):
         self.assertEquals(str(Ambassador()), 'Ambassador')
@@ -360,6 +369,8 @@ class TestCoup(unittest.TestCase):
                     elif action in Play_Coup.ACTIONS['targets_player']:
                         random_player = testgame.random_targetable_player(acting_player)
                         testgame.players[i].perform(action, random_player)
+                    elif action == 'exchange':
+                        testgame.players[i].perform(action, testgame.court_deck)
                     else:
                         testgame.players[i].perform(action)
                     break
@@ -397,6 +408,8 @@ class TestCoup(unittest.TestCase):
                             random_player = testgame.random_targetable_player(acting_player)
                             position, random_target = random_player.random_remaining_influence
                             testgame.players[i].perform(action, random_target)
+                        elif action == 'exchange':
+                            testgame.players[i].perform(action, testgame.court_deck)
                         else:
                             testgame.players[i].perform(action)
                     break

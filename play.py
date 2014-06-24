@@ -76,6 +76,8 @@ class simulations(object):
                             random_player = testgame.random_targetable_player(acting_player)
                             position, random_target = random_player.random_remaining_influence
                             testgame.players[i].perform(action, random_target)
+                        elif action == 'exchange':
+                            testgame.players[i].perform(action, testgame.court_deck)
                         else:
                             testgame.players[i].perform(action)
                     break
