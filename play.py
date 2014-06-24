@@ -115,4 +115,6 @@ if __name__ == "__main__":
     c = Counter()
     for _ in range(1000):
         c.update([simulations().test_gameplay_random_actions_calculated_targets_block_all_no_doubts(),])
-    print(c)
+
+    for i,v in c.most_common():
+        print('{0}{1}'.format(i.ljust(25), v))
