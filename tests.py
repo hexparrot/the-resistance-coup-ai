@@ -16,12 +16,12 @@ class TestCoup(unittest.TestCase):
 
     def test_income(self):
         p = Player()
-        p.income()
+        p.perform('income')
         self.assertEquals(p.coins, 3)
 
     def test_foreign_aid(self):
         p = Player()
-        p.foreign_aid()
+        p.perform('foreign_aid')
         self.assertEquals(p.coins, 4)
 
     def test_influence_adding(self):
@@ -65,13 +65,13 @@ class TestCoup(unittest.TestCase):
         self.assertFalse(pp.left.revealed)
 
         position, influence = pp.random_remaining_influence
-        p.coup(influence)
+        p.perform('coup', influence)
         
         self.assertTrue(getattr(pp, position).revealed)
         self.assertEqual(p.coins, 0)
 
         with self.assertRaises(IllegalAction): 
-            p.coup(pp.right)
+            p.perform('coup', pp.right)
 
     def test_perform(self):
         p = Player()
@@ -123,7 +123,7 @@ class TestCoup(unittest.TestCase):
         self.assertEquals(p.coins, 4)
         self.assertEquals(pp.coins, 0)
 
-        pp.income()
+        pp.perform('income')
         self.assertEquals(pp.coins, 1)
         p.perform('steal', pp)
         self.assertEquals(p.coins, 5)
@@ -164,7 +164,7 @@ class TestCoup(unittest.TestCase):
 
         self.assertEquals(pp.influence_remaining, 2)
         self.assertEquals(p.coins, 2)
-        p.income()
+        p.perform('income')
 
         position, influence = pp.random_remaining_influence
         
@@ -261,7 +261,7 @@ class TestCoup(unittest.TestCase):
         position, influence = pp.random_remaining_influence
 
         p.coins = 7
-        p.coup(influence)
+        p.perform('coup', influence)
         self.assertEquals(pp.influence_remaining, 1)
 
         if position == 'left':
@@ -273,7 +273,7 @@ class TestCoup(unittest.TestCase):
 
         position, influence = pp.random_remaining_influence
         p.coins = 7
-        p.coup(influence)
+        p.perform('coup', influence)
 
         self.assertEquals(pp.influence_remaining, 0)
 
@@ -294,7 +294,37 @@ class TestCoup(unittest.TestCase):
         p.right.reveal()
         self.assertEqual(p.status, "<Assassin> <Duke>")
 
-        
+    def test_gameplay_no_blocks(self):
+        from play import Play_Coup
+        from itertools import cycle
+        from random import choice, randint
+
+        PLAYERS = 5
+        testgame = Play_Coup(PLAYERS)
+
+        for i in cycle(xrange(PLAYERS)):
+            if not testgame.players[i].influence_remaining:
+                continue
+            elif sum(1 for p in xrange(PLAYERS) if testgame.players[p].influence_remaining) == 1:
+                break
+
+            available_actions = ['income', 'foreign_aid', 'coup', 'steal', 'tax', 'assassinate', 'exchange']
+            
+            while 1:
+                try:
+                    action = choice(available_actions)
+                    if action in ['coup', 'assassinate']:
+                        random_player = testgame.players[randint(0,PLAYERS-1)]
+                        position, random_target = random_player.random_remaining_influence
+                        testgame.players[i].perform(action, random_target)
+                    elif action in ['steal']:
+                        random_player = testgame.players[randint(0,PLAYERS-1)]
+                        testgame.players[i].perform(action, random_player)
+                    else:
+                        testgame.players[i].perform(action)
+                    break
+                except (IllegalTarget, IllegalAction):
+                    pass
 
 if __name__ == "__main__":
     unittest.main()

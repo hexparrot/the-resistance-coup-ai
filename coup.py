@@ -7,21 +7,10 @@ class Player(object):
     def __str__(self):
         return ' '.join([str(self.left), str(self.right)])
 
-    def income(self):
-        self.coins += 1
-
-    def foreign_aid(self):
-        self.coins += 2
-
-    def coup(self, inf_target):
-        if self.coins >= 7:
-            self.coins -= 7
-            inf_target.reveal()
-        else:
-            raise IllegalAction("insufficient currency to coup")
-
     def perform(self, action, player_target=None):
-        for inf in Influence.__subclasses__():
+        from itertools import chain
+        
+        for inf in chain([Influence,], Influence.__subclasses__()):
             if hasattr(inf, action):
                 if player_target is None:
                     getattr(inf, action)(self)
@@ -78,11 +67,27 @@ class Influence(object):
     def __init__(self):
         self.revealed = False
 
+    def __str__(self):
+        return str(self.__class__.__name__)
+
     def reveal(self):
         self.revealed = True
 
-    def __str__(self):
-        return str(self.__class__.__name__)
+    @staticmethod
+    def income(active_player):
+        active_player.coins += 1
+
+    @staticmethod
+    def foreign_aid(active_player):
+        active_player.coins += 2
+
+    @staticmethod
+    def coup(active_player, inf_target):
+        if active_player.coins >= 7:
+            active_player.coins -= 7
+            inf_target.reveal()
+        else:
+            raise IllegalAction("insufficient currency to coup")
 
 class Captain(Influence):
     ACTIONS = ['steal']

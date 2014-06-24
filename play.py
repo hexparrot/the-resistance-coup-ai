@@ -33,43 +33,32 @@ class Play_Coup(object):
 
 if __name__ == "__main__":
     PLAYERS = 5
-    a = Play_Coup(PLAYERS)
+    testgame = Play_Coup(PLAYERS)
 
     for i in cycle(xrange(PLAYERS)):
-
-        if not a.players[i].influence_remaining:
+        if not testgame.players[i].influence_remaining:
             continue
+        elif sum(1 for p in xrange(PLAYERS) if testgame.players[p].influence_remaining) == 1:
+            break
         
-        print 'place in order:', i
-        a.player_summary(i)
-
         while 1:
-            action = raw_input('what would you like to do? ')
-
+            print 'place in order:', i
+            testgame.player_summary(i)
+            
             try:
-                a.players[i].perform(action)
-            except TypeError:
-                try:
-                    while 1:
-                        try:
-                            target = int(raw_input('whom will you target (#0-4)? '))
-                            if action in ['assassinate', 'coup']:
-                                position, influence = a.players[target].random_remaining_influence
-                                a.players[i].perform(action, influence)
-                            else:
-                                a.players[i].perform(action, a.players[target])
-                        except coup.IllegalTarget as e:
-                            raise
-                        else:
-                            break
-                except (coup.IllegalAction, coup.IllegalTarget) as e:
-                    print e.message
-                
+                action = raw_input('what would you like to do? ')
+                if action in ['coup', 'assassinate']:
+                    player_target = int(raw_input('whom will you target (#0-4)? '))
+                    position, random_target = testgame.players[player_target].random_remaining_influence
+                    testgame.players[i].perform(action, random_target)
+                elif action in ['steal']:
+                    player_target = int(raw_input('whom will you target (#0-4)? '))
+                    testgame.players[i].perform(action, testgame.players[player_target])
                 else:
-                    break
-            else:
+                    testgame.players[i].perform(action)
                 break
-                    
+            except (coup.IllegalTarget, coup.IllegalAction):
+                pass
 
         print
         print
