@@ -346,7 +346,7 @@ class TestCoup(unittest.TestCase):
             acting_player = testgame.players[i]
             
             if not acting_player.influence_remaining:
-                continue
+                return testgame.players[i].alpha
             elif sum(1 for p in xrange(PLAYERS) if testgame.players[p].influence_remaining) == 1:
                 break
             
@@ -377,7 +377,7 @@ class TestCoup(unittest.TestCase):
             acting_player = testgame.players[i]
             
             if not acting_player.influence_remaining:
-                continue
+                return testgame.players[i].alpha
             elif sum(1 for p in xrange(PLAYERS) if testgame.players[p].influence_remaining) == 1:
                 break
             
@@ -402,12 +402,24 @@ class TestCoup(unittest.TestCase):
                     break
                 except (IllegalTarget, IllegalAction):
                     pass
-            
-        
+
+
+def gameplay_suite():
+    suite = unittest.TestSuite()
+    gameplay_tests = list(m for m in dir(TestCoup) \
+                          if callable(getattr(TestCoup,m)) \
+                          and m.startswith('test_gameplay'))
+    
+    for i in gameplay_tests:
+        suite.addTest(TestCoup(i))
+    return suite
 
 if __name__ == "__main__":
-    unittest.main()
+    RUN_ALL_TESTS = True
 
-
-
+    if RUN_ALL_TESTS:
+        unittest.main()
+    else:
+        s = gameplay_suite()
+        unittest.TextTestRunner().run(s)
 
