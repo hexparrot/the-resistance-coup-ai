@@ -45,7 +45,20 @@ def play_game():
         print
 
 class simulations(object):
-    def test_gameplay_random_actions_random_targets_honest_blocks_no_doubts(self):
+    def test_gameplay_random_actions_random_targets_block_all_no_doubts(self):
+        """
+        AI PROFILE:
+        
+        Action          Used        Targets     Blocked     
+        income          yes
+        foreign_aid     yes         random      any available duke
+        coup            yes
+        steal           yes         random      any available captain/ambassador
+        tax             yes
+        assassinate     yes         random      any available contessa
+        exchange        yes         random      no
+
+        """
         from itertools import cycle
         from random import choice, randint
 
@@ -64,8 +77,11 @@ class simulations(object):
                 try:
                     action = choice(Play_Coup.ACTIONS['all'])
                     if action in Play_Coup.ACTIONS['blockable']:
-                        random_player = testgame.random_targetable_player(acting_player)
-                        if action not in random_player.valid_blocks:
+                        for savior in xrange(PLAYERS):
+                            if savior != i and action in testgame.players[savior].valid_blocks:
+                                raise BlockedAction
+                        else:
+                            random_player = testgame.random_targetable_player(acting_player)
                             if action in Play_Coup.ACTIONS['targets_influence']:
                                 position, random_target = random_player.random_remaining_influence
                                 testgame.players[i].perform(action, random_target)
@@ -83,9 +99,11 @@ class simulations(object):
                     break
                 except (IllegalTarget, IllegalAction):
                     pass
+                except BlockedAction as e:
+                    break
         
 if __name__ == "__main__":
     c = Counter()
     for _ in xrange(5000):
-        c.update([simulations().test_gameplay_random_actions_random_targets_honest_blocks_no_doubts(),])
+        c.update([simulations().test_gameplay_random_actions_random_targets_block_all_no_doubts(),])
     print c

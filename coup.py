@@ -198,3 +198,6 @@ class IllegalAction(Exception):
 
 class IllegalTarget(Exception):
     pass
+
+class BlockedAction(Exception):
+    pass
