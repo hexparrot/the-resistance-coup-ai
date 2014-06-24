@@ -332,6 +332,26 @@ class TestCoup(unittest.TestCase):
         for _ in range(50):
             self.assertIsNot(testgame.random_targetable_player(p), p)
 
+    def test_random_targetable_half_health_player(self):
+        testgame = Play_Coup(5)
+
+        p = testgame.players[0]
+        self.assertIsNone(testgame.random_targetable_player(p, [1]), Player)
+
+        pp = testgame.players[1]
+        pp.left.reveal()
+        self.assertIs(testgame.random_targetable_player(p, [1]), pp)
+        self.assertIsNot(testgame.random_targetable_player(p, [1]), testgame.players[0])
+        self.assertIsNot(testgame.random_targetable_player(p, [1]), testgame.players[2])
+        self.assertIsNot(testgame.random_targetable_player(p, [1]), testgame.players[3])
+        self.assertIsNot(testgame.random_targetable_player(p, [1]), testgame.players[4])
+
+        ppp = testgame.players[2]
+        ppp.left.reveal()
+        self.assertIsNot(testgame.random_targetable_player(p, [1]), testgame.players[0])
+        self.assertIsNot(testgame.random_targetable_player(p, [1]), testgame.players[3])
+        self.assertIsNot(testgame.random_targetable_player(p, [1]), testgame.players[4])
+
     def test_cannot_target_self(self):
         testgame = Play_Coup(5)
 

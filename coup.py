@@ -23,10 +23,16 @@ class Play_Coup(object):
             self.players[p].left = self.court_deck.pop()
             self.players[p].right = self.court_deck.pop()
 
-    def random_targetable_player(self, safe_player):
+    def random_targetable_player(self,
+                                 safe_player,
+                                 influence_amount=[1,2]):
         from random import choice
-        return choice([self.players[i] for i,v in self.players.items() \
-                       if v.influence_remaining and v is not safe_player])
+        try:
+            return choice([self.players[i] for i,v in self.players.items() \
+                           if v.influence_remaining in influence_amount \
+                           and v is not safe_player])
+        except IndexError:
+            return None
 
 class Player(object):
     def __init__(self):
