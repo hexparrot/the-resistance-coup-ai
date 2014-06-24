@@ -113,8 +113,11 @@ class Assassin(Influence):
     @staticmethod
     def assassinate(active_player, inf_target):
         if active_player.coins >= 3:
-            active_player.coins -= 3
-            inf_target.reveal()
+            if not inf_target.revealed:
+                active_player.coins -= 3
+                inf_target.reveal()
+            else:
+                raise IllegalTarget("influence target already eliminated")
         else:
             raise IllegalAction("insufficient currency to assassinate")
 

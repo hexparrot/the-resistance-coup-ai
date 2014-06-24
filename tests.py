@@ -87,14 +87,19 @@ class TestCoup(unittest.TestCase):
         with self.assertRaises(IllegalAction):
             p.perform('dance', pp.left)
 
-        with self.assertRaises(IllegalAction):
+        with self.assertRaises(TypeError):
             p.perform('assassinate')
 
         p.coins = 3
-        p.perform('assasinate', pp.left)
+        p.perform('assassinate', pp.left)
         
+        with self.assertRaises(IllegalAction):
+            p.perform('assassinate', pp.left)
+
+        p.coins = 3
+
         with self.assertRaises(IllegalTarget):
-            p.perform('assasinate', pp.left)
+            p.perform('assassinate', pp.left)
 
     def test_subclass_class(self):
         for i in (Captain, Duke, Assassin, Ambassador, Contessa):
@@ -272,7 +277,7 @@ class TestCoup(unittest.TestCase):
 
         self.assertEquals(pp.influence_remaining, 0)
 
-        with self.assertRaises(RuntimeError): 
+        with self.assertRaises(IllegalTarget): 
             position, influence = pp.random_remaining_influence
 
     def test_player_list_remaining_influences_friendly(self):
