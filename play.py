@@ -45,7 +45,7 @@ def play_game():
         print()
 
 class simulations(object):
-    def test_gameplay_random_actions_calculated_targets_block_all_no_doubts(self):
+    def test_gameplay_random_actions_calculated_targets_selfish_blocks_no_doubts(self):
         """
         AI PROFILE:
         
@@ -53,9 +53,9 @@ class simulations(object):
         income          yes
         foreign_aid     yes                     any available duke
         coup            yes
-        steal           yes         richest     any available captain/ambassador
+        steal           yes         richest     victim only
         tax             yes
-        assassinate     yes         weakest     any available contessa
+        assassinate     yes         weakest     victim only
         exchange        yes         random      no
 
         """
@@ -76,7 +76,27 @@ class simulations(object):
             while 1:
                 try:
                     action = choice(Play_Coup.ACTIONS['all'])
-                    if action in Play_Coup.ACTIONS['blockable']:
+                    if action == 'steal':
+                        random_player = testgame.random_richest_player(acting_player)
+                        if 'steal' in random_player.valid_blocks:
+                            raise BlockedAction("{0} blocks {1}'s ({2}) {3}".format(random_player.alpha,
+                                                                                    acting_player.alpha,
+                                                                                    i,
+                                                                                    action))
+                        else:
+                            testgame.players[i].perform(action, random_player)
+                    elif action == 'assassinate':
+                        random_player = testgame.random_targetable_player(acting_player, [1])or \
+                                        testgame.random_richest_player(acting_player)
+                        if 'assassinate' in random_player.valid_blocks:
+                            raise BlockedAction("{0} blocks {1}'s ({2}) {3}".format(random_player.alpha,
+                                                                                    acting_player.alpha,
+                                                                                    i,
+                                                                                    action))
+                        else:
+                            position, random_target = random_player.random_remaining_influence
+                            testgame.players[i].perform(action, random_target)
+                    elif action == 'foreign_aid':
                         for savior in range(PLAYERS):
                             if savior != i and action in testgame.players[savior].valid_blocks:
                                 raise BlockedAction("{0} ({1}) blocks {2}'s ({3}) {4}".format(testgame.players[savior].alpha,
@@ -84,27 +104,17 @@ class simulations(object):
                                                                                               acting_player.alpha,
                                                                                               i,
                                                                                               action))
-                        else:
-                            if action == 'steal':
-                                testgame.random_richest_player(acting_player)
-                            elif action in Play_Coup.ACTIONS['targets_influence']:
-                                random_player = testgame.random_targetable_player(acting_player, [1]) or \
-                                                testgame.random_richest_player(acting_player)
-                                position, random_target = random_player.random_remaining_influence
-                                testgame.players[i].perform(action, random_target)
-                            elif action in Play_Coup.ACTIONS['targets_player']:
-                                random_player = testgame.random_richest_player(acting_player)
-                                testgame.players[i].perform(action, random_player)
+                            else:
+                                testgame.players[i].perform(action)
+                    elif action == 'exchange':
+                        testgame.players[i].perform(action, testgame.court_deck)
+                    elif action == 'coup':
+                        random_player = testgame.random_targetable_player(acting_player, [1]) or \
+                                        testgame.random_richest_player(acting_player)
+                        position, random_target = random_player.random_remaining_influence
+                        testgame.players[i].perform(action, random_target)
                     else:
-                        if action in Play_Coup.ACTIONS['targets_influence']:
-                            random_player = testgame.random_targetable_player(acting_player, [1]) or \
-                                            testgame.random_richest_player(acting_player)
-                            position, random_target = random_player.random_remaining_influence
-                            testgame.players[i].perform(action, random_target)
-                        elif action == 'exchange':
-                            testgame.players[i].perform(action, testgame.court_deck)
-                        else:
-                            testgame.players[i].perform(action)
+                        testgame.players[i].perform(action)
                     break
                 except (IllegalTarget, IllegalAction):
                     pass
@@ -114,7 +124,7 @@ class simulations(object):
 if __name__ == "__main__":
     c = Counter()
     for _ in range(1000):
-        c.update([simulations().test_gameplay_random_actions_calculated_targets_block_all_no_doubts(),])
+        c.update([simulations().test_gameplay_random_actions_calculated_targets_selfish_blocks_no_doubts(),])
 
     for i,v in c.most_common():
         print('{0}{1}'.format(i.ljust(25), v))
