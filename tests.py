@@ -322,6 +322,7 @@ class TestCoup(unittest.TestCase):
         testgame = Play_Coup(5)
 
         p = testgame.players[0]
+        self.assertIsNot(testgame.random_targetable_player(p), p)
         self.assertIsInstance(testgame.random_targetable_player(p), Player)
 
         for _ in range(50):
@@ -336,7 +337,8 @@ class TestCoup(unittest.TestCase):
         testgame = Play_Coup(5)
 
         p = testgame.players[0]
-        self.assertIsNone(testgame.random_targetable_player(p, [1]), Player)
+        self.assertIsNot(testgame.random_targetable_player(p), p)
+        self.assertIsNone(testgame.random_targetable_player(p, [1]))
 
         pp = testgame.players[1]
         pp.left.reveal()
@@ -352,6 +354,26 @@ class TestCoup(unittest.TestCase):
         self.assertIsNot(testgame.random_targetable_player(p, [1]), testgame.players[3])
         self.assertIsNot(testgame.random_targetable_player(p, [1]), testgame.players[4])
 
+    def test_random_targetable_rich_player(self):
+        testgame = Play_Coup(5)
+
+        p = testgame.players[0]
+        self.assertIsNot(testgame.random_targetable_player_by_coins(p), p)
+        self.assertIsNone(testgame.random_targetable_player_by_coins(p, [0,0]))
+        self.assertIsNone(testgame.random_targetable_player_by_coins(p, [0,1]))
+        self.assertIsNone(testgame.random_targetable_player_by_coins(p, [1,1]))
+
+        pp = testgame.players[1]
+        pp.coins = 3
+        self.assertIsNot(testgame.random_targetable_player_by_coins(p, [3,12]), p)
+        self.assertIs(testgame.random_targetable_player_by_coins(p, [3,12]), pp)
+
+        ppp = testgame.players[2]
+        ppp.coins = 12
+        self.assertIsNot(testgame.random_targetable_player_by_coins(p, [4,12]), p)
+        self.assertIsNot(testgame.random_targetable_player_by_coins(p, [4,12]), pp)
+        self.assertIs(testgame.random_targetable_player_by_coins(p, [4,12]), ppp)
+        
     def test_cannot_target_self(self):
         testgame = Play_Coup(5)
 

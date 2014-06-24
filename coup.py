@@ -34,6 +34,17 @@ class Play_Coup(object):
         except IndexError:
             return None
 
+    def random_targetable_player_by_coins(self,
+                                          safe_player,
+                                          coins=[2,12]):
+        from random import choice
+        try:
+            return choice([self.players[i] for i,v in self.players.items() \
+                           if coins[0] <= v.coins <= coins[1] \
+                           and v is not safe_player])
+        except IndexError:
+            return None
+
 class Player(object):
     def __init__(self):
         self.coins = 2
