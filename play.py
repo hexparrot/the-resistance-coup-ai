@@ -45,17 +45,17 @@ def play_game():
         print()
 
 class simulations(object):
-    def test_gameplay_random_actions_random_targets_block_all_no_doubts(self):
+    def test_gameplay_random_actions_calculated_targets_block_all_no_doubts(self):
         """
         AI PROFILE:
         
         Action          Used        Targets     Blocked     
         income          yes
-        foreign_aid     yes         random      any available duke
+        foreign_aid     yes                     any available duke
         coup            yes
-        steal           yes         random      any available captain/ambassador
+        steal           yes         richest     any available captain/ambassador
         tax             yes
-        assassinate     yes         random      any available contessa
+        assassinate     yes         weakest     any available contessa
         exchange        yes         random      no
 
         """
@@ -85,15 +85,20 @@ class simulations(object):
                                                                                               i,
                                                                                               action))
                         else:
-                            random_player = testgame.random_targetable_player(acting_player)
-                            if action in Play_Coup.ACTIONS['targets_influence']:
+                            if action == 'steal':
+                                testgame.random_richest_player(acting_player)
+                            elif action in Play_Coup.ACTIONS['targets_influence']:
+                                random_player = testgame.random_targetable_player(acting_player, [1]) or \
+                                                testgame.random_richest_player(acting_player)
                                 position, random_target = random_player.random_remaining_influence
                                 testgame.players[i].perform(action, random_target)
                             elif action in Play_Coup.ACTIONS['targets_player']:
+                                random_player = testgame.random_richest_player(acting_player)
                                 testgame.players[i].perform(action, random_player)
                     else:
                         if action in Play_Coup.ACTIONS['targets_influence']:
-                            random_player = testgame.random_targetable_player(acting_player)
+                            random_player = testgame.random_targetable_player(acting_player, [1]) or \
+                                            testgame.random_richest_player(acting_player)
                             position, random_target = random_player.random_remaining_influence
                             testgame.players[i].perform(action, random_target)
                         elif action == 'exchange':
@@ -105,10 +110,9 @@ class simulations(object):
                     pass
                 except BlockedAction as e:
                     break
-                    #print e.message
         
 if __name__ == "__main__":
     c = Counter()
     for _ in range(1000):
-        c.update([simulations().test_gameplay_random_actions_random_targets_block_all_no_doubts(),])
+        c.update([simulations().test_gameplay_random_actions_calculated_targets_block_all_no_doubts(),])
     print(c)

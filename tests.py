@@ -613,15 +613,20 @@ class TestCoup(unittest.TestCase):
                                                                                               i,
                                                                                               action))
                         else:
-                            random_player = testgame.random_targetable_player(acting_player)
-                            if action in Play_Coup.ACTIONS['targets_influence']:
+                            if action == 'steal':
+                                testgame.random_richest_player(acting_player)
+                            elif action in Play_Coup.ACTIONS['targets_influence']:
+                                random_player = testgame.random_targetable_player(acting_player, [1]) or \
+                                                testgame.random_richest_player(acting_player)
                                 position, random_target = random_player.random_remaining_influence
                                 testgame.players[i].perform(action, random_target)
                             elif action in Play_Coup.ACTIONS['targets_player']:
+                                random_player = testgame.random_richest_player(acting_player)
                                 testgame.players[i].perform(action, random_player)
                     else:
                         if action in Play_Coup.ACTIONS['targets_influence']:
-                            random_player = testgame.random_targetable_player(acting_player)
+                            random_player = testgame.random_targetable_player(acting_player, [1]) or \
+                                            testgame.random_richest_player(acting_player)
                             position, random_target = random_player.random_remaining_influence
                             testgame.players[i].perform(action, random_target)
                         elif action == 'exchange':
