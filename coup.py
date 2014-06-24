@@ -40,10 +40,19 @@ class Play_Coup(object):
         from random import choice
         try:
             return choice([self.players[i] for i,v in self.players.items() \
-                           if coins[0] <= v.coins <= coins[1] \
-                           and v is not safe_player])
+                           if v.influence_remaining and \
+                           coins[0] <= v.coins <= coins[1] and \
+                           v is not safe_player])
         except IndexError:
             return None
+
+    def random_richest_player(self,
+                              safe_player):
+        return sorted([v for i,v in self.players.items() \
+                       if v is not safe_player and \
+                       v.influence_remaining], \
+                      key=lambda p: p.coins, reverse=True)[0]
+        
 
 class Player(object):
     def __init__(self):

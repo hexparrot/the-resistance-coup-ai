@@ -354,7 +354,7 @@ class TestCoup(unittest.TestCase):
         self.assertIsNot(testgame.random_targetable_player(p, [1]), testgame.players[3])
         self.assertIsNot(testgame.random_targetable_player(p, [1]), testgame.players[4])
 
-    def test_random_targetable_rich_player(self):
+    def test_random_targetable_player_by_coins(self):
         testgame = Play_Coup(5)
 
         p = testgame.players[0]
@@ -373,7 +373,35 @@ class TestCoup(unittest.TestCase):
         self.assertIsNot(testgame.random_targetable_player_by_coins(p, [4,12]), p)
         self.assertIsNot(testgame.random_targetable_player_by_coins(p, [4,12]), pp)
         self.assertIs(testgame.random_targetable_player_by_coins(p, [4,12]), ppp)
-        
+
+        testgame.players[4].left.reveal()
+        testgame.players[4].right.reveal()
+        self.assertIsNot(testgame.random_targetable_player_by_coins(p, [4,12]), testgame.players[4])                           
+
+    def test_random_targetable_player_by_wealth(self):
+        testgame = Play_Coup(5)
+
+        p = testgame.players[0]
+        testgame.players[1].coins = 2
+        testgame.players[2].coins = 3
+        testgame.players[3].coins = 4
+        testgame.players[4].coins = 5
+
+        self.assertIs(testgame.random_richest_player(p), testgame.players[4])
+        testgame.players[4].left.reveal()
+        self.assertIs(testgame.random_richest_player(p), testgame.players[4])
+        testgame.players[4].right.reveal()
+        self.assertIs(testgame.random_richest_player(p), testgame.players[3])
+
+        testgame.players[2].coins = 4
+
+        self.assertIsNot(testgame.random_richest_player(p), testgame.players[0])
+        self.assertIsNot(testgame.random_richest_player(p), testgame.players[1])
+        self.assertIsNot(testgame.random_richest_player(p), testgame.players[4])
+
+        for _ in range(50):
+            self.assertEqual(testgame.random_richest_player(p).coins, 4)        
+    
     def test_cannot_target_self(self):
         testgame = Play_Coup(5)
 
@@ -392,7 +420,7 @@ class TestCoup(unittest.TestCase):
         
         Action          Used        Targets     Blocked     
         income          yes
-        foreign_aid     yes         random      no
+        foreign_aid     yes                     no
         coup            yes
         steal           yes         random      no
         tax             yes
@@ -438,7 +466,7 @@ class TestCoup(unittest.TestCase):
         
         Action          Used        Targets     Blocked     
         income          yes
-        foreign_aid     yes         random      random pick duke
+        foreign_aid     yes                     if random char is duke
         coup            yes
         steal           yes         random      victim/honest
         tax             yes
@@ -490,11 +518,72 @@ class TestCoup(unittest.TestCase):
         
         Action          Used        Targets     Blocked     
         income          yes
-        foreign_aid     yes         random      any available duke
+        foreign_aid     yes                     any available duke
         coup            yes
         steal           yes         random      any available captain/ambassador
         tax             yes
         assassinate     yes         random      any available contessa
+        exchange        yes         random      no
+
+        """
+        from itertools import cycle
+        from random import choice, randint
+
+        PLAYERS = 5
+        testgame = Play_Coup(PLAYERS)
+
+        for i in cycle(range(PLAYERS)):
+            acting_player = testgame.players[i]
+            
+            if not acting_player.influence_remaining:
+                continue
+            elif sum(1 for p in range(PLAYERS) if testgame.players[p].influence_remaining) == 1:
+                return testgame.players[i].alpha
+            
+            while 1:
+                try:
+                    action = choice(Play_Coup.ACTIONS['all'])
+                    if action in Play_Coup.ACTIONS['blockable']:
+                        for savior in range(PLAYERS):
+                            if savior != i and action in testgame.players[savior].valid_blocks:
+                                raise BlockedAction("{0} ({1}) blocks {2}'s ({3}) {4}".format(testgame.players[savior].alpha,
+                                                                                              savior,
+                                                                                              acting_player.alpha,
+                                                                                              i,
+                                                                                              action))
+                        else:
+                            random_player = testgame.random_targetable_player(acting_player)
+                            if action in Play_Coup.ACTIONS['targets_influence']:
+                                position, random_target = random_player.random_remaining_influence
+                                testgame.players[i].perform(action, random_target)
+                            elif action in Play_Coup.ACTIONS['targets_player']:
+                                testgame.players[i].perform(action, random_player)
+                    else:
+                        if action in Play_Coup.ACTIONS['targets_influence']:
+                            random_player = testgame.random_targetable_player(acting_player)
+                            position, random_target = random_player.random_remaining_influence
+                            testgame.players[i].perform(action, random_target)
+                        elif action == 'exchange':
+                            testgame.players[i].perform(action, testgame.court_deck)
+                        else:
+                            testgame.players[i].perform(action)
+                    break
+                except (IllegalTarget, IllegalAction):
+                    pass
+                except BlockedAction as e:
+                    break
+
+    def test_gameplay_random_actions_calculated_targets_block_all_no_doubts(self):
+        """
+        AI PROFILE:
+        
+        Action          Used        Targets     Blocked     
+        income          yes
+        foreign_aid     yes                     any available duke
+        coup            yes
+        steal           yes         richest     any available captain/ambassador
+        tax             yes
+        assassinate     yes         weakest     any available contessa
         exchange        yes         random      no
 
         """
