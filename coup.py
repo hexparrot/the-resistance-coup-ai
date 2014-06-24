@@ -1,5 +1,13 @@
 class Play_Coup(object):
-    def __init__(self, players=5):
+    ACTIONS = {
+        'all': ['income', 'foreign_aid', 'coup', 'steal', 'tax', 'assassinate', 'exchange'],
+        'blockable': ['assassinate', 'steal', 'foreign_aid'],
+        'targets_influence': ['coup', 'assassinate'],
+        'targets_player': ['steal'],
+        'bluffable': ['steal', 'tax', 'assassinate', 'exchange']
+        }
+    
+    def __init__(self, players):
         from random import shuffle
         
         self.players = {i:Player() for i in xrange(players)}
@@ -15,6 +23,11 @@ class Play_Coup(object):
             self.players[p].left = self.court_deck.pop()
             self.players[p].right = self.court_deck.pop()
 
+    def random_targetable_player(self, safe_player):
+        from random import choice
+        return choice([self.players[i] for i,v in self.players.iteritems() \
+                       if v.influence_remaining and v is not safe_player])
+
 class Player(object):
     def __init__(self):
         self.coins = 2
@@ -26,6 +39,11 @@ class Player(object):
 
     def perform(self, action, player_target=None):
         from itertools import chain
+
+        if player_target and \
+           (player_target is self.left or \
+           player_target is self.right):
+            raise IllegalTarget("you may not target yourself")
         
         for inf in chain([Influence,], Influence.__subclasses__()):
             if hasattr(inf, action):
@@ -36,6 +54,10 @@ class Player(object):
                 break
         else:
             raise IllegalAction("no action %s" % action)
+
+    def influences(self, influence):
+        return (not self.left.revealed and str(self.left) == influence) or \
+               (not self.right.revealed and str(self.right) == influence)
 
     @property
     def valid_actions(self):

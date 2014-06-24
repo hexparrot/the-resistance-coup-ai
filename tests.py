@@ -277,7 +277,7 @@ class TestCoup(unittest.TestCase):
 
         self.assertEquals(pp.influence_remaining, 0)
 
-        with self.assertRaises(IllegalTarget): 
+        with self.assertRaises(IllegalTarget):
             position, influence = pp.random_remaining_influence
 
     def test_player_list_remaining_influences_friendly(self):
@@ -294,7 +294,48 @@ class TestCoup(unittest.TestCase):
         p.right.reveal()
         self.assertEqual(p.status, "<Assassin> <Duke>")
 
-    def test_gameplay_no_blocks(self):
+    def test_player_controls_influence(self):
+        p = Player()
+        
+        p.left = Assassin()
+        p.right = Duke()
+
+        self.assertTrue(p.influences('Assassin'))
+        self.assertTrue(p.influences('Duke'))
+        self.assertFalse(p.influences('Contessa'))
+        self.assertFalse(p.influences('Captain'))
+        self.assertFalse(p.influences('Ambassador'))
+
+        p.left.reveal()
+        self.assertFalse(p.influences('Assassin'))
+
+    def test_random_targetable_player(self):
+        testgame = Play_Coup(5)
+
+        p = testgame.players[0]
+        self.assertIsInstance(testgame.random_targetable_player(p), Player)
+
+        for _ in xrange(50):
+            self.assertIsNot(testgame.random_targetable_player(p), p)
+
+        pp = testgame.players[1]
+
+        for _ in xrange(50):
+            self.assertIsNot(testgame.random_targetable_player(p), p)
+
+    def test_cannot_target_self(self):
+        testgame = Play_Coup(5)
+
+        p = testgame.players[0]
+        p.perform('tax')
+
+        with self.assertRaises(IllegalTarget): 
+            p.perform('assassinate', p.left)
+
+        with self.assertRaises(IllegalTarget): 
+            p.perform('assassinate', p.right)
+
+    def test_gameplay_random_actions_random_targets_no_blocks(self):
         from itertools import cycle
         from random import choice, randint
 
@@ -302,28 +343,67 @@ class TestCoup(unittest.TestCase):
         testgame = Play_Coup(PLAYERS)
 
         for i in cycle(xrange(PLAYERS)):
-            if not testgame.players[i].influence_remaining:
+            acting_player = testgame.players[i]
+            
+            if not acting_player.influence_remaining:
                 continue
             elif sum(1 for p in xrange(PLAYERS) if testgame.players[p].influence_remaining) == 1:
                 break
-
-            available_actions = ['income', 'foreign_aid', 'coup', 'steal', 'tax', 'assassinate', 'exchange']
             
             while 1:
                 try:
-                    action = choice(available_actions)
-                    if action in ['coup', 'assassinate']:
-                        random_player = testgame.players[randint(0,PLAYERS-1)]
+                    action = choice(Play_Coup.ACTIONS['all'])
+                    if action in Play_Coup.ACTIONS['targets_influence']:
+                        random_player = testgame.random_targetable_player(acting_player)
                         position, random_target = random_player.random_remaining_influence
                         testgame.players[i].perform(action, random_target)
-                    elif action in ['steal']:
-                        random_player = testgame.players[randint(0,PLAYERS-1)]
+                    elif action in Play_Coup.ACTIONS['targets_player']:
+                        random_player = testgame.random_targetable_player(acting_player)
                         testgame.players[i].perform(action, random_player)
                     else:
                         testgame.players[i].perform(action)
                     break
                 except (IllegalTarget, IllegalAction):
                     pass
+
+    def test_gameplay_random_actions_random_targets_honest_blocks_no_doubts(self):
+        from itertools import cycle
+        from random import choice, randint
+
+        PLAYERS = 5
+        testgame = Play_Coup(PLAYERS)
+
+        for i in cycle(xrange(PLAYERS)):
+            acting_player = testgame.players[i]
+            
+            if not acting_player.influence_remaining:
+                continue
+            elif sum(1 for p in xrange(PLAYERS) if testgame.players[p].influence_remaining) == 1:
+                break
+            
+            while 1:
+                try:
+                    action = choice(Play_Coup.ACTIONS['all'])
+                    if action in Play_Coup.ACTIONS['blockable']:
+                        random_player = testgame.random_targetable_player(acting_player)
+                        if action not in random_player.valid_blocks:
+                            if action in Play_Coup.ACTIONS['targets_influence']:
+                                position, random_target = random_player.random_remaining_influence
+                                testgame.players[i].perform(action, random_target)
+                            elif action in Play_Coup.ACTIONS['targets_player']:
+                                testgame.players[i].perform(action, random_player)
+                    else:
+                        if action in Play_Coup.ACTIONS['targets_influence']:
+                            random_player = testgame.random_targetable_player(acting_player)
+                            position, random_target = random_player.random_remaining_influence
+                            testgame.players[i].perform(action, random_target)
+                        else:
+                            testgame.players[i].perform(action)
+                    break
+                except (IllegalTarget, IllegalAction):
+                    pass
+            
+        
 
 if __name__ == "__main__":
     unittest.main()

@@ -28,18 +28,18 @@ if __name__ == "__main__":
             
             try:
                 action = raw_input('what would you like to do? ')
-                if action in ['coup', 'assassinate']:
+                if action in coup.Play_Coup.ACTIONS['targets_influence']:
                     player_target = int(raw_input('whom will you target (#0-4)? '))
                     position, random_target = testgame.players[player_target].random_remaining_influence
                     testgame.players[i].perform(action, random_target)
-                elif action in ['steal']:
+                elif action in coup.Play_Coup.ACTIONS['targets_player']:
                     player_target = int(raw_input('whom will you target (#0-4)? '))
                     testgame.players[i].perform(action, testgame.players[player_target])
                 else:
                     testgame.players[i].perform(action)
                 break
-            except (coup.IllegalTarget, coup.IllegalAction):
-                pass
+            except (coup.IllegalTarget, coup.IllegalAction) as e:
+                print e.message
 
         print
         print
