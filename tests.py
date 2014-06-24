@@ -10,19 +10,19 @@ class TestCoup(unittest.TestCase):
 
     def test_player_class(self):
         p = Player()
-        self.assertEquals(p.coins, 2)
+        self.assertEqual(p.coins, 2)
         self.assertIsNone(p.left)
         self.assertIsNone(p.left)
 
     def test_income(self):
         p = Player()
         p.perform('income')
-        self.assertEquals(p.coins, 3)
+        self.assertEqual(p.coins, 3)
 
     def test_foreign_aid(self):
         p = Player()
         p.perform('foreign_aid')
-        self.assertEquals(p.coins, 4)
+        self.assertEqual(p.coins, 4)
 
     def test_influence_adding(self):
         p = Player()
@@ -112,41 +112,41 @@ class TestCoup(unittest.TestCase):
         p = Player()
         pp = Player()
 
-        self.assertEquals(p.coins, 2)
-        self.assertEquals(pp.coins, 2)
+        self.assertEqual(p.coins, 2)
+        self.assertEqual(pp.coins, 2)
 
         p.perform('steal', pp)
-        self.assertEquals(p.coins, 4)
-        self.assertEquals(pp.coins, 0)
+        self.assertEqual(p.coins, 4)
+        self.assertEqual(pp.coins, 0)
 
         p.perform('steal', pp)
-        self.assertEquals(p.coins, 4)
-        self.assertEquals(pp.coins, 0)
+        self.assertEqual(p.coins, 4)
+        self.assertEqual(pp.coins, 0)
 
         pp.perform('income')
-        self.assertEquals(pp.coins, 1)
+        self.assertEqual(pp.coins, 1)
         p.perform('steal', pp)
-        self.assertEquals(p.coins, 5)
-        self.assertEquals(pp.coins, 0)
+        self.assertEqual(p.coins, 5)
+        self.assertEqual(pp.coins, 0)
         
     def test_duke_tax(self):
         p = Player()
 
-        self.assertEquals(p.coins, 2)
+        self.assertEqual(p.coins, 2)
         p.perform('tax')
-        self.assertEquals(p.coins, 5)
+        self.assertEqual(p.coins, 5)
 
     def test_influence_remaining(self):
         p = Player()
 
         p.left = Influence()
         p.right = Influence()
-        self.assertEquals(p.influence_remaining, 2)
+        self.assertEqual(p.influence_remaining, 2)
 
         p.left.reveal()
-        self.assertEquals(p.influence_remaining, 1)
+        self.assertEqual(p.influence_remaining, 1)
         p.right.reveal()
-        self.assertEquals(p.influence_remaining, 0)
+        self.assertEqual(p.influence_remaining, 0)
         
     def test_assassin_assassinate(self):
         p = Player()
@@ -156,21 +156,21 @@ class TestCoup(unittest.TestCase):
         pp.left = Influence()
         pp.right = Influence()
 
-        self.assertEquals(pp.influence_remaining, 2)
+        self.assertEqual(pp.influence_remaining, 2)
         position, influence = pp.random_remaining_influence
 
         with self.assertRaises(IllegalAction):
             p.perform('assassinate', influence)
 
-        self.assertEquals(pp.influence_remaining, 2)
-        self.assertEquals(p.coins, 2)
+        self.assertEqual(pp.influence_remaining, 2)
+        self.assertEqual(p.coins, 2)
         p.perform('income')
 
         position, influence = pp.random_remaining_influence
         
         p.perform('assassinate', influence)
-        self.assertEquals(p.coins, 0)
-        self.assertEquals(pp.influence_remaining, 1)
+        self.assertEqual(p.coins, 0)
+        self.assertEqual(pp.influence_remaining, 1)
 
     def test_ambassador_exchange(self):
         testgame = Play_Coup(5)
@@ -179,29 +179,29 @@ class TestCoup(unittest.TestCase):
         p.left = Assassin()
         p.right = Contessa()
 
-        self.assertEquals(len(testgame.court_deck), 5)
+        self.assertEqual(len(testgame.court_deck), 5)
 
-        self.assertEquals(p.influence_remaining, 2)
+        self.assertEqual(p.influence_remaining, 2)
         p.perform('exchange', testgame.court_deck)
-        self.assertEquals(p.influence_remaining, 2)
+        self.assertEqual(p.influence_remaining, 2)
 
         self.assertTrue(all([not c.revealed for c in testgame.court_deck]))
 
         p.left.reveal()
-        self.assertEquals(p.influence_remaining, 1)
+        self.assertEqual(p.influence_remaining, 1)
         p.perform('exchange', testgame.court_deck)
-        self.assertEquals(p.influence_remaining, 1)
+        self.assertEqual(p.influence_remaining, 1)
 
         self.assertTrue(all([not c.revealed for c in testgame.court_deck]))
 
-        self.assertEquals(len(testgame.court_deck), 5)
+        self.assertEqual(len(testgame.court_deck), 5)
 
     def test_friendly_influence_strings(self):
-        self.assertEquals(str(Ambassador()), 'Ambassador')
-        self.assertEquals(str(Assassin()), 'Assassin')
-        self.assertEquals(str(Captain()), 'Captain')
-        self.assertEquals(str(Contessa()), 'Contessa')
-        self.assertEquals(str(Duke()), 'Duke')
+        self.assertEqual(str(Ambassador()), 'Ambassador')
+        self.assertEqual(str(Assassin()), 'Assassin')
+        self.assertEqual(str(Captain()), 'Captain')
+        self.assertEqual(str(Contessa()), 'Contessa')
+        self.assertEqual(str(Duke()), 'Duke')
 
     def test_friendly_player_strings(self):
         p = Player()
@@ -228,36 +228,36 @@ class TestCoup(unittest.TestCase):
 
         p.left = Contessa()
         p.right = Ambassador()
-        self.assertEqual(p.valid_actions, ['exchange'])
+        self.assertListEqual(sorted(p.valid_actions), ['exchange'])
 
         p.left = Captain()
         p.right = Captain()
-        self.assertEqual(p.valid_actions, ['steal'])
+        self.assertListEqual(sorted(p.valid_actions), ['steal'])
 
         p.left = Assassin()
         p.right = Duke()
-        self.assertEqual(p.valid_actions, ['assassinate', 'tax'])
+        self.assertListEqual(sorted(p.valid_actions), ['assassinate', 'tax'])
 
         p.left.reveal()
-        self.assertEqual(p.valid_actions, ['tax'])
+        self.assertListEqual(sorted(p.valid_actions), ['tax'])
 
     def test_player_available_blocks(self):
         p = Player()
 
         p.left = Assassin()
         p.right = Duke()
-        self.assertEqual(p.valid_blocks, ['foreign_aid'])
+        self.assertListEqual(sorted(p.valid_blocks), ['foreign_aid'])
 
         p.left = Contessa()
         p.right = Ambassador()
-        self.assertEqual(p.valid_blocks, ['assassinate', 'steal'])
+        self.assertListEqual(sorted(p.valid_blocks), ['assassinate', 'steal'])
 
         p.right.reveal()
-        self.assertEqual(p.valid_blocks, ['assassinate'])
+        self.assertListEqual(sorted(p.valid_blocks), ['assassinate'])
 
         p.left = Captain()
         p.right = Captain()
-        self.assertEqual(p.valid_blocks, ['steal'])
+        self.assertListEqual(sorted(p.valid_blocks), ['steal'])
 
     def test_player_return_available_influence(self):
         p = Player()
@@ -266,12 +266,12 @@ class TestCoup(unittest.TestCase):
         pp.left = Assassin()
         pp.right = Duke()
 
-        self.assertEquals(pp.influence_remaining, 2)
+        self.assertEqual(pp.influence_remaining, 2)
         position, influence = pp.random_remaining_influence
 
         p.coins = 7
         p.perform('coup', influence)
-        self.assertEquals(pp.influence_remaining, 1)
+        self.assertEqual(pp.influence_remaining, 1)
 
         if position == 'left':
             self.assertTrue(pp.left.revealed)
@@ -284,7 +284,7 @@ class TestCoup(unittest.TestCase):
         p.coins = 7
         p.perform('coup', influence)
 
-        self.assertEquals(pp.influence_remaining, 0)
+        self.assertEqual(pp.influence_remaining, 0)
 
         with self.assertRaises(IllegalTarget):
             position, influence = pp.random_remaining_influence
@@ -324,12 +324,12 @@ class TestCoup(unittest.TestCase):
         p = testgame.players[0]
         self.assertIsInstance(testgame.random_targetable_player(p), Player)
 
-        for _ in xrange(50):
+        for _ in range(50):
             self.assertIsNot(testgame.random_targetable_player(p), p)
 
         pp = testgame.players[1]
 
-        for _ in xrange(50):
+        for _ in range(50):
             self.assertIsNot(testgame.random_targetable_player(p), p)
 
     def test_cannot_target_self(self):
@@ -364,12 +364,12 @@ class TestCoup(unittest.TestCase):
         PLAYERS = 5
         testgame = Play_Coup(PLAYERS)
 
-        for i in cycle(xrange(PLAYERS)):
+        for i in cycle(range(PLAYERS)):
             acting_player = testgame.players[i]
             
             if not acting_player.influence_remaining:
                 continue
-            elif sum(1 for p in xrange(PLAYERS) if testgame.players[p].influence_remaining) == 1:
+            elif sum(1 for p in range(PLAYERS) if testgame.players[p].influence_remaining) == 1:
                 return testgame.players[i].alpha
             
             while 1:
@@ -410,12 +410,12 @@ class TestCoup(unittest.TestCase):
         PLAYERS = 5
         testgame = Play_Coup(PLAYERS)
 
-        for i in cycle(xrange(PLAYERS)):
+        for i in cycle(range(PLAYERS)):
             acting_player = testgame.players[i]
             
             if not acting_player.influence_remaining:
                 continue
-            elif sum(1 for p in xrange(PLAYERS) if testgame.players[p].influence_remaining) == 1:
+            elif sum(1 for p in range(PLAYERS) if testgame.players[p].influence_remaining) == 1:
                 return testgame.players[i].alpha
             
             while 1:
@@ -462,19 +462,19 @@ class TestCoup(unittest.TestCase):
         PLAYERS = 5
         testgame = Play_Coup(PLAYERS)
 
-        for i in cycle(xrange(PLAYERS)):
+        for i in cycle(range(PLAYERS)):
             acting_player = testgame.players[i]
             
             if not acting_player.influence_remaining:
                 continue
-            elif sum(1 for p in xrange(PLAYERS) if testgame.players[p].influence_remaining) == 1:
+            elif sum(1 for p in range(PLAYERS) if testgame.players[p].influence_remaining) == 1:
                 return testgame.players[i].alpha
             
             while 1:
                 try:
                     action = choice(Play_Coup.ACTIONS['all'])
                     if action in Play_Coup.ACTIONS['blockable']:
-                        for savior in xrange(PLAYERS):
+                        for savior in range(PLAYERS):
                             if savior != i and action in testgame.players[savior].valid_blocks:
                                 raise BlockedAction("{0} ({1}) blocks {2}'s ({3}) {4}".format(testgame.players[savior].alpha,
                                                                                               savior,

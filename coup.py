@@ -10,22 +10,22 @@ class Play_Coup(object):
     def __init__(self, players):
         from random import shuffle
         
-        self.players = {i:Player() for i in xrange(players)}
-        self.court_deck = [Contessa() for _ in xrange(3)] + \
-                          [Ambassador() for _ in xrange(3)] + \
-                          [Duke() for _ in xrange(3)] + \
-                          [Assassin() for _ in xrange(3)] + \
-                          [Captain() for _ in xrange(3)]
+        self.players = {i:Player() for i in range(players)}
+        self.court_deck = [Contessa() for _ in range(3)] + \
+                          [Ambassador() for _ in range(3)] + \
+                          [Duke() for _ in range(3)] + \
+                          [Assassin() for _ in range(3)] + \
+                          [Captain() for _ in range(3)]
         
         shuffle(self.court_deck)
 
-        for p in xrange(players):
+        for p in range(players):
             self.players[p].left = self.court_deck.pop()
             self.players[p].right = self.court_deck.pop()
 
     def random_targetable_player(self, safe_player):
         from random import choice
-        return choice([self.players[i] for i,v in self.players.iteritems() \
+        return choice([self.players[i] for i,v in self.players.items() \
                        if v.influence_remaining and v is not safe_player])
 
 class Player(object):
