@@ -79,7 +79,11 @@ class simulations(object):
                     if action in Play_Coup.ACTIONS['blockable']:
                         for savior in xrange(PLAYERS):
                             if savior != i and action in testgame.players[savior].valid_blocks:
-                                raise BlockedAction
+                                raise BlockedAction("{0} ({1}) blocks {2}'s ({3}) {4}".format(testgame.players[savior].alpha,
+                                                                                              savior,
+                                                                                              acting_player.alpha,
+                                                                                              i,
+                                                                                              action))
                         else:
                             random_player = testgame.random_targetable_player(acting_player)
                             if action in Play_Coup.ACTIONS['targets_influence']:
@@ -101,6 +105,7 @@ class simulations(object):
                     pass
                 except BlockedAction as e:
                     break
+                    #print e.message
         
 if __name__ == "__main__":
     c = Counter()
