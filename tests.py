@@ -54,8 +54,8 @@ class TestCoup(unittest.TestCase):
         self.assertFalse(i.revealed, False)
 
     def test_coup(self):
-        p = Player()
-        pp = Player()
+        p = AI_Persona()
+        pp = AI_Persona()
 
         p.left = Influence()
         pp.left = Influence()
@@ -149,8 +149,8 @@ class TestCoup(unittest.TestCase):
         self.assertEqual(p.influence_remaining, 0)
         
     def test_assassin_assassinate(self):
-        p = Player()
-        pp = Player()
+        p = AI_Persona()
+        pp = AI_Persona()
 
         p.left = Assassin()
         pp.left = Influence()
@@ -260,8 +260,8 @@ class TestCoup(unittest.TestCase):
         self.assertListEqual(sorted(p.valid_blocks), ['steal'])
 
     def test_player_return_available_influence(self):
-        p = Player()
-        pp = Player()
+        p = AI_Persona()
+        pp = AI_Persona()
 
         pp.left = Assassin()
         pp.right = Duke()
@@ -364,7 +364,13 @@ class TestCoup(unittest.TestCase):
         self.assertIs(a.select_opponent(z, coin_range=[6,12]), testgame.players[3])
 
         testgame.players[4].left.reveal()
-        self.assertIs(a.select_opponent(z, influence=[1]), testgame.players[4])
+        self.assertIs(a.select_opponent(z, influence=[1]), testgame.players[4])        
+
+    def test_ai_persona_will_intervene(self):
+        a = AI_Persona()
+        a.left = Contessa()
+        a.right = Captain()
+
         
     def test_random_targetable_player(self):
         testgame = Play_Coup(5)

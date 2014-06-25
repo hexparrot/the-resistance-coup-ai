@@ -10,7 +10,7 @@ class Play_Coup(object):
     def __init__(self, players):
         from random import shuffle
         
-        self.players = {i:Player() for i in range(players)}
+        self.players = {i:AI_Persona() for i in range(players)}
         self.court_deck = [Contessa() for _ in range(3)] + \
                           [Ambassador() for _ in range(3)] + \
                           [Duke() for _ in range(3)] + \
@@ -115,20 +115,7 @@ class Player(object):
     def influence_remaining(self):
         return sum(1 for i in (self.left, self.right) if not i.revealed)
 
-    @property
-    def random_remaining_influence(self):
-        if self.influence_remaining == 2:
-            import random
-            choice = random.choice(['left', 'right'])
-            return (choice, getattr(self, choice))
-        elif self.influence_remaining == 1:
-            if self.left.revealed:
-                return ('right', self.right)
-            return ('left', self.left)
-        else:
-            raise IllegalTarget("player already has no remaining influence")
-
-class AI_Persona(Player):
+class AI_Persona(Player):       
     def select_opponent(self,
                         all_players,
                         influence=[1,2],
@@ -142,6 +129,19 @@ class AI_Persona(Player):
                            coin_range[0] <= v.coins <= coin_range[1]])
         except IndexError:
             return None
+
+    @property
+    def random_remaining_influence(self):
+        if self.influence_remaining == 2:
+            import random
+            choice = random.choice(['left', 'right'])
+            return (choice, getattr(self, choice))
+        elif self.influence_remaining == 1:
+            if self.left.revealed:
+                return ('right', self.right)
+            return ('left', self.left)
+        else:
+            raise IllegalTarget("player already has no remaining influence")    
 
     @staticmethod
     def clone(player):
