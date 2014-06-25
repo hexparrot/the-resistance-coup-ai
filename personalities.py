@@ -6,11 +6,10 @@ PERSONALITIES = {
                 },
             'assassinate': {
                 'performer': lambda p: True,
-                'victim': []
                 },
             'steal': {
-                'performer': [],
-                'victim': []
+                'performer': lambda p: p.coins + 2 >= 7,
+                'victim': lambda v: v.coins < 3
                 },
             'tax': {
                 'performer': []
