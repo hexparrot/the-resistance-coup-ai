@@ -45,7 +45,7 @@ def play_game():
         print()
 
 class simulations(object):
-    def test_gameplay_random_actions_calculated_targets_selfish_blocks_no_doubts(self):
+    def test_gameplay_naive_actions_calculated_targets_selfish_blocks_no_doubts(self):
         """
         AI PROFILE:
         
@@ -53,7 +53,7 @@ class simulations(object):
         income          yes
         foreign_aid     yes                     any available duke
         coup            yes
-        steal           yes         richest     victim only
+        steal           yes         anybody     victim only
         tax             yes
         assassinate     yes         weakest     victim only
         exchange        yes         random      no
@@ -75,9 +75,9 @@ class simulations(object):
             
             while 1:
                 try:
-                    action = choice(Play_Coup.ACTIONS['all'])
+                    action = acting_player.random_naive_priority()
                     if action == 'steal':
-                        random_player = testgame.random_richest_player(acting_player)
+                        random_player = acting_player.select_opponent(testgame.players)
                         if 'steal' in random_player.valid_blocks:
                             raise BlockedAction("{0} blocks {1}'s ({2}) {3}".format(random_player.alpha,
                                                                                     acting_player.alpha,
@@ -86,8 +86,8 @@ class simulations(object):
                         else:
                             testgame.players[i].perform(action, random_player)
                     elif action == 'assassinate':
-                        random_player = testgame.random_targetable_player(acting_player, [1])or \
-                                        testgame.random_richest_player(acting_player)
+                        random_player = acting_player.select_opponent(testgame.players, [1]) or \
+                                        acting_player.select_opponent(testgame.players)
                         if 'assassinate' in random_player.valid_blocks:
                             raise BlockedAction("{0} blocks {1}'s ({2}) {3}".format(random_player.alpha,
                                                                                     acting_player.alpha,
@@ -109,8 +109,8 @@ class simulations(object):
                     elif action == 'exchange':
                         testgame.players[i].perform(action, testgame.court_deck)
                     elif action == 'coup':
-                        random_player = testgame.random_targetable_player(acting_player, [1]) or \
-                                        testgame.random_richest_player(acting_player)
+                        random_player = acting_player.select_opponent(testgame.players, [1]) or \
+                                        acting_player.select_opponent(testgame.players)
                         position, random_target = random_player.random_remaining_influence
                         testgame.players[i].perform(action, random_target)
                     else:
@@ -120,11 +120,12 @@ class simulations(object):
                     pass
                 except BlockedAction as e:
                     break
+                
         
 if __name__ == "__main__":
     c = Counter()
     for _ in range(1000):
-        c.update([simulations().test_gameplay_random_actions_calculated_targets_selfish_blocks_no_doubts(),])
+        c.update([simulations().test_gameplay_naive_actions_calculated_targets_selfish_blocks_no_doubts(),])
 
     for i,v in c.most_common():
         print('{0}{1}'.format(i.ljust(25), v))

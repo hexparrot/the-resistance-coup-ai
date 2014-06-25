@@ -4,7 +4,7 @@ class Play_Coup(object):
         'blockable': ['assassinate', 'steal', 'foreign_aid'],
         'targets_influence': ['coup', 'assassinate'],
         'targets_player': ['steal'],
-        'bluffable': ['steal', 'tax', 'assassinate', 'exchange']
+        'bluffable': ['steal', 'tax', 'assassinate', 'exchange'],
         }
     
     def __init__(self, players):
@@ -118,17 +118,57 @@ class Player(object):
 class AI_Persona(Player):       
     def select_opponent(self,
                         all_players,
-                        influence=[1,2],
-                        coin_range=[0,12]):
+                        influence=[1,2]):
         from random import choice
-        
         try:
             return choice([v for i,v in all_players.items() \
                            if v is not self and \
-                           v.influence_remaining in influence and \
-                           coin_range[0] <= v.coins <= coin_range[1]])
+                           v.influence_remaining in influence])
         except IndexError:
             return None
+
+    def naive_priority(self):
+        if self.coins >= 10:
+            return 'coup'
+        elif self.influences('Duke'):
+            if self.coins < 7:
+                return 'tax'
+            else:
+                return 'coup'
+        elif self.influences('Captain'):
+            if self.coins < 7:
+                return 'coin'
+            else:
+                return 'coup'
+        elif self.influences('Assassin'):
+            if self.coins < 3:
+                return 'income'
+            else:
+                return 'assassinate'
+        elif self.influences('Ambassador'):
+            if self.coins < 7:
+                return 'coin'
+            else:
+                return 'coup'
+        elif self.influences('Contessa'):
+            if self.coins < 7:
+                return 'coin'
+            else:
+                return 'coup'
+
+    def random_naive_priority(self):
+        from random import choice
+
+        action = self.naive_priority()
+
+        if action == 'coin':
+            if 'steal' in self.valid_actions:
+                return choice(['steal'] * 3 + ['foreign_aid'] * 3 + ['income'])
+            return choice(['steal'] + ['foreign_aid'] * 3 + ['income'])
+        elif action == 'assassinate':
+            return choice(['assassinate'] * 5 + ['coup'] + ['income'])
+        else:
+            return action        
 
     @property
     def random_remaining_influence(self):
@@ -183,9 +223,7 @@ class AI_Profile(object):
         except KeyError as e:
             pass
 
-        return False
-            
-
+        return False        
 
 class Influence(object):
     def __init__(self):
