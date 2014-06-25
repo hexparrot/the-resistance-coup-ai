@@ -128,6 +128,29 @@ class Player(object):
         else:
             raise IllegalTarget("player already has no remaining influence")
 
+class AI_Persona(Player):
+    def select_opponent(self,
+                        all_players,
+                        influence=[1,2],
+                        coin_range=[0,12]):
+        from random import choice
+        
+        try:
+            return choice([v for i,v in all_players.items() \
+                           if v is not self and \
+                           v.influence_remaining in influence and \
+                           coin_range[0] <= v.coins <= coin_range[1]])
+        except IndexError:
+            return None
+
+    @staticmethod
+    def clone(player):
+        n = AI_Persona()
+        n.coins = player.coins
+        n.left = player.left
+        n.right = player.right
+        return n
+
 class Influence(object):
     def __init__(self):
         self.revealed = False

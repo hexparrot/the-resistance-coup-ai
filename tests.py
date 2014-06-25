@@ -318,6 +318,54 @@ class TestCoup(unittest.TestCase):
         p.left.reveal()
         self.assertFalse(p.influences('Assassin'))
 
+    def test_ai_persona(self):
+        a = AI_Persona()
+        self.assertIsInstance(a, Player)
+
+    def test_ai_persona_replace_player(self):
+        testgame = Play_Coup(5)
+
+        p = testgame.players[0]
+        a = AI_Persona.clone(p)
+        
+        self.assertEqual(a.coins, p.coins)
+        self.assertIs(a.left, p.left)
+        self.assertIs(a.right, p.right)
+
+    def test_ai_persona_replace_player(self):
+        testgame = Play_Coup(5)
+
+        a = AI_Persona.clone(testgame.players[0])
+        testgame.players[0] = a
+
+        self.assertIs(a, testgame.players[0])
+        self.assertIsInstance(a, AI_Persona)
+
+    def test_ai_persona_select_opponent(self):
+        testgame = Play_Coup(5)
+
+        a = AI_Persona.clone(testgame.players[0])
+        testgame.players[0] = a
+
+        z = testgame.players
+
+        self.assertIsNot(a.select_opponent(z), a)
+        self.assertIsNot(a.select_opponent(z, [1,2], [0,12]), testgame.players[0])
+
+        self.assertIsNone(a.select_opponent(z, influence=[1]))
+        self.assertIsNone(a.select_opponent(z, coin_range=[3,12]))
+
+        self.assertIsInstance(a.select_opponent(z), Player)
+
+        testgame.players[1].coins = 3
+        testgame.players[2].coins = 5
+        testgame.players[3].coins = 12
+        self.assertIs(a.select_opponent(z, coin_range=[3,3]), testgame.players[1])
+        self.assertIs(a.select_opponent(z, coin_range=[6,12]), testgame.players[3])
+
+        testgame.players[4].left.reveal()
+        self.assertIs(a.select_opponent(z, influence=[1]), testgame.players[4])
+        
     def test_random_targetable_player(self):
         testgame = Play_Coup(5)
 
