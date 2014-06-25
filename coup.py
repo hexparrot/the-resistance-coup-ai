@@ -151,6 +151,42 @@ class AI_Persona(Player):
         n.right = player.right
         return n
 
+class AI_Profile(object):
+    def __init__(self, player, personality='passive'):
+        from personalities import PERSONALITIES
+        
+        self.player = player
+        self.personality = personality
+        self.rules = PERSONALITIES[personality]
+
+    def will_intervene(self, action, performer, victim=None):
+        try:
+            if action in self.player.valid_blocks:
+                participants = self.rules['honest_intervention'][action]
+                for p, cond in participants.items():
+                    if p == 'performer':
+                        if cond and not cond(performer):
+                            break
+                else:
+                    return True
+        except KeyError:
+            pass
+        
+        try:
+            participants = self.rules['calculated_intervention'][action]
+            for p, cond in participants.items():
+                if p == 'performer':
+                    if cond and not cond(performer):
+                        break
+            else:
+                return True
+        except KeyError as e:
+            pass
+
+        return False
+            
+
+
 class Influence(object):
     def __init__(self):
         self.revealed = False

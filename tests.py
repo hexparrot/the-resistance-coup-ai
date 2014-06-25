@@ -366,12 +366,97 @@ class TestCoup(unittest.TestCase):
         testgame.players[4].left.reveal()
         self.assertIs(a.select_opponent(z, influence=[1]), testgame.players[4])        
 
-    def test_ai_persona_will_intervene(self):
-        a = AI_Persona()
-        a.left = Contessa()
-        a.right = Captain()
-
+    def test_ai_profile(self):
+        testgame = Play_Coup(5)
         
+        a = AI_Profile(testgame.players[0], 'passive')
+        b = AI_Profile(testgame.players[1], 'obnoxious')
+        with self.assertRaises(KeyError):
+            c = AI_Profile(testgame.players[2], 'fake')
+
+        self.assertEqual(a.personality, 'passive')
+        self.assertEqual(b.personality, 'obnoxious')
+
+        self.assertIs(a.player, testgame.players[0])
+        self.assertIs(b.player, testgame.players[1])
+
+        self.assertIsInstance(a.player, AI_Persona)
+        self.assertIsInstance(b.player, AI_Persona)
+
+    def test_ai_profile_will_intervene_foreign_aid(self):
+        p = AI_Persona() #not duke
+        p.left = Assassin()
+        p.right = Assassin()
+
+        pp = AI_Persona() #not duke
+        pp.left = Captain()
+        pp.right = Captain()
+        
+        a = AI_Profile(p, 'passive')
+
+        self.assertFalse(a.will_intervene('foreign_aid', pp))
+
+        p.left = Duke()
+        
+        a.rules['honest_intervention']['foreign_aid'] = {
+            'performer': lambda q: True
+            }
+        self.assertTrue(a.will_intervene('foreign_aid', pp))
+
+        a.rules['honest_intervention']['foreign_aid'] = {
+            'performer': lambda q: q.coins > 5
+            }
+        self.assertFalse(a.will_intervene('foreign_aid', pp))
+
+        a.rules['calculated_intervention']['foreign_aid'] = {
+            'performer': lambda q: q.influence_remaining == 2
+            }
+        self.assertTrue(a.will_intervene('foreign_aid', pp))
+
+        pp.left.reveal()
+        self.assertFalse(a.will_intervene('foreign_aid', pp))
+
+    def test_ai_profile_will_intervene_steal(self):
+        p = AI_Persona() #not captain
+        p.left = Assassin()
+        p.right = Assassin()
+
+        pp = AI_Persona() #not captain/amb
+        pp.left = Contessa()
+        pp.right = Contessa()
+
+        ppp = AI_Persona() #captain
+        ppp.left = Captain()
+        ppp.right = Captain()
+
+        a = AI_Profile(ppp, 'passive')
+
+        self.assertFalse(a.will_intervene('steal', p, pp))
+        
+        a.rules['honest_intervention']['steal'] = {
+            'performer': lambda q: True
+            }
+        self.assertTrue(a.will_intervene('steal', p, pp))
+
+        a.rules['honest_intervention']['steal'] = {
+            'performer': lambda q: False
+            }
+        self.assertFalse(a.will_intervene('steal', p, pp))
+
+        a.rules['calculated_intervention']['steal'] = {
+            'performer': lambda q: q.coins + 2 >= 3
+            }
+        self.assertTrue(a.will_intervene('steal', p, pp))
+
+        p.coins = 0
+        self.assertFalse(a.will_intervene('steal', p, pp))
+
+        a.rules['calculated_intervention']['steal'] = {
+            'victim': lambda q: q.coins
+            }
+        self.assertTrue(a.will_intervene('steal', p, pp))
+        
+    
     def test_random_targetable_player(self):
         testgame = Play_Coup(5)
 
