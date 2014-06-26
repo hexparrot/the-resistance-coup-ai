@@ -138,27 +138,23 @@ class AI_Persona(Player):
     def naive_priority(self):
         if self.coins >= 10:
             return 'coup'
-        elif self.influences('Duke'):
+        if 'assassinate' in self.valid_actions:
+            if self.coins < 3:
+                return 'income'
+            return 'assassinate'
+        elif 'tax' in self.valid_actions:
             if self.coins < 7:
                 return 'tax'
             else:
                 return 'coup'
-        elif self.influences('Captain'):
-            if self.coins < 7:
-                return 'coin'
-            else:
-                return 'coup'
-        elif self.influences('Assassin'):
-            if self.coins < 3:
-                return 'income'
-            else:
-                return 'assassinate'
         elif self.influences('Ambassador'):
+            return 'switch'
+        elif 'steal' in self.valid_actions:
             if self.coins < 7:
-                return 'switch'
+                return 'steal'
             else:
                 return 'coup'
-        elif self.influences('Contessa'):
+        else:
             if self.coins < 7:
                 return 'coin'
             else:
@@ -173,7 +169,7 @@ class AI_Persona(Player):
             return choice(['exchange'] + ['foreign_aid'] * 3 + ['income'])
         elif action == 'coin':
             if 'steal' in self.valid_actions:
-                return choice(['steal'] * 3 + ['foreign_aid'] * 3 + ['income'])
+                return choice(['steal'] * 3 + ['foreign_aid'] + ['income'])
             return choice(['steal'] + ['foreign_aid'] * 3 + ['income'])
         elif action == 'assassinate':
             return choice(['assassinate'] * 5 + ['income'])
