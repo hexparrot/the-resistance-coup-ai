@@ -10,7 +10,7 @@ class Play_Coup(object):
     def __init__(self, players):
         from random import shuffle
         
-        self.players = {i:AI_Persona('cautious') for i in range(players)}
+        self.players = {i:AI_Persona() for i in range(players)}
         self.court_deck = [Contessa() for _ in range(3)] + \
                           [Ambassador() for _ in range(3)] + \
                           [Duke() for _ in range(3)] + \
@@ -59,6 +59,11 @@ class Player(object):
         self.coins = 2
         self.left = None
         self.right = None
+        self.public_information = []
+        self.deductions = {
+            'is': [],
+            'not': []
+            }
 
     def __str__(self):
         return '{0} {1}'.format(self.left, self.right)
@@ -73,6 +78,8 @@ class Player(object):
         
         for inf in chain([Influence,], Influence.__subclasses__()):
             if hasattr(inf, action):
+                self.deduce(action)
+                self.public_information.append(action)
                 if player_target is None:
                     getattr(inf, action)(self)
                 else:
@@ -80,6 +87,31 @@ class Player(object):
                 break
         else:
             raise IllegalAction("no action %s" % action)
+
+    def deduce(self, action):
+        if action == 'income':
+            self.deductions['not'].append('Duke')
+        elif action == 'foreign_aid':
+            self.deductions['not'].append('Duke')
+        elif action == 'coup':
+            self.deductions['not'].append('Assassin')
+        elif action == 'steal':
+            self.deductions['is'].append('Captain')
+        elif action == 'tax':
+            self.deductions['is'].append('Duke')
+        elif action == 'assassinate':
+            self.deductions['is'].append('Assassin')
+        elif action == 'exchange':
+            self.deductions['not'] = ['Ambassador']
+            self.deductions['is'] = []
+
+    def deduce_blocked(self, action):
+        if action == 'foreign_aid':
+            self.deductions['is'].append('Duke')
+        elif action == 'steal':
+            self.deductions['is'].append('Captain/Ambassador')
+        elif action == 'assassinate':
+            self.deductions['is'].append('Contessa')
 
     def influences(self, influence):
         return (not self.left.revealed and str(self.left) == influence) or \
@@ -125,8 +157,7 @@ class AI_Persona(Player):
         self.personality = personality
         self.rules = deepcopy(PERSONALITIES[personality])
         
-    def select_opponent(self,
-                        all_players):
+    def select_opponent(self, all_players):
         from random import choice
         return choice([v for i,v in all_players.items() if v is not self])
 
@@ -329,15 +360,18 @@ class BlockedAction(Exception):
                 self.message = "{0} blocks {1}'s {2}".format(self.victim,
                                                              self.performer,
                                                              self.action)
+                self.victim.deduce_blocked(action)
             else:
                 self.message = '{0} performs {1} on {2}--blocked by {3}'.format(performer,
                                                                                 action,
                                                                                 victim,
                                                                                 spectator)
+                self.spectator.deduce_blocked(action)
         elif not self.victim:
             self.message = "{0} blocks {1}'s {2}".format(spectator,
                                                          performer,
                                                          action)
+            self.spectator.deduce_blocked(action)
 
 
         

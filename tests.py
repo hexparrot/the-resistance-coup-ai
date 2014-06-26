@@ -360,7 +360,39 @@ class TestCoup(unittest.TestCase):
         self.assertIsNot(a.select_opponent(z), a)
         self.assertIsNot(a.select_opponent(z), testgame.players[0])
 
-        self.assertIsInstance(a.select_opponent(z), Player)     
+        self.assertIsInstance(a.select_opponent(z), Player)
+
+    def test_record_actions(self):
+        testgame = Play_Coup(5)
+
+        z = testgame.players[0]
+
+        z.perform('income')
+        self.assertEqual(z.public_information[0], 'income')
+        z.perform('assassinate', testgame.players[1].left)
+        self.assertEqual(z.public_information[1], 'assassinate')
+        self.assertEqual(len(z.public_information), 2)
+
+    def test_information_given(self):
+        testgame = Play_Coup(5)
+
+        z = testgame.players[0]
+
+        z.perform('foreign_aid')
+        self.assertEqual(z.deductions['not'][0], 'Duke')
+        z.perform('assassinate', testgame.players[1].left)
+        self.assertEqual(z.deductions['is'][0], 'Assassin')
+        z.perform('income')
+        self.assertEqual(z.deductions['not'][1], 'Duke')
+
+        BlockedAction('assassinate', z, testgame.players[2], None)
+        self.assertEqual(testgame.players[2].deductions['is'][0], 'Contessa')
+
+        BlockedAction('foreign_aid', z, None, testgame.players[2])
+        self.assertEqual(testgame.players[2].deductions['is'][1], 'Duke')
+
+        BlockedAction('steal', z, None, testgame.players[2])
+        self.assertEqual(testgame.players[2].deductions['is'][2], 'Captain/Ambassador')
 
     def test_ai_profile_will_intervene_foreign_aid(self):
         p = AI_Persona() #not duke
@@ -497,7 +529,7 @@ class TestCoup(unittest.TestCase):
         p.left = Ambassador()
         p.right = Ambassador()
 
-        self.assertEqual(p.naive_priority(), 'coin')
+        self.assertEqual(p.naive_priority(), 'switch')
         p.coins = 7
         self.assertEqual(p.naive_priority(), 'coup')
 

@@ -30,7 +30,6 @@ PERSONALITIES = {
         },
     'passive': {
         'honest_intervention': {},
-        'calculated_intervention': {},
-        'outright_doubt': {}
+        'calculated_intervention': {}
         }
     }
