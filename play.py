@@ -89,7 +89,7 @@ class simulations(object):
                                 for s in range(PLAYERS):
                                     if s != i and \
                                        random_player is not testgame.players[s] and \
-                                       testgame.players[s].ai.will_intervene(action, acting_player, random_player):
+                                       testgame.players[s].will_intervene(action, acting_player, random_player):
                                         raise BlockedAction("{0} ({1}) saves {2} from {3} ({4})'s {5}".format(testgame.players[s].alpha,
                                                                                                               s,
                                                                                                               random_player.alpha,
@@ -109,7 +109,7 @@ class simulations(object):
                                 for s in range(PLAYERS):
                                     if s != i and \
                                        random_player is not testgame.players[s] and \
-                                       testgame.players[s].ai.will_intervene(action, acting_player, random_player):
+                                       testgame.players[s].will_intervene(action, acting_player, random_player):
                                         raise BlockedAction("{0} ({1}) saves {2} from {3} ({4})'s {5}".format(testgame.players[s].alpha,
                                                                                                               s,
                                                                                                               random_player.alpha,
@@ -121,7 +121,7 @@ class simulations(object):
                                     testgame.players[i].perform(action, random_target)
                         elif action == 'foreign_aid':
                             for s in range(PLAYERS):
-                                if s != i and testgame.players[s].ai.will_intervene(action, acting_player):
+                                if s != i and testgame.players[s].will_intervene(action, acting_player):
                                     raise BlockedAction("{0} ({1}) blocks {2}'s ({3}) {4}".format(testgame.players[s].alpha,
                                                                                                   s,
                                                                                                   acting_player.alpha,

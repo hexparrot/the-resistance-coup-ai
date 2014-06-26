@@ -321,8 +321,14 @@ class TestCoup(unittest.TestCase):
     def test_ai_persona(self):
         a = AI_Persona()
         self.assertIsInstance(a, Player)
-        self.assertIsInstance(a.ai, AI_Profile)
-        self.assertIs(a, a.ai.player)
+        self.assertEqual(a.personality, 'passive')
+        self.assertIsInstance(a.rules, dict)
+
+        PLAYERS = 5
+        testgame = Play_Coup(PLAYERS)
+
+        for i in range(PLAYERS):
+            self.assertEqual(testgame.players[i].personality, 'passive')
 
     def test_ai_persona_replace_player(self):
         testgame = Play_Coup(5)
@@ -356,14 +362,6 @@ class TestCoup(unittest.TestCase):
 
         self.assertIsInstance(a.select_opponent(z), Player)     
 
-    def test_ai_profile(self):
-        PLAYERS = 5
-        testgame = Play_Coup(PLAYERS)
-
-        for i in range(PLAYERS):
-            self.assertIsInstance(testgame.players[i].ai, AI_Profile)
-            self.assertEqual(testgame.players[i].ai.personality, 'passive')
-
     def test_ai_profile_will_intervene_foreign_aid(self):
         p = AI_Persona() #not duke
         p.left = Assassin()
@@ -373,27 +371,27 @@ class TestCoup(unittest.TestCase):
         pp.left = Captain()
         pp.right = Captain()
 
-        self.assertFalse(p.ai.will_intervene('foreign_aid', pp))
+        self.assertFalse(p.will_intervene('foreign_aid', pp))
 
         p.left = Duke()
         
-        p.ai.rules['honest_intervention']['foreign_aid'] = {
+        p.rules['honest_intervention']['foreign_aid'] = {
             'performer': lambda q: True
             }
-        self.assertTrue(p.ai.will_intervene('foreign_aid', pp))
+        self.assertTrue(p.will_intervene('foreign_aid', pp))
 
-        p.ai.rules['honest_intervention']['foreign_aid'] = {
+        p.rules['honest_intervention']['foreign_aid'] = {
             'performer': lambda q: q.coins > 5
             }
-        self.assertFalse(p.ai.will_intervene('foreign_aid', pp))
+        self.assertFalse(p.will_intervene('foreign_aid', pp))
 
-        p.ai.rules['calculated_intervention']['foreign_aid'] = {
+        p.rules['calculated_intervention']['foreign_aid'] = {
             'performer': lambda q: q.influence_remaining == 2
             }
-        self.assertTrue(p.ai.will_intervene('foreign_aid', pp))
+        self.assertTrue(p.will_intervene('foreign_aid', pp))
 
         pp.left.reveal()
-        self.assertFalse(p.ai.will_intervene('foreign_aid', pp))
+        self.assertFalse(p.will_intervene('foreign_aid', pp))
 
     def test_ai_profile_will_intervene_steal_performer(self):
         p = AI_Persona() #not captain
@@ -408,24 +406,24 @@ class TestCoup(unittest.TestCase):
         ppp.left = Captain()
         ppp.right = Captain()
 
-        self.assertFalse(ppp.ai.will_intervene('steal', p, pp))
+        self.assertFalse(ppp.will_intervene('steal', p, pp))
 
         p.coins = 2
-        ppp.ai.rules['honest_intervention']['steal'] = {
+        ppp.rules['honest_intervention']['steal'] = {
             'performer': lambda q: True
             }
-        self.assertTrue(ppp.ai.will_intervene('steal', p, pp))
+        self.assertTrue(ppp.will_intervene('steal', p, pp))
 
-        ppp.ai.rules['honest_intervention']['steal'] = {
+        ppp.rules['honest_intervention']['steal'] = {
             'performer': lambda q: False
             }
-        self.assertFalse(ppp.ai.will_intervene('steal', p, pp))
+        self.assertFalse(ppp.will_intervene('steal', p, pp))
 
         p.coins = 2
-        ppp.ai.rules['calculated_intervention']['steal'] = {
+        ppp.rules['calculated_intervention']['steal'] = {
             'performer': lambda q: q.coins + 2 >= 3
             }
-        self.assertTrue(ppp.ai.will_intervene('steal', p, pp))
+        self.assertTrue(ppp.will_intervene('steal', p, pp))
 
     def test_ai_profile_will_intervene_steal_victim(self):
         p = AI_Persona() #not captain
@@ -441,26 +439,26 @@ class TestCoup(unittest.TestCase):
         ppp.right = Captain()
 
         pp.coins = 0
-        self.assertFalse(ppp.ai.will_intervene('steal', p, pp))
+        self.assertFalse(ppp.will_intervene('steal', p, pp))
 
-        ppp.ai.rules['calculated_intervention']['steal'] = {
+        ppp.rules['calculated_intervention']['steal'] = {
             'victim': lambda q: q.coins
             }
-        self.assertFalse(ppp.ai.will_intervene('steal', p, pp))
+        self.assertFalse(ppp.will_intervene('steal', p, pp))
 
         pp.coins = 1
-        self.assertTrue(ppp.ai.will_intervene('steal', p, pp))
+        self.assertTrue(ppp.will_intervene('steal', p, pp))
 
         pp.coins = 2
-        self.assertTrue(ppp.ai.will_intervene('steal', p, pp))
+        self.assertTrue(ppp.will_intervene('steal', p, pp))
 
-        ppp.ai.rules['calculated_intervention']['steal'] = {
+        ppp.rules['calculated_intervention']['steal'] = {
             'victim': lambda q: q.coins >= 5
             }
 
-        self.assertFalse(ppp.ai.will_intervene('steal', p, pp))
+        self.assertFalse(ppp.will_intervene('steal', p, pp))
         pp.coins = 5
-        self.assertTrue(ppp.ai.will_intervene('steal', p, pp))
+        self.assertTrue(ppp.will_intervene('steal', p, pp))
 
     def test_naive_priorities(self):
         p = AI_Persona()
@@ -1026,7 +1024,7 @@ class TestCoup(unittest.TestCase):
                                 for s in range(PLAYERS):
                                     if s != i and \
                                        random_player is not testgame.players[s] and \
-                                       testgame.players[s].ai.will_intervene(action, acting_player, random_player):
+                                       testgame.players[s].will_intervene(action, acting_player, random_player):
                                         raise BlockedAction("{0} ({1}) saves {2} from {3} ({4})'s {5}".format(testgame.players[s].alpha,
                                                                                                               s,
                                                                                                               random_player.alpha,
@@ -1046,7 +1044,7 @@ class TestCoup(unittest.TestCase):
                                 for s in range(PLAYERS):
                                     if s != i and \
                                        random_player is not testgame.players[s] and \
-                                       testgame.players[s].ai.will_intervene(action, acting_player, random_player):
+                                       testgame.players[s].will_intervene(action, acting_player, random_player):
                                         raise BlockedAction("{0} ({1}) saves {2} from {3} ({4})'s {5}".format(testgame.players[s].alpha,
                                                                                                               s,
                                                                                                               random_player.alpha,
@@ -1058,7 +1056,7 @@ class TestCoup(unittest.TestCase):
                                     testgame.players[i].perform(action, random_target)
                         elif action == 'foreign_aid':
                             for s in range(PLAYERS):
-                                if s != i and testgame.players[s].ai.will_intervene(action, acting_player):
+                                if s != i and testgame.players[s].will_intervene(action, acting_player):
                                     raise BlockedAction("{0} ({1}) blocks {2}'s ({3}) {4}".format(testgame.players[s].alpha,
                                                                                                   s,
                                                                                                   acting_player.alpha,

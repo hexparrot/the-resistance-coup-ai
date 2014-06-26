@@ -118,7 +118,12 @@ class Player(object):
 class AI_Persona(Player):
     def __init__(self, personality='passive'):
         Player.__init__(self)
-        self.ai = AI_Profile(self, personality)
+
+        from personalities import PERSONALITIES
+        from copy import deepcopy
+
+        self.personality = personality
+        self.rules = deepcopy(PERSONALITIES[personality])
         
     def select_opponent(self,
                         all_players):
@@ -168,39 +173,9 @@ class AI_Persona(Player):
         else:
             return action        
 
-    @property
-    def random_remaining_influence(self):
-        if self.influence_remaining == 2:
-            import random
-            choice = random.choice(['left', 'right'])
-            return (choice, getattr(self, choice))
-        elif self.influence_remaining == 1:
-            if self.left.revealed:
-                return ('right', self.right)
-            return ('left', self.left)
-        else:
-            raise IllegalTarget("player already has no remaining influence")    
-
-    @staticmethod
-    def clone(player):
-        n = AI_Persona()
-        n.coins = player.coins
-        n.left = player.left
-        n.right = player.right
-        return n
-
-class AI_Profile(object):
-    def __init__(self, player, personality):
-        from personalities import PERSONALITIES
-        from copy import deepcopy
-
-        self.player = player
-        self.personality = personality
-        self.rules = deepcopy(PERSONALITIES[personality])
-
     def will_intervene(self, action, performer, victim=None):
         try:
-            if action in self.player.valid_blocks:
+            if action in self.valid_blocks:
                 participants = self.rules['honest_intervention'][action]
                 for p, cond in participants.items():
                     if cond and not cond(locals()[p]):
@@ -220,7 +195,28 @@ class AI_Profile(object):
         except KeyError as e:
             pass
 
-        return False        
+        return False 
+
+    @property
+    def random_remaining_influence(self):
+        if self.influence_remaining == 2:
+            import random
+            choice = random.choice(['left', 'right'])
+            return (choice, getattr(self, choice))
+        elif self.influence_remaining == 1:
+            if self.left.revealed:
+                return ('right', self.right)
+            return ('left', self.left)
+        else:
+            raise IllegalTarget("player already has no remaining influence")    
+
+    @staticmethod
+    def clone(player):
+        n = AI_Persona()
+        n.coins = player.coins
+        n.left = player.left
+        n.right = player.right
+        return n 
 
 class Influence(object):
     def __init__(self):
