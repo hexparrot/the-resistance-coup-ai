@@ -381,6 +381,26 @@ class TestCoup(unittest.TestCase):
         BlockedAction('steal', z, None, testgame.players[2])
         self.assertEqual(testgame.players[2].public_information['spectator'][1], 'steal')
 
+    def test_deduce(self):
+        testgame = Play_Coup(5)
+
+        z = testgame.players[0]
+
+        z.public_information['perform'].extend(['tax','tax','tax'])
+        z.public_information['spectator'].extend(['foreign_aid','foreign_aid'])
+
+        self.assertEqual(z.best_guesses, ('Duke', None))
+
+        z.public_information['perform'].append('steal')
+        self.assertEqual(z.best_guesses, ('Duke', 'Captain'))
+
+        z.public_information['perform'].append('steal')
+        self.assertEqual(z.best_guesses, ('Duke', 'Captain'))
+
+        z.public_information['spectator'].extend(['steal', 'steal', 'steal'])
+        self.assertEqual(z.best_guesses, ('Duke', 'Ambassador/Captain'))
+
+
     def test_ai_profile_will_intervene_foreign_aid(self):
         p = AI_Persona() #not duke
         p.left = Assassin()

@@ -198,7 +198,48 @@ class AI_Persona(Player):
         except KeyError as e:
             pass
 
-        return False 
+        return False
+
+    @property
+    def best_guesses(self):
+        def performed_action(action):
+            return {
+                'steal': 'Captain',
+                'tax': 'Duke',
+                'assassinate': 'Assassin'
+                }[action]
+        def blocked(action):
+            return {
+                'foreign_aid': 'Duke',
+                'steal': 'Ambassador/Captain',
+                'assassinate': 'Contessa'
+                }[action]
+
+        from collections import Counter
+
+        PERFORMED_WEIGHT = 1
+        VICTIM_SAVE_WEIGHT = 1
+        SPECTATOR_SAVE_WEIGHT = 2
+        
+        performed = Counter(performed_action(i) for i in self.public_information['perform'] if i)
+        victim = Counter(blocked(i) for i in self.public_information['victim'] if i)
+        spectator = Counter(blocked(i) for i in self.public_information['spectator'] if i)
+
+        result = Counter()
+        for _ in range(PERFORMED_WEIGHT):
+            result.update(performed)
+
+        for _ in range(VICTIM_SAVE_WEIGHT):
+            result.update(victim)
+
+        for _ in range(SPECTATOR_SAVE_WEIGHT):
+            result.update(spectator)
+
+        candidates = result.most_common(2)
+
+        if len(candidates) == 1:
+            return (candidates[0][0], None)
+        return (candidates[0][0], candidates[1][0])
 
     @property
     def random_remaining_influence(self):
