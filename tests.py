@@ -921,10 +921,10 @@ class TestCoup(unittest.TestCase):
                             if 'steal' in random_player.valid_blocks:
                                 raise BlockedAction(action, acting_player, random_player, None)
                             else:
-                                for s in range(PLAYERS):
-                                    if s != i and \
-                                       random_player is not testgame.players[s] and \
-                                       testgame.players[s].will_intervene(action, acting_player, random_player):
+                                for savior in range(PLAYERS):
+                                    if savior != i and \
+                                       random_player is not testgame.players[savior] and \
+                                       testgame.players[savior].will_intervene(action, acting_player, random_player):
                                         raise BlockedAction(action, acting_player, random_player, testgame.players[savior])
                                 else:
                                     testgame.players[i].perform(action, random_player)
