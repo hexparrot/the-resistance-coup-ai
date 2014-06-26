@@ -316,4 +316,26 @@ class IllegalTarget(Exception):
     pass
 
 class BlockedAction(Exception):
-    pass
+    def __init__(self, action, performer, victim, spectator):
+        self.action = action
+        self.performer = performer
+        self.victim = victim
+        self.spectator = spectator
+
+        if self.victim:
+            if not spectator:
+                self.message = "{0} blocks {1}'s {2}".format(self.victim,
+                                                             self.performer,
+                                                             self.action)
+            else:
+                self.message = '{0} performs {1} on {2}--blocked by {3}'.format(performer,
+                                                                                action,
+                                                                                victim,
+                                                                                spectator)
+        elif not self.victim:
+            self.message = "{0} blocks {1}'s {2}".format(spectator,
+                                                         performer,
+                                                         action)
+
+
+        
