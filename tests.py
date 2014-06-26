@@ -500,7 +500,7 @@ class TestCoup(unittest.TestCase):
         p.left = Captain()
         p.right = Captain()
 
-        self.assertEqual(p.naive_priority(), 'steal')
+        self.assertEqual(p.naive_priority(), 'coin')
         p.coins = 7
         self.assertEqual(p.naive_priority(), 'coup')
 

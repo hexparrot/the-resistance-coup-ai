@@ -151,7 +151,7 @@ class AI_Persona(Player):
             return 'switch'
         elif 'steal' in self.valid_actions:
             if self.coins < 7:
-                return 'steal'
+                return 'coin'
             else:
                 return 'coup'
         else:
