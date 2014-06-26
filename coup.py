@@ -206,14 +206,14 @@ class AI_Persona(Player):
             return {
                 'steal': 'Captain',
                 'tax': 'Duke',
-                'assassinate': 'Assassin'
-                }[action]
+                'assassinate': 'Assassin',
+                }.get(action)
         def blocked(action):
             return {
                 'foreign_aid': 'Duke',
                 'steal': 'Ambassador/Captain',
                 'assassinate': 'Contessa'
-                }[action]
+                }.get(action)
 
         from collections import Counter
 
@@ -221,9 +221,9 @@ class AI_Persona(Player):
         VICTIM_SAVE_WEIGHT = 1
         SPECTATOR_SAVE_WEIGHT = 2
         
-        performed = Counter(performed_action(i) for i in self.public_information['perform'] if i)
-        victim = Counter(blocked(i) for i in self.public_information['victim'] if i)
-        spectator = Counter(blocked(i) for i in self.public_information['spectator'] if i)
+        performed = Counter(performed_action(i) for i in self.public_information['perform'] if performed_action(i))
+        victim = Counter(blocked(i) for i in self.public_information['victim'] if blocked(i))
+        spectator = Counter(blocked(i) for i in self.public_information['spectator'] if blocked(i))
 
         result = Counter()
         for _ in range(PERFORMED_WEIGHT):
@@ -235,11 +235,7 @@ class AI_Persona(Player):
         for _ in range(SPECTATOR_SAVE_WEIGHT):
             result.update(spectator)
 
-        candidates = result.most_common(2)
-
-        if len(candidates) == 1:
-            return (candidates[0][0], None)
-        return (candidates[0][0], candidates[1][0])
+        return [inf for inf, freq in result.most_common(2)][0:2]
 
     @property
     def random_remaining_influence(self):
@@ -358,6 +354,14 @@ class IllegalAction(Exception):
 
 class IllegalTarget(Exception):
     pass
+
+class RethinkAction(Exception):
+    def __init__(self, action, performer, victim):
+        self.action = action
+        self.performer = performer
+        self.victim = victim
+
+        self.message = '{0} rethinks {1} on {2}'.format(performer, action, victim)
 
 class BlockedAction(Exception):
     def __init__(self, action, performer, victim, spectator):

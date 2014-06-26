@@ -386,20 +386,24 @@ class TestCoup(unittest.TestCase):
 
         z = testgame.players[0]
 
+        self.assertEqual(z.best_guesses, [])
+
         z.public_information['perform'].extend(['tax','tax','tax'])
         z.public_information['spectator'].extend(['foreign_aid','foreign_aid'])
 
-        self.assertEqual(z.best_guesses, ('Duke', None))
+        self.assertEqual(z.best_guesses, ['Duke'])
 
         z.public_information['perform'].append('steal')
-        self.assertEqual(z.best_guesses, ('Duke', 'Captain'))
+        self.assertEqual(z.best_guesses, ['Duke', 'Captain'])
 
         z.public_information['perform'].append('steal')
-        self.assertEqual(z.best_guesses, ('Duke', 'Captain'))
+        self.assertEqual(z.best_guesses, ['Duke', 'Captain'])
 
         z.public_information['spectator'].extend(['steal', 'steal', 'steal'])
-        self.assertEqual(z.best_guesses, ('Duke', 'Ambassador/Captain'))
+        self.assertEqual(z.best_guesses, ['Duke', 'Ambassador/Captain'])
 
+        z.public_information['spectator'].extend(['assassinate'])
+        self.assertEqual(z.best_guesses, ['Duke', 'Ambassador/Captain'])
 
     def test_ai_profile_will_intervene_foreign_aid(self):
         p = AI_Persona() #not duke
@@ -998,6 +1002,91 @@ class TestCoup(unittest.TestCase):
                     pass
                 except BlockedAction as e:
                     break
+
+    def test_gameplay_calculated_actions_calculated_targets_calculated_blocks_no_doubts(self):
+        """
+        AI PROFILE:
+        
+        Action          Used        Targets     Blocked     
+        income          yes
+        foreign_aid     yes                     victim/by ai profile
+        coup            yes
+        steal           yes         best_guess  victim/by ai profile
+        tax             yes
+        assassinate     yes         best_guess  victim/by ai profile
+        exchange        yes         random      no
+
+        """
+        from itertools import cycle
+        from random import choice, randint
+
+        PLAYERS = 5
+        testgame = Play_Coup(PLAYERS)
+
+        for i in cycle(range(PLAYERS)):
+            acting_player = testgame.players[i]
+            
+            if not acting_player.influence_remaining:
+                continue
+            elif sum(1 for p in range(PLAYERS) if testgame.players[p].influence_remaining) == 1:
+                return testgame.players[i].alpha
+            
+            while 1:
+                try:
+                    action = acting_player.random_naive_priority()
+
+                    if action in Play_Coup.ACTIONS['blockable']:
+                        if action == 'steal':
+                            random_player = acting_player.select_opponent(testgame.players)
+                            if set(random_player.best_guesses).intersection(set([str(a()) for a in Influence.__subclasses__() if action in a.BLOCKS])):
+                                raise RethinkAction(action, acting_player, random_player)
+                            if 'steal' in random_player.valid_blocks:
+                                raise BlockedAction(action, acting_player, random_player, None)
+                            else:
+                                for savior in range(PLAYERS):
+                                    if savior != i and \
+                                       random_player is not testgame.players[savior] and \
+                                       testgame.players[savior].will_intervene(action, acting_player, random_player):
+                                        raise BlockedAction(action, acting_player, random_player, testgame.players[savior])
+                                else:
+                                    testgame.players[i].perform(action, random_player)
+                        elif action == 'assassinate':
+                            random_player = acting_player.select_opponent(testgame.players)
+                            if set(random_player.best_guesses).intersection(set([str(a()) for a in Influence.__subclasses__() if action in a.BLOCKS])):
+                                raise RethinkAction(action, acting_player, random_player)
+                            if 'assassinate' in random_player.valid_blocks:
+                                raise BlockedAction(action, acting_player, random_player, None)
+                            else:
+                                for savior in range(PLAYERS):
+                                    if savior != i and \
+                                       random_player is not testgame.players[savior] and \
+                                       testgame.players[savior].will_intervene(action, acting_player, random_player):
+                                        raise BlockedAction(action, acting_player, random_player, testgame.players[savior])
+                                else:
+                                    position, random_target = random_player.random_remaining_influence
+                                    testgame.players[i].perform(action, random_target)
+                        elif action == 'foreign_aid':
+                            for savior in range(PLAYERS):
+                                if savior != i and testgame.players[savior].will_intervene(action, acting_player):
+                                    raise BlockedAction(action, acting_player, None, testgame.players[savior])
+                            else:
+                                testgame.players[i].perform(action)
+                    else:
+                        if action == 'exchange':
+                            testgame.players[i].perform(action, testgame.court_deck)
+                        elif action == 'coup':
+                            random_player = acting_player.select_opponent(testgame.players)
+                            position, random_target = random_player.random_remaining_influence
+                            testgame.players[i].perform(action, random_target)
+                        else:
+                            testgame.players[i].perform(action)
+                        break
+                except (IllegalTarget, IllegalAction):
+                    pass
+                except BlockedAction:
+                    break
+                except RethinkAction as e:
+                    pass
 
 def gameplay_suite():
     suite = unittest.TestSuite()

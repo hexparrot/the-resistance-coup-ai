@@ -45,7 +45,7 @@ def play_game():
         print()
 
 class simulations(object):
-    def test_gameplay_naive_actions_calculated_targets_calculated_blocks_no_doubts(self):
+    def test_gameplay_calculated_actions_calculated_targets_calculated_blocks_no_doubts(self):
         """
         AI PROFILE:
         
@@ -53,9 +53,9 @@ class simulations(object):
         income          yes
         foreign_aid     yes                     victim/by ai profile
         coup            yes
-        steal           yes         anybody     victim/by ai profile
+        steal           yes         best_guess  victim/by ai profile
         tax             yes
-        assassinate     yes         weakest     victim/by ai profile
+        assassinate     yes         best_guess  victim/by ai profile
         exchange        yes         random      no
 
         """
@@ -80,6 +80,8 @@ class simulations(object):
                     if action in Play_Coup.ACTIONS['blockable']:
                         if action == 'steal':
                             random_player = acting_player.select_opponent(testgame.players)
+                            if set(random_player.best_guesses).intersection(set([str(a()) for a in Influence.__subclasses__() if action in a.BLOCKS])):
+                                raise RethinkAction(action, acting_player, random_player)
                             if 'steal' in random_player.valid_blocks:
                                 raise BlockedAction(action, acting_player, random_player, None)
                             else:
@@ -92,6 +94,8 @@ class simulations(object):
                                     testgame.players[i].perform(action, random_player)
                         elif action == 'assassinate':
                             random_player = acting_player.select_opponent(testgame.players)
+                            if set(random_player.best_guesses).intersection(set([str(a()) for a in Influence.__subclasses__() if action in a.BLOCKS])):
+                                raise RethinkAction(action, acting_player, random_player)
                             if 'assassinate' in random_player.valid_blocks:
                                 raise BlockedAction(action, acting_player, random_player, None)
                             else:
@@ -121,14 +125,16 @@ class simulations(object):
                         break
                 except (IllegalTarget, IllegalAction):
                     pass
-                except BlockedAction as e:
+                except BlockedAction:
                     break
+                except RethinkAction as e:
+                    print e.message
                 
         
 if __name__ == "__main__":
     c = Counter()
     for _ in range(1000):
-        c.update([simulations().test_gameplay_naive_actions_calculated_targets_calculated_blocks_no_doubts(),])
+        c.update([simulations().test_gameplay_calculated_actions_calculated_targets_calculated_blocks_no_doubts(),])
 
     for i,v in c.most_common():
         print('{0}{1}'.format(i.ljust(25), v))
