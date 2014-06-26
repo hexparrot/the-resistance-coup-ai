@@ -60,10 +60,6 @@ class Player(object):
         self.left = None
         self.right = None
         self.public_information = []
-        self.deductions = {
-            'is': [],
-            'not': []
-            }
 
     def __str__(self):
         return '{0} {1}'.format(self.left, self.right)
@@ -78,7 +74,6 @@ class Player(object):
         
         for inf in chain([Influence,], Influence.__subclasses__()):
             if hasattr(inf, action):
-                self.deduce(action)
                 self.public_information.append(action)
                 if player_target is None:
                     getattr(inf, action)(self)
@@ -87,31 +82,6 @@ class Player(object):
                 break
         else:
             raise IllegalAction("no action %s" % action)
-
-    def deduce(self, action):
-        if action == 'income':
-            self.deductions['not'].append('Duke')
-        elif action == 'foreign_aid':
-            self.deductions['not'].append('Duke')
-        elif action == 'coup':
-            self.deductions['not'].append('Assassin')
-        elif action == 'steal':
-            self.deductions['is'].append('Captain')
-        elif action == 'tax':
-            self.deductions['is'].append('Duke')
-        elif action == 'assassinate':
-            self.deductions['is'].append('Assassin')
-        elif action == 'exchange':
-            self.deductions['not'] = ['Ambassador']
-            self.deductions['is'] = []
-
-    def deduce_blocked(self, action):
-        if action == 'foreign_aid':
-            self.deductions['is'].append('Duke')
-        elif action == 'steal':
-            self.deductions['is'].append('Captain/Ambassador')
-        elif action == 'assassinate':
-            self.deductions['is'].append('Contessa')
 
     def influences(self, influence):
         return (not self.left.revealed and str(self.left) == influence) or \
@@ -360,18 +330,18 @@ class BlockedAction(Exception):
                 self.message = "{0} blocks {1}'s {2}".format(self.victim,
                                                              self.performer,
                                                              self.action)
-                self.victim.deduce_blocked(action)
+                self.victim.public_information.append('block_{0}'.format(action))
             else:
                 self.message = '{0} performs {1} on {2}--blocked by {3}'.format(performer,
                                                                                 action,
                                                                                 victim,
                                                                                 spectator)
-                self.spectator.deduce_blocked(action)
+                self.spectator.public_information.append('block_{0}'.format(action))
         elif not self.victim:
             self.message = "{0} blocks {1}'s {2}".format(spectator,
                                                          performer,
                                                          action)
-            self.spectator.deduce_blocked(action)
+            self.spectator.public_information.append('block_{0}'.format(action))
 
 
         

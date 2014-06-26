@@ -371,28 +371,15 @@ class TestCoup(unittest.TestCase):
         self.assertEqual(z.public_information[0], 'income')
         z.perform('assassinate', testgame.players[1].left)
         self.assertEqual(z.public_information[1], 'assassinate')
-        self.assertEqual(len(z.public_information), 2)
-
-    def test_information_given(self):
-        testgame = Play_Coup(5)
-
-        z = testgame.players[0]
-
-        z.perform('foreign_aid')
-        self.assertEqual(z.deductions['not'][0], 'Duke')
-        z.perform('assassinate', testgame.players[1].left)
-        self.assertEqual(z.deductions['is'][0], 'Assassin')
-        z.perform('income')
-        self.assertEqual(z.deductions['not'][1], 'Duke')
 
         BlockedAction('assassinate', z, testgame.players[2], None)
-        self.assertEqual(testgame.players[2].deductions['is'][0], 'Contessa')
+        self.assertEqual(testgame.players[2].public_information[0], 'block_assassinate')
 
         BlockedAction('foreign_aid', z, None, testgame.players[2])
-        self.assertEqual(testgame.players[2].deductions['is'][1], 'Duke')
+        self.assertEqual(testgame.players[2].public_information[1], 'block_foreign_aid')
 
         BlockedAction('steal', z, None, testgame.players[2])
-        self.assertEqual(testgame.players[2].deductions['is'][2], 'Captain/Ambassador')
+        self.assertEqual(testgame.players[2].public_information[2], 'block_steal')
 
     def test_ai_profile_will_intervene_foreign_aid(self):
         p = AI_Persona() #not duke
