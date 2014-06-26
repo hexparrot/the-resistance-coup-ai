@@ -59,7 +59,11 @@ class Player(object):
         self.coins = 2
         self.left = None
         self.right = None
-        self.public_information = []
+        self.public_information = {
+            'perform': [],
+            'victim': [],
+            'spectator': []
+            }
 
     def __str__(self):
         return '{0} {1}'.format(self.left, self.right)
@@ -74,7 +78,7 @@ class Player(object):
         
         for inf in chain([Influence,], Influence.__subclasses__()):
             if hasattr(inf, action):
-                self.public_information.append(action)
+                self.public_information['perform'].append(action)
                 if player_target is None:
                     getattr(inf, action)(self)
                 else:
@@ -330,18 +334,18 @@ class BlockedAction(Exception):
                 self.message = "{0} blocks {1}'s {2}".format(self.victim,
                                                              self.performer,
                                                              self.action)
-                self.victim.public_information.append('block_{0}'.format(action))
+                self.victim.public_information['victim'].append(action)
             else:
                 self.message = '{0} performs {1} on {2}--blocked by {3}'.format(performer,
                                                                                 action,
                                                                                 victim,
                                                                                 spectator)
-                self.spectator.public_information.append('block_{0}'.format(action))
+                self.spectator.public_information['spectator'].append(action)
         elif not self.victim:
             self.message = "{0} blocks {1}'s {2}".format(spectator,
                                                          performer,
                                                          action)
-            self.spectator.public_information.append('block_{0}'.format(action))
+            self.spectator.public_information['spectator'].append(action)
 
 
         
