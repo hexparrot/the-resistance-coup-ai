@@ -409,7 +409,7 @@ class TestCoup(unittest.TestCase):
         pp.left.reveal()
         self.assertFalse(a.will_intervene('foreign_aid', pp))
 
-    def test_ai_profile_will_intervene_steal(self):
+    def test_ai_profile_will_intervene_steal_performer(self):
         p = AI_Persona() #not captain
         p.left = Assassin()
         p.right = Assassin()
@@ -425,7 +425,8 @@ class TestCoup(unittest.TestCase):
         a = AI_Profile(ppp, 'passive')
 
         self.assertFalse(a.will_intervene('steal', p, pp))
-        
+
+        p.coins = 2
         a.rules['honest_intervention']['steal'] = {
             'performer': lambda q: True
             }
@@ -436,17 +437,47 @@ class TestCoup(unittest.TestCase):
             }
         self.assertFalse(a.will_intervene('steal', p, pp))
 
+        p.coins = 2
         a.rules['calculated_intervention']['steal'] = {
             'performer': lambda q: q.coins + 2 >= 3
             }
         self.assertTrue(a.will_intervene('steal', p, pp))
 
-        p.coins = 0
+    def test_ai_profile_will_intervene_steal_victim(self):
+        p = AI_Persona() #not captain
+        p.left = Assassin()
+        p.right = Assassin()
+
+        pp = AI_Persona() #not captain/amb
+        pp.left = Contessa()
+        pp.right = Contessa()
+
+        ppp = AI_Persona() #captain
+        ppp.left = Captain()
+        ppp.right = Captain()
+
+        a = AI_Profile(ppp, 'passive')
+
+        pp.coins = 0
         self.assertFalse(a.will_intervene('steal', p, pp))
 
         a.rules['calculated_intervention']['steal'] = {
             'victim': lambda q: q.coins
             }
+        self.assertFalse(a.will_intervene('steal', p, pp))
+
+        pp.coins = 1
+        self.assertTrue(a.will_intervene('steal', p, pp))
+
+        pp.coins = 2
+        self.assertTrue(a.will_intervene('steal', p, pp))
+
+        a.rules['calculated_intervention']['steal'] = {
+            'victim': lambda q: q.coins >= 5
+            }
+
+        self.assertFalse(a.will_intervene('steal', p, pp))
+        pp.coins = 5
         self.assertTrue(a.will_intervene('steal', p, pp))
 
     def test_naive_priorities(self):
@@ -926,6 +957,84 @@ class TestCoup(unittest.TestCase):
             while 1:
                 try:
                     action = acting_player.random_naive_priority()
+                    if action == 'steal':
+                        random_player = acting_player.select_opponent(testgame.players)
+                        if 'steal' in random_player.valid_blocks:
+                            raise BlockedAction("{0} blocks {1}'s ({2}) {3}".format(random_player.alpha,
+                                                                                    acting_player.alpha,
+                                                                                    i,
+                                                                                    action))
+                        else:
+                            testgame.players[i].perform(action, random_player)
+                    elif action == 'assassinate':
+                        random_player = acting_player.select_opponent(testgame.players, [1]) or \
+                                        acting_player.select_opponent(testgame.players)
+                        if 'assassinate' in random_player.valid_blocks:
+                            raise BlockedAction("{0} blocks {1}'s ({2}) {3}".format(random_player.alpha,
+                                                                                    acting_player.alpha,
+                                                                                    i,
+                                                                                    action))
+                        else:
+                            position, random_target = random_player.random_remaining_influence
+                            testgame.players[i].perform(action, random_target)
+                    elif action == 'foreign_aid':
+                        for savior in range(PLAYERS):
+                            if savior != i and action in testgame.players[savior].valid_blocks:
+                                raise BlockedAction("{0} ({1}) blocks {2}'s ({3}) {4}".format(testgame.players[savior].alpha,
+                                                                                              savior,
+                                                                                              acting_player.alpha,
+                                                                                              i,
+                                                                                              action))
+                            else:
+                                testgame.players[i].perform(action)
+                    elif action == 'exchange':
+                        testgame.players[i].perform(action, testgame.court_deck)
+                    elif action == 'coup':
+                        random_player = acting_player.select_opponent(testgame.players, [1]) or \
+                                        acting_player.select_opponent(testgame.players)
+                        position, random_target = random_player.random_remaining_influence
+                        testgame.players[i].perform(action, random_target)
+                    else:
+                        testgame.players[i].perform(action)
+                    break
+                except (IllegalTarget, IllegalAction):
+                    pass
+                except BlockedAction as e:
+                    break
+
+    def test_gameplay_naive_actions_calculated_targets_calculated_blocks_no_doubts(self):
+        """
+        AI PROFILE:
+        
+        Action          Used        Targets     Blocked     
+        income          yes
+        foreign_aid     yes                     victim/by ai profile
+        coup            yes
+        steal           yes         anybody     victim/by ai profile
+        tax             yes
+        assassinate     yes         weakest     victim/by ai profile
+        exchange        yes         random      no
+
+        """
+        from itertools import cycle
+        from random import choice, randint
+
+        PLAYERS = 5
+        testgame = Play_Coup(PLAYERS)
+
+        for i in cycle(range(PLAYERS)):
+            acting_player = testgame.players[i]
+            
+            if not acting_player.influence_remaining:
+                continue
+            elif sum(1 for p in range(PLAYERS) if testgame.players[p].influence_remaining) == 1:
+                return testgame.players[i].alpha
+            
+            while 1:
+                try:
+                    action = acting_player.random_naive_priority()
+                    for s in range(PLAYERS):
+                        pass #will add will_intervene
                     if action == 'steal':
                         random_player = acting_player.select_opponent(testgame.players)
                         if 'steal' in random_player.valid_blocks:
