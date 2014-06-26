@@ -78,11 +78,11 @@ class Player(object):
         
         for inf in chain([Influence,], Influence.__subclasses__()):
             if hasattr(inf, action):
-                self.public_information['perform'].append(action)
                 if player_target is None:
                     getattr(inf, action)(self)
                 else:
                     getattr(inf, action)(self, player_target)
+                self.public_information['perform'].append(action)
                 break
         else:
             raise IllegalAction("no action %s" % action)
