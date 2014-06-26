@@ -352,14 +352,9 @@ class TestCoup(unittest.TestCase):
         z = testgame.players
 
         self.assertIsNot(a.select_opponent(z), a)
-        self.assertIsNot(a.select_opponent(z, [1,2]), testgame.players[0])
+        self.assertIsNot(a.select_opponent(z), testgame.players[0])
 
-        self.assertIsNone(a.select_opponent(z, influence=[1]))
-
-        self.assertIsInstance(a.select_opponent(z), Player)
-
-        testgame.players[4].left.reveal()
-        self.assertIs(a.select_opponent(z, influence=[1]), testgame.players[4])        
+        self.assertIsInstance(a.select_opponent(z), Player)     
 
     def test_ai_profile(self):
         PLAYERS = 5
@@ -954,8 +949,7 @@ class TestCoup(unittest.TestCase):
                         else:
                             testgame.players[i].perform(action, random_player)
                     elif action == 'assassinate':
-                        random_player = acting_player.select_opponent(testgame.players, [1]) or \
-                                        acting_player.select_opponent(testgame.players)
+                        random_player = acting_player.select_opponent(testgame.players)
                         if 'assassinate' in random_player.valid_blocks:
                             raise BlockedAction("{0} blocks {1}'s ({2}) {3}".format(random_player.alpha,
                                                                                     acting_player.alpha,
@@ -977,8 +971,7 @@ class TestCoup(unittest.TestCase):
                     elif action == 'exchange':
                         testgame.players[i].perform(action, testgame.court_deck)
                     elif action == 'coup':
-                        random_player = acting_player.select_opponent(testgame.players, [1]) or \
-                                        acting_player.select_opponent(testgame.players)
+                        random_player = acting_player.select_opponent(testgame.players)
                         position, random_target = random_player.random_remaining_influence
                         testgame.players[i].perform(action, random_target)
                     else:
@@ -1043,8 +1036,7 @@ class TestCoup(unittest.TestCase):
                                 else:
                                     testgame.players[i].perform(action, random_player)
                         elif action == 'assassinate':
-                            random_player = acting_player.select_opponent(testgame.players, [1]) or \
-                                            acting_player.select_opponent(testgame.players)
+                            random_player = acting_player.select_opponent(testgame.players)
                             if 'assassinate' in random_player.valid_blocks:
                                 raise BlockedAction("{0} blocks {1}'s ({2}) {3}".format(random_player.alpha,
                                                                                         acting_player.alpha,
@@ -1053,7 +1045,7 @@ class TestCoup(unittest.TestCase):
                             else:
                                 for s in range(PLAYERS):
                                     if s != i and \
-                                       random_player is not testgame.player[s] and \
+                                       random_player is not testgame.players[s] and \
                                        testgame.players[s].ai.will_intervene(action, acting_player, random_player):
                                         raise BlockedAction("{0} ({1}) saves {2} from {3} ({4})'s {5}".format(testgame.players[s].alpha,
                                                                                                               s,
@@ -1078,8 +1070,7 @@ class TestCoup(unittest.TestCase):
                         if action == 'exchange':
                             testgame.players[i].perform(action, testgame.court_deck)
                         elif action == 'coup':
-                            random_player = acting_player.select_opponent(testgame.players, [1]) or \
-                                            acting_player.select_opponent(testgame.players)
+                            random_player = acting_player.select_opponent(testgame.players)
                             position, random_target = random_player.random_remaining_influence
                             testgame.players[i].perform(action, random_target)
                         else:

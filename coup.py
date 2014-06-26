@@ -121,15 +121,9 @@ class AI_Persona(Player):
         self.ai = AI_Profile(self, personality)
         
     def select_opponent(self,
-                        all_players,
-                        influence=[1,2]):
+                        all_players):
         from random import choice
-        try:
-            return choice([v for i,v in all_players.items() \
-                           if v is not self and \
-                           v.influence_remaining in influence])
-        except IndexError:
-            return None
+        return choice([v for i,v in all_players.items() if v is not self])
 
     def naive_priority(self):
         if self.coins >= 10:

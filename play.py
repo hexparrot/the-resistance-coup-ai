@@ -45,17 +45,17 @@ def play_game():
         print()
 
 class simulations(object):
-    def test_gameplay_naive_actions_calculated_targets_selfish_blocks_no_doubts(self):
+    def test_gameplay_naive_actions_calculated_targets_calculated_blocks_no_doubts(self):
         """
         AI PROFILE:
         
         Action          Used        Targets     Blocked     
         income          yes
-        foreign_aid     yes                     any available duke
+        foreign_aid     yes                     victim/by ai profile
         coup            yes
-        steal           yes         anybody     victim only
+        steal           yes         anybody     victim/by ai profile
         tax             yes
-        assassinate     yes         weakest     victim only
+        assassinate     yes         weakest     victim/by ai profile
         exchange        yes         random      no
 
         """
@@ -76,46 +76,69 @@ class simulations(object):
             while 1:
                 try:
                     action = acting_player.random_naive_priority()
-                    if action == 'steal':
-                        random_player = acting_player.select_opponent(testgame.players)
-                        if 'steal' in random_player.valid_blocks:
-                            raise BlockedAction("{0} blocks {1}'s ({2}) {3}".format(random_player.alpha,
-                                                                                    acting_player.alpha,
-                                                                                    i,
-                                                                                    action))
-                        else:
-                            testgame.players[i].perform(action, random_player)
-                    elif action == 'assassinate':
-                        random_player = acting_player.select_opponent(testgame.players, [1]) or \
-                                        acting_player.select_opponent(testgame.players)
-                        if 'assassinate' in random_player.valid_blocks:
-                            raise BlockedAction("{0} blocks {1}'s ({2}) {3}".format(random_player.alpha,
-                                                                                    acting_player.alpha,
-                                                                                    i,
-                                                                                    action))
-                        else:
-                            position, random_target = random_player.random_remaining_influence
-                            testgame.players[i].perform(action, random_target)
-                    elif action == 'foreign_aid':
-                        for savior in range(PLAYERS):
-                            if savior != i and action in testgame.players[savior].valid_blocks:
-                                raise BlockedAction("{0} ({1}) blocks {2}'s ({3}) {4}".format(testgame.players[savior].alpha,
-                                                                                              savior,
-                                                                                              acting_player.alpha,
-                                                                                              i,
-                                                                                              action))
+
+                    if action in Play_Coup.ACTIONS['blockable']:
+                        if action == 'steal':
+                            random_player = acting_player.select_opponent(testgame.players)
+                            if 'steal' in random_player.valid_blocks:
+                                raise BlockedAction("{0} blocks {1}'s ({2}) {3}".format(random_player.alpha,
+                                                                                        acting_player.alpha,
+                                                                                        i,
+                                                                                        action))
+                            else:
+                                for s in range(PLAYERS):
+                                    if s != i and \
+                                       random_player is not testgame.players[s] and \
+                                       testgame.players[s].ai.will_intervene(action, acting_player, random_player):
+                                        raise BlockedAction("{0} ({1}) saves {2} from {3} ({4})'s {5}".format(testgame.players[s].alpha,
+                                                                                                              s,
+                                                                                                              random_player.alpha,
+                                                                                                              acting_player.alpha,
+                                                                                                              i,
+                                                                                                              action))
+                                else:
+                                    testgame.players[i].perform(action, random_player)
+                        elif action == 'assassinate':
+                            random_player = acting_player.select_opponent(testgame.players)
+                            if 'assassinate' in random_player.valid_blocks:
+                                raise BlockedAction("{0} blocks {1}'s ({2}) {3}".format(random_player.alpha,
+                                                                                        acting_player.alpha,
+                                                                                        i,
+                                                                                        action))
+                            else:
+                                for s in range(PLAYERS):
+                                    if s != i and \
+                                       random_player is not testgame.players[s] and \
+                                       testgame.players[s].ai.will_intervene(action, acting_player, random_player):
+                                        raise BlockedAction("{0} ({1}) saves {2} from {3} ({4})'s {5}".format(testgame.players[s].alpha,
+                                                                                                              s,
+                                                                                                              random_player.alpha,
+                                                                                                              acting_player.alpha,
+                                                                                                              i,
+                                                                                                              action))
+                                else:
+                                    position, random_target = random_player.random_remaining_influence
+                                    testgame.players[i].perform(action, random_target)
+                        elif action == 'foreign_aid':
+                            for s in range(PLAYERS):
+                                if s != i and testgame.players[s].ai.will_intervene(action, acting_player):
+                                    raise BlockedAction("{0} ({1}) blocks {2}'s ({3}) {4}".format(testgame.players[s].alpha,
+                                                                                                  s,
+                                                                                                  acting_player.alpha,
+                                                                                                  i,
+                                                                                                  action))
                             else:
                                 testgame.players[i].perform(action)
-                    elif action == 'exchange':
-                        testgame.players[i].perform(action, testgame.court_deck)
-                    elif action == 'coup':
-                        random_player = acting_player.select_opponent(testgame.players, [1]) or \
-                                        acting_player.select_opponent(testgame.players)
-                        position, random_target = random_player.random_remaining_influence
-                        testgame.players[i].perform(action, random_target)
                     else:
-                        testgame.players[i].perform(action)
-                    break
+                        if action == 'exchange':
+                            testgame.players[i].perform(action, testgame.court_deck)
+                        elif action == 'coup':
+                            random_player = acting_player.select_opponent(testgame.players)
+                            position, random_target = random_player.random_remaining_influence
+                            testgame.players[i].perform(action, random_target)
+                        else:
+                            testgame.players[i].perform(action)
+                        break
                 except (IllegalTarget, IllegalAction):
                     pass
                 except BlockedAction as e:
@@ -125,7 +148,7 @@ class simulations(object):
 if __name__ == "__main__":
     c = Counter()
     for _ in range(1000):
-        c.update([simulations().test_gameplay_naive_actions_calculated_targets_selfish_blocks_no_doubts(),])
+        c.update([simulations().test_gameplay_naive_actions_calculated_targets_calculated_blocks_no_doubts(),])
 
     for i,v in c.most_common():
         print('{0}{1}'.format(i.ljust(25), v))
