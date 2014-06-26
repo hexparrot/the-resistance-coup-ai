@@ -115,7 +115,11 @@ class Player(object):
     def influence_remaining(self):
         return sum(1 for i in (self.left, self.right) if not i.revealed)
 
-class AI_Persona(Player):       
+class AI_Persona(Player):
+    def __init__(self, personality='passive'):
+        Player.__init__(self)
+        self.ai = AI_Profile(self, personality)
+        
     def select_opponent(self,
                         all_players,
                         influence=[1,2]):
@@ -192,10 +196,10 @@ class AI_Persona(Player):
         return n
 
 class AI_Profile(object):
-    def __init__(self, player, personality='passive'):
+    def __init__(self, player, personality):
         from personalities import PERSONALITIES
         from copy import deepcopy
-        
+
         self.player = player
         self.personality = personality
         self.rules = deepcopy(PERSONALITIES[personality])
