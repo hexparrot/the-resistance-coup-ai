@@ -10,7 +10,7 @@ class Play_Coup(object):
     def __init__(self, players):
         from random import shuffle
         
-        self.players = {i:AI_Persona() for i in range(players)}
+        self.players = {i:AI_Persona('cautious') for i in range(players)}
         self.court_deck = [Contessa() for _ in range(3)] + \
                           [Ambassador() for _ in range(3)] + \
                           [Duke() for _ in range(3)] + \
@@ -150,7 +150,7 @@ class AI_Persona(Player):
                 return 'assassinate'
         elif self.influences('Ambassador'):
             if self.coins < 7:
-                return 'coin'
+                return 'switch'
             else:
                 return 'coup'
         elif self.influences('Contessa'):
@@ -164,12 +164,14 @@ class AI_Persona(Player):
 
         action = self.naive_priority()
 
-        if action == 'coin':
+        if action == 'switch':
+            return choice(['exchange'] + ['foreign_aid'] * 3 + ['income'])
+        elif action == 'coin':
             if 'steal' in self.valid_actions:
                 return choice(['steal'] * 3 + ['foreign_aid'] * 3 + ['income'])
             return choice(['steal'] + ['foreign_aid'] * 3 + ['income'])
         elif action == 'assassinate':
-            return choice(['assassinate'] * 5 + ['coup'] + ['income'])
+            return choice(['assassinate'] * 5 + ['income'])
         else:
             return action        
 

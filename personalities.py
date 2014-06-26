@@ -6,53 +6,27 @@ PERSONALITIES = {
                 },
             'assassinate': {
                 'performer': lambda p: True,
+                'victim': lambda v: v.coins < 7
                 },
             'steal': {
-                'performer': lambda p: p.coins + 2 >= 7,
-                'victim': lambda v: v.coins < 3
-                },
-            'tax': {
-                'performer': []
+                'performer': lambda p: True
                 }
             },
-        'calculated_intervention': {
+        'calculated_intervention': {},
+        },
+    'cautious': {
+        'honest_intervention': {
             'foreign_aid': {
-                'performer': lambda p: False
+                'performer': lambda p: True
                 },
             'assassinate': {
-                'performer': [],
-                'victim': lambda v: v.influence_remaining == 2
+                'performer': False
                 },
             'steal': {
-                'performer': [],
-                'victim': []
-                },
-            'tax': {
-                'performer': lambda p: p.coins + 3 >= 3
+                'performer': lambda p: True
                 }
             },
-        'outright_doubt': {
-            'duke': {
-                'action': ['tax'],
-                'block': ['foreign_aid']
-                },
-            'ambassador': {
-                'action': ['exchange'],
-                'block': ['steal']
-                },
-            'contessa': {
-                'action': [],
-                'block': ['assassinate']
-                },
-            'captain': {
-                'action': ['steal'],
-                'block': ['steal']
-                },
-            'assassin': {
-                'action': ['assassinate'],
-                'block': []
-                }
-            }
+        'calculated_intervention': {}
         },
     'passive': {
         'honest_intervention': {},
