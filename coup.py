@@ -187,6 +187,10 @@ class AI_Persona(Player):
         if 'assassinate' in self.valid_actions:
             if self.coins < 3:
                 return 'income'
+            elif self.coins > 4:
+                return 'coin'
+            elif self.coins >= 7:
+                return 'coup'
             return 'assassinate'
         elif 'tax' in self.valid_actions:
             if self.coins < 7:
@@ -218,7 +222,7 @@ class AI_Persona(Player):
                 return choice(['steal'] * 3 + ['foreign_aid'] + ['income'])
             return choice(['steal'] + ['foreign_aid'] * 3 + ['income'])
         elif action == 'assassinate':
-            return choice(['assassinate'] * 5 + ['income'])
+            return choice(['assassinate'] * 5 + ['foreign_aid'] + ['income'])
         else:
             return action        
 
