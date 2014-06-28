@@ -405,6 +405,27 @@ class TestCoup(unittest.TestCase):
         z.public_information['spectator'].extend(['assassinate'])
         self.assertEqual(z.best_guesses, ['Duke', 'Ambassador/Captain'])
 
+    def test_remove_suspicion(self):
+        p = AI_Persona()
+        p.left = Captain()
+        p.right = Assassin()
+
+        p.public_information['perform'].extend(['steal', 'steal', 'steal'])
+        self.assertEqual(p.best_guesses, ['Captain'])
+        p.left.reveal()
+        p.remove_suspicion('Captain')
+        self.assertEqual(p.best_guesses, [])
+
+        pp = AI_Persona()
+        pp.left = Captain()
+        pp.right = Assassin()
+
+        pp.public_information['perform'].extend(['steal', 'steal', 'steal', 'assassinate'])
+        self.assertEqual(pp.best_guesses, ['Captain', 'Assassin'])
+        pp.right.reveal()
+        pp.remove_suspicion('Assassin')
+        self.assertEqual(pp.best_guesses, ['Captain'])
+
     def test_ai_profile_will_intervene_foreign_aid(self):
         p = AI_Persona() #not duke
         p.left = Assassin()

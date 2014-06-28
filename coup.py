@@ -211,6 +211,17 @@ class AI_Persona(Player):
 
         return False
 
+    def remove_suspicion(self, influence):
+        for k,v in self.PERFORMED_ACTION.items():
+            if v == influence:
+                self.public_information['perform'] = [a for a in self.public_information['perform'] if a not in k]
+                break
+        for k,v in self.BLOCKED_ACTION.items():
+            if v == influence:
+                self.public_information['victim'] = [a for a in self.public_information['perform'] if a not in k]
+                self.public_information['spectator'] = [a for a in self.public_information['perform'] if a not in k]
+                break
+
     @property
     def best_guesses(self):
         from collections import Counter
