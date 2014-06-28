@@ -107,6 +107,7 @@ class simulations(object):
                                 else:
                                     position, random_target = random_player.random_remaining_influence
                                     testgame.players[i].perform(action, random_target)
+                                    random_player.remove_suspicion(str(random_target))
                         elif action == 'foreign_aid':
                             for savior in range(PLAYERS):
                                 if savior != i and testgame.players[savior].will_intervene(action, acting_player):
@@ -120,6 +121,7 @@ class simulations(object):
                             random_player = acting_player.select_opponent(testgame.players)
                             position, random_target = random_player.random_remaining_influence
                             testgame.players[i].perform(action, random_target)
+                            random_player.remove_suspicion(str(random_target))
                         else:
                             testgame.players[i].perform(action)
                         break
@@ -128,6 +130,7 @@ class simulations(object):
                 except BlockedAction:
                     break
                 except RethinkAction as e:
+                    pass
                     print e.message
                 
         

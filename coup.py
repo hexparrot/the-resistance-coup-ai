@@ -91,6 +91,41 @@ class Player(object):
         return (not self.left.revealed and str(self.left) == influence) or \
                (not self.right.revealed and str(self.right) == influence)
 
+    def remove_suspicion(self, influence):
+        for k,v in self.PERFORMED_ACTION.items():
+            if v == influence:
+                self.public_information['perform'] = [a for a in self.public_information['perform'] if a not in k]
+                break
+        for k,v in self.BLOCKED_ACTION.items():
+            if v == influence:
+                self.public_information['victim'] = [a for a in self.public_information['perform'] if a not in k]
+                self.public_information['spectator'] = [a for a in self.public_information['perform'] if a not in k]
+                break
+
+    @property
+    def best_guesses(self):
+        from collections import Counter
+
+        PERFORMED_WEIGHT = 1
+        VICTIM_SAVE_WEIGHT = 1
+        SPECTATOR_SAVE_WEIGHT = 2
+        
+        performed = Counter(self.PERFORMED_ACTION[i] for i in self.public_information['perform'] if self.PERFORMED_ACTION.get(i))
+        victim = Counter(self.BLOCKED_ACTION[i] for i in self.public_information['victim'] if self.BLOCKED_ACTION.get(i))
+        spectator = Counter(self.BLOCKED_ACTION[i] for i in self.public_information['spectator'] if self.BLOCKED_ACTION.get(i))
+
+        result = Counter()
+        for _ in range(PERFORMED_WEIGHT):
+            result.update(performed)
+
+        for _ in range(VICTIM_SAVE_WEIGHT):
+            result.update(victim)
+
+        for _ in range(SPECTATOR_SAVE_WEIGHT):
+            result.update(spectator)
+
+        return [inf for inf, freq in result.most_common(2)][0:2]
+
     @property
     def valid_actions(self):
         actions = set()
@@ -210,41 +245,6 @@ class AI_Persona(Player):
             pass
 
         return False
-
-    def remove_suspicion(self, influence):
-        for k,v in self.PERFORMED_ACTION.items():
-            if v == influence:
-                self.public_information['perform'] = [a for a in self.public_information['perform'] if a not in k]
-                break
-        for k,v in self.BLOCKED_ACTION.items():
-            if v == influence:
-                self.public_information['victim'] = [a for a in self.public_information['perform'] if a not in k]
-                self.public_information['spectator'] = [a for a in self.public_information['perform'] if a not in k]
-                break
-
-    @property
-    def best_guesses(self):
-        from collections import Counter
-
-        PERFORMED_WEIGHT = 1
-        VICTIM_SAVE_WEIGHT = 1
-        SPECTATOR_SAVE_WEIGHT = 2
-        
-        performed = Counter(self.PERFORMED_ACTION[i] for i in self.public_information['perform'] if self.PERFORMED_ACTION.get(i))
-        victim = Counter(self.BLOCKED_ACTION[i] for i in self.public_information['victim'] if self.BLOCKED_ACTION.get(i))
-        spectator = Counter(self.BLOCKED_ACTION[i] for i in self.public_information['spectator'] if self.BLOCKED_ACTION.get(i))
-
-        result = Counter()
-        for _ in range(PERFORMED_WEIGHT):
-            result.update(performed)
-
-        for _ in range(VICTIM_SAVE_WEIGHT):
-            result.update(victim)
-
-        for _ in range(SPECTATOR_SAVE_WEIGHT):
-            result.update(spectator)
-
-        return [inf for inf, freq in result.most_common(2)][0:2]
 
     @property
     def random_remaining_influence(self):

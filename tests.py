@@ -1086,6 +1086,7 @@ class TestCoup(unittest.TestCase):
                                 else:
                                     position, random_target = random_player.random_remaining_influence
                                     testgame.players[i].perform(action, random_target)
+                                    random_player.remove_suspicion(str(random_target))
                         elif action == 'foreign_aid':
                             for savior in range(PLAYERS):
                                 if savior != i and testgame.players[savior].will_intervene(action, acting_player):
@@ -1099,6 +1100,7 @@ class TestCoup(unittest.TestCase):
                             random_player = acting_player.select_opponent(testgame.players)
                             position, random_target = random_player.random_remaining_influence
                             testgame.players[i].perform(action, random_target)
+                            random_player.remove_suspicion(str(random_target))
                         else:
                             testgame.players[i].perform(action)
                         break
