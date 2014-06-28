@@ -122,6 +122,17 @@ class Player(object):
         return sum(1 for i in (self.left, self.right) if not i.revealed)
 
 class AI_Persona(Player):
+    PERFORMED_ACTION = {
+        'steal': 'Captain',
+        'tax': 'Duke',
+        'assassinate': 'Assassin',
+        }
+    BLOCKED_ACTION = {
+        'foreign_aid': 'Duke',
+        'steal': 'Ambassador/Captain',
+        'assassinate': 'Contessa'
+        }
+        
     def __init__(self, personality='passive'):
         Player.__init__(self)
 
@@ -202,28 +213,15 @@ class AI_Persona(Player):
 
     @property
     def best_guesses(self):
-        def performed_action(action):
-            return {
-                'steal': 'Captain',
-                'tax': 'Duke',
-                'assassinate': 'Assassin',
-                }.get(action)
-        def blocked(action):
-            return {
-                'foreign_aid': 'Duke',
-                'steal': 'Ambassador/Captain',
-                'assassinate': 'Contessa'
-                }.get(action)
-
         from collections import Counter
 
         PERFORMED_WEIGHT = 1
         VICTIM_SAVE_WEIGHT = 1
         SPECTATOR_SAVE_WEIGHT = 2
         
-        performed = Counter(performed_action(i) for i in self.public_information['perform'] if performed_action(i))
-        victim = Counter(blocked(i) for i in self.public_information['victim'] if blocked(i))
-        spectator = Counter(blocked(i) for i in self.public_information['spectator'] if blocked(i))
+        performed = Counter(self.PERFORMED_ACTION[i] for i in self.public_information['perform'] if self.PERFORMED_ACTION.get(i))
+        victim = Counter(self.BLOCKED_ACTION[i] for i in self.public_information['victim'] if self.BLOCKED_ACTION.get(i))
+        spectator = Counter(self.BLOCKED_ACTION[i] for i in self.public_information['spectator'] if self.BLOCKED_ACTION.get(i))
 
         result = Counter()
         for _ in range(PERFORMED_WEIGHT):
