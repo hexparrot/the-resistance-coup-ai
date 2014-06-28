@@ -55,6 +55,17 @@ class Play_Coup(object):
         
 
 class Player(object):
+    PERFORMED_ACTION = {
+        'steal': 'Captain',
+        'tax': 'Duke',
+        'assassinate': 'Assassin',
+        }
+    BLOCKED_ACTION = {
+        'foreign_aid': 'Duke',
+        'steal': 'Ambassador/Captain',
+        'assassinate': 'Contessa'
+        }
+    
     def __init__(self):
         self.coins = 2
         self.left = None
@@ -94,12 +105,12 @@ class Player(object):
     def remove_suspicion(self, influence):
         for k,v in self.PERFORMED_ACTION.items():
             if v == influence:
-                self.public_information['perform'] = [a for a in self.public_information['perform'] if a not in k]
+                self.public_information['perform'] = [a for a in self.public_information['perform'] if a != k]
                 break
         for k,v in self.BLOCKED_ACTION.items():
             if v == influence:
-                self.public_information['victim'] = [a for a in self.public_information['perform'] if a not in k]
-                self.public_information['spectator'] = [a for a in self.public_information['perform'] if a not in k]
+                self.public_information['victim'] = [a for a in self.public_information['perform'] if a != k]
+                self.public_information['spectator'] = [a for a in self.public_information['perform'] if a != k]
                 break
 
     @property
@@ -156,18 +167,7 @@ class Player(object):
     def influence_remaining(self):
         return sum(1 for i in (self.left, self.right) if not i.revealed)
 
-class AI_Persona(Player):
-    PERFORMED_ACTION = {
-        'steal': 'Captain',
-        'tax': 'Duke',
-        'assassinate': 'Assassin',
-        }
-    BLOCKED_ACTION = {
-        'foreign_aid': 'Duke',
-        'steal': 'Ambassador/Captain',
-        'assassinate': 'Contessa'
-        }
-        
+class AI_Persona(Player):        
     def __init__(self, personality='passive'):
         Player.__init__(self)
 
