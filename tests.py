@@ -759,9 +759,10 @@ class TestCoup(unittest.TestCase):
                         testgame.players[i].perform(action, testgame.court_deck)
                     else:
                         testgame.players[i].perform(action)
-                    break
                 except (IllegalTarget, IllegalAction):
                     pass
+                else:
+                    break
 
     def test_gameplay_random_actions_random_targets_honest_blocks_no_doubts(self):
         """
@@ -811,9 +812,10 @@ class TestCoup(unittest.TestCase):
                             testgame.players[i].perform(action, testgame.court_deck)
                         else:
                             testgame.players[i].perform(action)
-                    break
                 except (IllegalTarget, IllegalAction):
                     pass
+                else:
+                    break
 
     def test_gameplay_random_actions_calculated_targets_selfish_blocks_no_doubts(self):
         """
@@ -875,10 +877,11 @@ class TestCoup(unittest.TestCase):
                         testgame.players[i].perform(action, random_target)
                     else:
                         testgame.players[i].perform(action)
-                    break
                 except (IllegalTarget, IllegalAction):
                     pass
                 except BlockedAction as e:
+                    break
+                else:
                     break
 
     def test_gameplay_naive_actions_calculated_targets_selfish_blocks_no_doubts(self):
@@ -939,10 +942,11 @@ class TestCoup(unittest.TestCase):
                         testgame.players[i].perform(action, random_target)
                     else:
                         testgame.players[i].perform(action)
-                    break
                 except (IllegalTarget, IllegalAction):
                     pass
                 except BlockedAction as e:
+                    break
+                else:
                     break
 
     def test_gameplay_naive_actions_calculated_targets_calculated_blocks_no_doubts(self):
@@ -1018,10 +1022,11 @@ class TestCoup(unittest.TestCase):
                             testgame.players[i].perform(action, random_target)
                         else:
                             testgame.players[i].perform(action)
-                        break
                 except (IllegalTarget, IllegalAction):
                     pass
                 except BlockedAction as e:
+                    break
+                else:
                     break
 
     def test_gameplay_calculated_actions_calculated_targets_calculated_blocks_no_doubts(self):
@@ -1103,13 +1108,14 @@ class TestCoup(unittest.TestCase):
                             random_player.remove_suspicion(str(random_target))
                         else:
                             testgame.players[i].perform(action)
-                        break
                 except (IllegalTarget, IllegalAction):
                     pass
                 except BlockedAction:
                     break
                 except RethinkAction as e:
                     pass
+                else:
+                    break
 
 def gameplay_suite():
     suite = unittest.TestSuite()

@@ -124,14 +124,15 @@ class simulations(object):
                             random_player.remove_suspicion(str(random_target))
                         else:
                             testgame.players[i].perform(action)
-                        break
                 except (IllegalTarget, IllegalAction):
                     pass
                 except BlockedAction:
                     break
                 except RethinkAction as e:
-                    pass
                     print e.message
+                else:
+                    break
+                    
                 
         
 if __name__ == "__main__":
