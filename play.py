@@ -72,7 +72,6 @@ class simulations(object):
 
         """
         from itertools import cycle
-        from random import choice, randint
 
         PLAYERS = 5
         testgame = Play_Coup(PLAYERS)

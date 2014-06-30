@@ -124,23 +124,19 @@ class Player(object):
     def best_guesses(self):
         from collections import Counter
         from itertools import chain
-
-        PERFORMED_WEIGHT = 1
-        VICTIM_SAVE_WEIGHT = 1
-        SPECTATOR_SAVE_WEIGHT = 2
         
-        performed = Counter(chain(*[WEIGHTS['performed_action'][i] for i in self.public_information['perform'] if WEIGHTS['performed_action'].get(i)]))
-        victim = Counter(chain(*[WEIGHTS['blocked_selfishly'][i] for i in self.public_information['victim'] if WEIGHTS['blocked_selfishly'].get(i)]))
-        spectator = Counter(chain(*[WEIGHTS['blocked_selflessly'][i] for i in self.public_information['spectator'] if WEIGHTS['blocked_selflessly'].get(i)]))
+        performed = Counter(chain(*[IMPLIED_INFORMATION['perform'][i] for i in self.public_information['perform'] if IMPLIED_INFORMATION['perform'].get(i)]))
+        victim = Counter(chain(*[IMPLIED_INFORMATION['block'][i] for i in self.public_information['victim'] if IMPLIED_INFORMATION['block'].get(i)]))
+        spectator = Counter(chain(*[IMPLIED_INFORMATION['block'][i] for i in self.public_information['spectator'] if IMPLIED_INFORMATION['block'].get(i)]))
 
         result = Counter()
-        for _ in range(PERFORMED_WEIGHT):
+        for _ in range(WEIGHTS['performed_action']):
             result.update(performed)
 
-        for _ in range(VICTIM_SAVE_WEIGHT):
+        for _ in range(WEIGHTS['blocked_selfishly']):
             result.update(victim)
 
-        for _ in range(SPECTATOR_SAVE_WEIGHT):
+        for _ in range(WEIGHTS['blocked_selflessly']):
             result.update(spectator)
 
         return [inf for inf, freq in result.most_common(2)][0:2]
@@ -156,25 +152,21 @@ class Player(object):
     def unlikely_guesses(self):
         from collections import Counter
         from itertools import chain
-
-        PERFORMED_WEIGHT = 3
-        VICTIM_SAVE_WEIGHT = 10
-        SPECTATOR_SAVE_WEIGHT = 1
         
-        performed = Counter(chain(*[WEIGHTS['suboptimal_move'][i] for i in self.public_information['perform'] if WEIGHTS['suboptimal_move'].get(i)]))
-        victim = Counter(chain(*[WEIGHTS['didnt_block_selfishly'][i] for i in self.not_acting_like['victim'] if WEIGHTS['didnt_block_selfishly'].get(i)]))
-        spectator = Counter(chain(*[WEIGHTS['didnt_block_selflessly'][i] for i in self.not_acting_like['spectator'] if WEIGHTS['didnt_block_selflessly'].get(i)]))
+        performed = Counter(chain(*[IMPLIED_INFORMATION['suboptimal_move'][i] for i in self.public_information['perform'] if IMPLIED_INFORMATION['suboptimal_move'].get(i)]))
+        victim = Counter(chain(*[IMPLIED_INFORMATION['block'][i] for i in self.not_acting_like['victim'] if IMPLIED_INFORMATION['block'].get(i)]))
+        spectator = Counter(chain(*[IMPLIED_INFORMATION['block'][i] for i in self.not_acting_like['spectator'] if IMPLIED_INFORMATION['block'].get(i)]))
 
         result = Counter()
-        for _ in range(PERFORMED_WEIGHT):
+        for _ in range(abs(WEIGHTS['suboptimal_move'])):
             result.update(performed)
 
-        for _ in range(VICTIM_SAVE_WEIGHT):
+        for _ in range(abs(WEIGHTS['didnt_block_selfishly'])):
             result.update(victim)
 
-        for _ in range(SPECTATOR_SAVE_WEIGHT):
+        for _ in range(abs(WEIGHTS['didnt_block_selflessly'])):
             result.update(spectator)
-
+        
         return [inf for inf, freq in result.most_common()]
 
     @property
