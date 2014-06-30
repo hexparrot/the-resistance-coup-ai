@@ -13,6 +13,7 @@ __email__ = "wdchromium@gmail.com"
 
 import unittest
 from coup import *
+from heuristics import *
 
 class TestCoup(unittest.TestCase):
     def setUp(self):
@@ -399,24 +400,41 @@ class TestCoup(unittest.TestCase):
 
         p = testgame.players[0]
 
-        self.assertEqual(p.best_guesses, [])
+        self.assertEqual(p.best_guesses, {})
 
         p.public_information['perform'].extend(['tax','tax','tax'])
         p.public_information['spectator'].extend(['foreign_aid','foreign_aid'])
 
-        self.assertEqual(p.best_guesses, ['Duke'])
+        self.assertEqual(p.best_guesses, {
+            'Duke': WEIGHTS['performed_action'] * 3 + WEIGHTS['blocked_selflessly'] * 2
+            })
 
         p.public_information['perform'].append('steal')
-        self.assertEqual(p.best_guesses, ['Duke', 'Captain'])
+        self.assertEqual(p.best_guesses,  {
+            'Duke': WEIGHTS['performed_action'] * 3 + WEIGHTS['blocked_selflessly'] * 2,
+            'Captain':  WEIGHTS['performed_action'] * 1
+            })
 
         p.public_information['perform'].append('steal')
-        self.assertEqual(p.best_guesses, ['Duke', 'Captain'])
+        self.assertEqual(p.best_guesses, {
+            'Duke': WEIGHTS['performed_action'] * 3 + WEIGHTS['blocked_selflessly'] * 2,
+            'Captain':  WEIGHTS['performed_action'] * 2
+            })
 
         p.public_information['spectator'].extend(['steal', 'steal', 'steal'])
-        self.assertEqual(set(p.best_guesses), set(['Duke', 'Captain']))
+        self.assertEqual(p.best_guesses, {
+            'Duke': WEIGHTS['performed_action'] * 3 + WEIGHTS['blocked_selflessly'] * 2,
+            'Captain':  WEIGHTS['performed_action'] * 2 + WEIGHTS['blocked_selflessly'] * 3,
+            'Ambassador': WEIGHTS['blocked_selflessly'] * 3
+            })
 
         p.public_information['spectator'].extend(['assassinate'])
-        self.assertEqual(set(p.best_guesses), set(['Duke', 'Captain']))
+        self.assertEqual(p.best_guesses, {
+            'Duke': WEIGHTS['performed_action'] * 3 + WEIGHTS['blocked_selflessly'] * 2,
+            'Captain':  WEIGHTS['performed_action'] * 2 + WEIGHTS['blocked_selflessly'] * 3,
+            'Ambassador': WEIGHTS['blocked_selflessly'] * 3,
+            'Contessa': WEIGHTS['blocked_selflessly'] * 1
+            })
 
     def test_allowed_others(self):
         testgame = Play_Coup(5)
@@ -448,20 +466,27 @@ class TestCoup(unittest.TestCase):
         p.right = Assassin()
 
         p.public_information['perform'].extend(['steal', 'steal', 'steal'])
-        self.assertEqual(p.best_guesses, ['Captain'])
+        self.assertEqual(p.best_guesses, {
+            'Captain': WEIGHTS['performed_action'] * 3 
+            })
         p.left.reveal()
         p.remove_suspicion('Captain')
-        self.assertEqual(p.best_guesses, [])
+        self.assertEqual(p.best_guesses, {})
 
         pp = AI_Persona()
         pp.left = Captain()
         pp.right = Assassin()
 
         pp.public_information['perform'].extend(['steal', 'steal', 'steal', 'assassinate'])
-        self.assertEqual(pp.best_guesses, ['Captain', 'Assassin'])
+        self.assertEqual(pp.best_guesses, {
+            'Captain': WEIGHTS['performed_action'] * 3,
+            'Assassin': WEIGHTS['performed_action'] * 1
+            })
         pp.right.reveal()
         pp.remove_suspicion('Assassin')
-        self.assertEqual(pp.best_guesses, ['Captain'])
+        self.assertEqual(pp.best_guesses, {
+            'Captain': WEIGHTS['performed_action'] * 3
+            })
         
         ppp = AI_Persona()
         ppp.left = Duke()
@@ -471,7 +496,7 @@ class TestCoup(unittest.TestCase):
         self.assertIn('Duke', ppp.best_guesses)
         ppp.left.reveal()
         ppp.remove_suspicion('Duke')
-        self.assertEqual(ppp.best_guesses, [])
+        self.assertEqual(ppp.best_guesses, {})
 
     def test_ai_profile_will_intervene_foreign_aid(self):
         p = AI_Persona() #not duke
@@ -561,7 +586,7 @@ class TestCoup(unittest.TestCase):
         
         p.public_information['perform'].extend(['assassinate'])
         
-        self.assertNotIn('assassinate', p.guessed_actions)
+        self.assertIn('assassinate', p.guessed_actions)
         self.assertIn('tax', p.guessed_actions)
         self.assertIn('steal', p.guessed_actions)
         
@@ -569,7 +594,7 @@ class TestCoup(unittest.TestCase):
 
         self.assertIn('assassinate', p.guessed_actions)
         self.assertIn('tax', p.guessed_actions)
-        self.assertNotIn('steal', p.guessed_actions)
+        self.assertIn('steal', p.guessed_actions)
 
     def test_ai_profile_will_intervene_steal_victim(self):
         p = AI_Persona() #not captain

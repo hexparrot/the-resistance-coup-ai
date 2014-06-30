@@ -139,7 +139,7 @@ class Player(object):
         for _ in range(WEIGHTS['blocked_selflessly']):
             result.update(spectator)
 
-        return [inf for inf, freq in result.most_common(2)][0:2]
+        return dict(result.most_common())
         
     @property
     def guessed_actions(self):
