@@ -121,7 +121,7 @@ class Player(object):
                 break
 
     @property
-    def best_guesses(self):
+    def probable_influences(self):
         from collections import Counter
         from itertools import chain
         
@@ -142,14 +142,14 @@ class Player(object):
         return dict(result.most_common())
         
     @property
-    def guessed_actions(self):
+    def probable_actions(self):
         actions = set()
-        for inf, freq in sorted(self.best_guesses.items(), reverse=True, key=lambda t: t[1])[0:2]:
+        for inf, freq in sorted(self.probable_influences.items(), reverse=True, key=lambda t: t[1])[0:2]:
             actions.update([a for a in Influence.__subclasses__() if a.__name__ == inf][0].ACTIONS)
         return actions
 
     @property
-    def unlikely_guesses(self):
+    def improbable_influences(self):
         from collections import Counter
         from itertools import chain
         
@@ -170,9 +170,9 @@ class Player(object):
         return dict(result.most_common())
         
     @property
-    def unlikely_blocks(self):
+    def improbable_blocks(self):
         blocks = set()
-        for inf, freq in sorted(self.unlikely_guesses.items(), reverse=True, key=lambda t: t[1])[0:2]:
+        for inf, freq in sorted(self.improbable_influences.items(), reverse=True, key=lambda t: t[1])[0:2]:
             blocks.update([a for a in Influence.__subclasses__() if a.__name__ == inf][0].BLOCKS)
         return blocks
 

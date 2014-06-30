@@ -400,36 +400,36 @@ class TestCoup(unittest.TestCase):
 
         p = testgame.players[0]
 
-        self.assertEqual(p.best_guesses, {})
+        self.assertEqual(p.probable_influences, {})
 
         p.public_information['perform'].extend(['tax','tax','tax'])
         p.public_information['spectator'].extend(['foreign_aid','foreign_aid'])
 
-        self.assertEqual(p.best_guesses, {
+        self.assertEqual(p.probable_influences, {
             'Duke': WEIGHTS['performed_action'] * 3 + WEIGHTS['blocked_selflessly'] * 2
             })
 
         p.public_information['perform'].append('steal')
-        self.assertEqual(p.best_guesses,  {
+        self.assertEqual(p.probable_influences,  {
             'Duke': WEIGHTS['performed_action'] * 3 + WEIGHTS['blocked_selflessly'] * 2,
             'Captain':  WEIGHTS['performed_action'] * 1
             })
 
         p.public_information['perform'].append('steal')
-        self.assertEqual(p.best_guesses, {
+        self.assertEqual(p.probable_influences, {
             'Duke': WEIGHTS['performed_action'] * 3 + WEIGHTS['blocked_selflessly'] * 2,
             'Captain':  WEIGHTS['performed_action'] * 2
             })
 
         p.public_information['spectator'].extend(['steal', 'steal', 'steal'])
-        self.assertEqual(p.best_guesses, {
+        self.assertEqual(p.probable_influences, {
             'Duke': WEIGHTS['performed_action'] * 3 + WEIGHTS['blocked_selflessly'] * 2,
             'Captain':  WEIGHTS['performed_action'] * 2 + WEIGHTS['blocked_selflessly'] * 3,
             'Ambassador': WEIGHTS['blocked_selflessly'] * 3
             })
 
         p.public_information['spectator'].extend(['assassinate'])
-        self.assertEqual(p.best_guesses, {
+        self.assertEqual(p.probable_influences, {
             'Duke': WEIGHTS['performed_action'] * 3 + WEIGHTS['blocked_selflessly'] * 2,
             'Captain':  WEIGHTS['performed_action'] * 2 + WEIGHTS['blocked_selflessly'] * 3,
             'Ambassador': WEIGHTS['blocked_selflessly'] * 3,
@@ -444,8 +444,8 @@ class TestCoup(unittest.TestCase):
         p.perform('foreign_aid')
         testgame.players[1].not_acting_like['spectator'].extend(['foreign_aid'])
         
-        self.assertIn('Duke', testgame.players[1].unlikely_guesses)
-        self.assertEqual(testgame.players[1].unlikely_guesses, {
+        self.assertIn('Duke', testgame.players[1].improbable_influences)
+        self.assertEqual(testgame.players[1].improbable_influences, {
             'Duke': abs(WEIGHTS['didnt_block_selflessly']) * 1 
             })
 
@@ -455,13 +455,13 @@ class TestCoup(unittest.TestCase):
         testgame.players[0].not_acting_like['victim'].extend(['steal'])
         testgame.players[3].not_acting_like['spectator'].extend(['steal'])
             
-        self.assertEqual(testgame.players[0].unlikely_guesses, {
+        self.assertEqual(testgame.players[0].improbable_influences, {
             'Duke': abs(WEIGHTS['suboptimal_move']) * 1,
             'Ambassador': abs(WEIGHTS['didnt_block_selfishly']) * 1,
             'Captain': abs(WEIGHTS['didnt_block_selfishly']) * 1 
             })
 
-        self.assertEqual(testgame.players[3].unlikely_guesses, {
+        self.assertEqual(testgame.players[3].improbable_influences, {
             'Ambassador': abs(WEIGHTS['didnt_block_selflessly']) * 1,
             'Captain': abs(WEIGHTS['didnt_block_selflessly']) * 1 
             })
@@ -472,25 +472,25 @@ class TestCoup(unittest.TestCase):
         p.right = Assassin()
 
         p.public_information['perform'].extend(['steal', 'steal', 'steal'])
-        self.assertEqual(p.best_guesses, {
+        self.assertEqual(p.probable_influences, {
             'Captain': WEIGHTS['performed_action'] * 3 
             })
         p.left.reveal()
         p.remove_suspicion('Captain')
-        self.assertEqual(p.best_guesses, {})
+        self.assertEqual(p.probable_influences, {})
 
         pp = AI_Persona()
         pp.left = Captain()
         pp.right = Assassin()
 
         pp.public_information['perform'].extend(['steal', 'steal', 'steal', 'assassinate'])
-        self.assertEqual(pp.best_guesses, {
+        self.assertEqual(pp.probable_influences, {
             'Captain': WEIGHTS['performed_action'] * 3,
             'Assassin': WEIGHTS['performed_action'] * 1
             })
         pp.right.reveal()
         pp.remove_suspicion('Assassin')
-        self.assertEqual(pp.best_guesses, {
+        self.assertEqual(pp.probable_influences, {
             'Captain': WEIGHTS['performed_action'] * 3
             })
         
@@ -499,10 +499,10 @@ class TestCoup(unittest.TestCase):
         ppp.right = Assassin()
 
         ppp.public_information['spectator'].extend(['foreign_aid', 'foreign_aid'])
-        self.assertIn('Duke', ppp.best_guesses)
+        self.assertIn('Duke', ppp.probable_influences)
         ppp.left.reveal()
         ppp.remove_suspicion('Duke')
-        self.assertEqual(ppp.best_guesses, {})
+        self.assertEqual(ppp.probable_influences, {})
 
     def test_ai_profile_will_intervene_foreign_aid(self):
         p = AI_Persona() #not duke
@@ -567,40 +567,40 @@ class TestCoup(unittest.TestCase):
             }
         self.assertTrue(ppp.will_intervene('steal', p, pp))
         
-    def test_best_guessed_actions(self):
+    def test_best_probable_actions(self):
         testgame = Play_Coup(5)
         
         p = testgame.players[0]
         p.left = Duke()
         p.right = Captain()
         
-        self.assertNotIn('assassinate', p.guessed_actions)
-        self.assertNotIn('tax', p.guessed_actions)
-        self.assertNotIn('steal', p.guessed_actions)
+        self.assertNotIn('assassinate', p.probable_actions)
+        self.assertNotIn('tax', p.probable_actions)
+        self.assertNotIn('steal', p.probable_actions)
         
         p.public_information['perform'].extend(['steal', 'steal', 'steal'])
         
-        self.assertNotIn('assassinate', p.guessed_actions)
-        self.assertNotIn('tax', p.guessed_actions)
-        self.assertIn('steal', p.guessed_actions)
+        self.assertNotIn('assassinate', p.probable_actions)
+        self.assertNotIn('tax', p.probable_actions)
+        self.assertIn('steal', p.probable_actions)
         
         p.public_information['perform'].extend(['tax','tax','tax'])
         
-        self.assertNotIn('assassinate', p.guessed_actions)
-        self.assertIn('tax', p.guessed_actions)
-        self.assertIn('steal', p.guessed_actions)
+        self.assertNotIn('assassinate', p.probable_actions)
+        self.assertIn('tax', p.probable_actions)
+        self.assertIn('steal', p.probable_actions)
         
         p.public_information['perform'].extend(['assassinate'])
         
-        self.assertNotIn('assassinate', p.guessed_actions)
-        self.assertIn('tax', p.guessed_actions)
-        self.assertIn('steal', p.guessed_actions)
+        self.assertNotIn('assassinate', p.probable_actions)
+        self.assertIn('tax', p.probable_actions)
+        self.assertIn('steal', p.probable_actions)
         
         p.public_information['perform'].extend(['tax', 'assassinate','assassinate','assassinate'])
 
-        self.assertIn('assassinate', p.guessed_actions)
-        self.assertIn('tax', p.guessed_actions)
-        self.assertNotIn('steal', p.guessed_actions)
+        self.assertIn('assassinate', p.probable_actions)
+        self.assertIn('tax', p.probable_actions)
+        self.assertNotIn('steal', p.probable_actions)
         
     def test_unlikely_guessed_blocks(self):
         testgame = Play_Coup(5)
@@ -608,21 +608,21 @@ class TestCoup(unittest.TestCase):
         p = testgame.players[0]
         
         p.not_acting_like['spectator'].extend(['steal'])
-        self.assertIn('steal', p.unlikely_blocks)
-        self.assertNotIn('assassinate', p.unlikely_blocks)
-        self.assertNotIn('foreign_aid', p.unlikely_blocks)
+        self.assertIn('steal', p.improbable_blocks)
+        self.assertNotIn('assassinate', p.improbable_blocks)
+        self.assertNotIn('foreign_aid', p.improbable_blocks)
         
         p.perform('income')
-        self.assertIn('steal', p.unlikely_blocks)
-        self.assertNotIn('assassinate', p.unlikely_blocks)
-        self.assertIn('foreign_aid', p.unlikely_blocks)
+        self.assertIn('steal', p.improbable_blocks)
+        self.assertNotIn('assassinate', p.improbable_blocks)
+        self.assertIn('foreign_aid', p.improbable_blocks)
         
         p.not_acting_like['spectator'].extend(['assassinate'])
         p.not_acting_like['spectator'].extend(['assassinate'])
         
-        self.assertNotIn('steal', p.unlikely_blocks)
-        self.assertIn('assassinate', p.unlikely_blocks)
-        self.assertIn('foreign_aid', p.unlikely_blocks)   
+        self.assertNotIn('steal', p.improbable_blocks)
+        self.assertIn('assassinate', p.improbable_blocks)
+        self.assertIn('foreign_aid', p.improbable_blocks)   
 
     def test_ai_profile_will_intervene_steal_victim(self):
         p = AI_Persona() #not captain
@@ -1198,7 +1198,7 @@ class TestCoup(unittest.TestCase):
 
                     if action == 'steal':
                         random_player = acting_player.select_opponent(testgame.players)
-                        if set(random_player.best_guesses).intersection(set([str(a()) for a in Influence.__subclasses__() if action in a.BLOCKS])):
+                        if set(random_player.probable_influences).intersection(set([str(a()) for a in Influence.__subclasses__() if action in a.BLOCKS])):
                             raise RethinkAction(action, acting_player, random_player)
                         if 'steal' in random_player.valid_blocks:
                             raise BlockedAction(action, acting_player, random_player, None)
@@ -1212,7 +1212,7 @@ class TestCoup(unittest.TestCase):
                                 testgame.players[i].perform(action, random_player)
                     elif action == 'assassinate':
                         random_player = acting_player.select_opponent(testgame.players)
-                        if set(random_player.best_guesses).intersection(set([str(a()) for a in Influence.__subclasses__() if action in a.BLOCKS])):
+                        if set(random_player.probable_influences).intersection(set([str(a()) for a in Influence.__subclasses__() if action in a.BLOCKS])):
                             raise RethinkAction(action, acting_player, random_player)
                         if 'assassinate' in random_player.valid_blocks:
                             raise BlockedAction(action, acting_player, random_player, None)
