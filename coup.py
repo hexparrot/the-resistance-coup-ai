@@ -68,19 +68,19 @@ class Play_Coup(object):
 
 class Player(object):
     PERFORMED_ACTION = {
-        'steal': 'Captain',
-        'tax': 'Duke',
-        'assassinate': 'Assassin',
+        'steal': ['Captain'],
+        'tax': ['Duke'],
+        'assassinate': ['Assassin'],
         }
     BLOCKED_ACTION = {
-        'foreign_aid': 'Duke',
-        'steal': 'Ambassador/Captain',
-        'assassinate': 'Contessa'
+        'foreign_aid': ['Duke'],
+        'steal': ['Ambassador', 'Captain'],
+        'assassinate': ['Contessa']
         }
     BETTER_ALTERNATIVE = {
-        'foreign_aid': 'Duke',
-        'income': 'Duke',
-        'coup': 'Assassin'
+        'foreign_aid': ['Duke'],
+        'income': ['Duke'],
+        'coup': ['Assassin']
         }
     
     def __init__(self):
@@ -125,11 +125,11 @@ class Player(object):
 
     def remove_suspicion(self, influence):
         for k,v in self.PERFORMED_ACTION.items():
-            if v == influence:
+            if influence in v:
                 self.public_information['perform'] = [a for a in self.public_information['perform'] if a != k]
                 break
         for k,v in self.BLOCKED_ACTION.items():
-            if v == influence:
+            if influence in v:
                 self.public_information['victim'] = [a for a in self.public_information['victim'] if a != k]
                 self.public_information['spectator'] = [a for a in self.public_information['spectator'] if a != k]
                 break
@@ -137,14 +137,15 @@ class Player(object):
     @property
     def best_guesses(self):
         from collections import Counter
+        from itertools import chain
 
         PERFORMED_WEIGHT = 1
         VICTIM_SAVE_WEIGHT = 1
         SPECTATOR_SAVE_WEIGHT = 2
         
-        performed = Counter(self.PERFORMED_ACTION[i] for i in self.public_information['perform'] if self.PERFORMED_ACTION.get(i))
-        victim = Counter(self.BLOCKED_ACTION[i] for i in self.public_information['victim'] if self.BLOCKED_ACTION.get(i))
-        spectator = Counter(self.BLOCKED_ACTION[i] for i in self.public_information['spectator'] if self.BLOCKED_ACTION.get(i))
+        performed = Counter(chain(*[self.PERFORMED_ACTION[i] for i in self.public_information['perform'] if self.PERFORMED_ACTION.get(i)]))
+        victim = Counter(chain(*[self.BLOCKED_ACTION[i] for i in self.public_information['victim'] if self.BLOCKED_ACTION.get(i)]))
+        spectator = Counter(chain(*[self.BLOCKED_ACTION[i] for i in self.public_information['spectator'] if self.BLOCKED_ACTION.get(i)]))
 
         result = Counter()
         for _ in range(PERFORMED_WEIGHT):
@@ -168,14 +169,15 @@ class Player(object):
     @property
     def unlikely_guesses(self):
         from collections import Counter
+        from itertools import chain
 
         PERFORMED_WEIGHT = 3
         VICTIM_SAVE_WEIGHT = 10
         SPECTATOR_SAVE_WEIGHT = 1
         
-        performed = Counter(self.BETTER_ALTERNATIVE[i] for i in self.public_information['perform'] if self.BETTER_ALTERNATIVE.get(i))
-        victim = Counter(self.BLOCKED_ACTION[i] for i in self.not_acting_like['victim'] if self.BLOCKED_ACTION.get(i))
-        spectator = Counter(self.BLOCKED_ACTION[i] for i in self.not_acting_like['spectator'] if self.BLOCKED_ACTION.get(i))
+        performed = Counter(chain(*[self.BETTER_ALTERNATIVE[i] for i in self.public_information['perform'] if self.BETTER_ALTERNATIVE.get(i)]))
+        victim = Counter(chain(*[self.BLOCKED_ACTION[i] for i in self.not_acting_like['victim'] if self.BLOCKED_ACTION.get(i)]))
+        spectator = Counter(chain(*[self.BLOCKED_ACTION[i] for i in self.not_acting_like['spectator'] if self.BLOCKED_ACTION.get(i)]))
 
         result = Counter()
         for _ in range(PERFORMED_WEIGHT):

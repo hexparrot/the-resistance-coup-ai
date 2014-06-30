@@ -413,10 +413,10 @@ class TestCoup(unittest.TestCase):
         self.assertEqual(p.best_guesses, ['Duke', 'Captain'])
 
         p.public_information['spectator'].extend(['steal', 'steal', 'steal'])
-        self.assertEqual(p.best_guesses, ['Duke', 'Ambassador/Captain'])
+        self.assertEqual(set(p.best_guesses), set(['Duke', 'Captain']))
 
         p.public_information['spectator'].extend(['assassinate'])
-        self.assertEqual(p.best_guesses, ['Duke', 'Ambassador/Captain'])
+        self.assertEqual(set(p.best_guesses), set(['Duke', 'Captain']))
 
     def test_allowed_others(self):
         testgame = Play_Coup(5)
@@ -434,10 +434,13 @@ class TestCoup(unittest.TestCase):
         testgame.players[0].not_acting_like['victim'].extend(['steal'])
         testgame.players[3].not_acting_like['spectator'].extend(['steal'])
             
-        self.assertIn('Ambassador/Captain', testgame.players[0].unlikely_guesses)
-        self.assertIn('Ambassador/Captain', testgame.players[3].unlikely_guesses)
+        self.assertIn('Ambassador', testgame.players[0].unlikely_guesses)
+        self.assertIn('Captain', testgame.players[0].unlikely_guesses)
         
-        self.assertEquals(p.unlikely_guesses, ['Ambassador/Captain', 'Duke'])
+        self.assertIn('Ambassador', testgame.players[3].unlikely_guesses)
+        self.assertIn('Captain', testgame.players[3].unlikely_guesses)
+        
+        self.assertEqual(set(p.unlikely_guesses), set(['Ambassador', 'Captain', 'Duke']))
 
     def test_remove_suspicion(self):
         p = AI_Persona()
