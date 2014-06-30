@@ -85,7 +85,8 @@ class Player(object):
         self.public_information = {
             'perform': [],
             'victim': [],
-            'spectator': []
+            'spectator': [],
+            'not_acting_like': []
             }
 
     def __str__(self):
@@ -155,6 +156,11 @@ class Player(object):
         for inf in self.best_guesses:
             actions.update([a for a in Influence.__subclasses__() if a.__name__ == inf][0].ACTIONS)
         return actions
+
+    @property
+    def not_acting_like(self):
+        from collections import Counter
+        return dict(Counter(self.public_information['not_acting_like']).most_common())
 
     @property
     def valid_actions(self):

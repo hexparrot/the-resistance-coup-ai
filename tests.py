@@ -418,6 +418,18 @@ class TestCoup(unittest.TestCase):
         p.public_information['spectator'].extend(['assassinate'])
         self.assertEqual(p.best_guesses, ['Duke', 'Ambassador/Captain'])
 
+    def test_allowed_others(self):
+        testgame = Play_Coup(5)
+        
+        p = testgame.players[0]
+        
+        p.perform('foreign_aid')
+        for i in range(1,5):
+            testgame.players[i].public_information['not_acting_like'].extend([p.BLOCKED_ACTION['foreign_aid'],])
+        
+        for i in range(1,5):
+            self.assertIn('Duke', testgame.players[i].not_acting_like)
+
     def test_remove_suspicion(self):
         p = AI_Persona()
         p.left = Captain()
