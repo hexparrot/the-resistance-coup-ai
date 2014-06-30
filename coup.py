@@ -167,7 +167,7 @@ class Player(object):
         for _ in range(abs(WEIGHTS['didnt_block_selflessly'])):
             result.update(spectator)
         
-        return [inf for inf, freq in result.most_common()]
+        return dict(result.most_common())
 
     @property
     def valid_actions(self):

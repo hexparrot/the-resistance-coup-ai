@@ -445,6 +445,9 @@ class TestCoup(unittest.TestCase):
         testgame.players[1].not_acting_like['spectator'].extend(['foreign_aid'])
         
         self.assertIn('Duke', testgame.players[1].unlikely_guesses)
+        self.assertEqual(testgame.players[1].unlikely_guesses, {
+            'Duke': abs(WEIGHTS['didnt_block_selflessly']) * 1 
+            })
 
         ppp = testgame.players[2]
         
@@ -452,13 +455,16 @@ class TestCoup(unittest.TestCase):
         testgame.players[0].not_acting_like['victim'].extend(['steal'])
         testgame.players[3].not_acting_like['spectator'].extend(['steal'])
             
-        self.assertIn('Ambassador', testgame.players[0].unlikely_guesses)
-        self.assertIn('Captain', testgame.players[0].unlikely_guesses)
-        
-        self.assertIn('Ambassador', testgame.players[3].unlikely_guesses)
-        self.assertIn('Captain', testgame.players[3].unlikely_guesses)
-        
-        self.assertEqual(set(p.unlikely_guesses), set(['Ambassador', 'Captain', 'Duke']))
+        self.assertEqual(testgame.players[0].unlikely_guesses, {
+            'Duke': abs(WEIGHTS['suboptimal_move']) * 1,
+            'Ambassador': abs(WEIGHTS['didnt_block_selfishly']) * 1,
+            'Captain': abs(WEIGHTS['didnt_block_selfishly']) * 1 
+            })
+
+        self.assertEqual(testgame.players[3].unlikely_guesses, {
+            'Ambassador': abs(WEIGHTS['didnt_block_selflessly']) * 1,
+            'Captain': abs(WEIGHTS['didnt_block_selflessly']) * 1 
+            })
 
     def test_remove_suspicion(self):
         p = AI_Persona()
