@@ -601,8 +601,19 @@ class TestCoup(unittest.TestCase):
         self.assertIn('assassinate', p.probable_actions)
         self.assertIn('tax', p.probable_actions)
         self.assertNotIn('steal', p.probable_actions)
+
+    def test_probable_blocks(self):
+        testgame = Play_Coup(5)
         
-    def test_unlikely_guessed_blocks(self):
+        p = testgame.players[0]
+        
+        p.public_information['perform'].extend(['tax'])
+        self.assertIn('foreign_aid', p.probable_blocks)
+        
+        p.perform('steal', testgame.players[1])
+        self.assertIn('steal', p.probable_blocks)
+        
+    def test_improbable_blocks(self):
         testgame = Play_Coup(5)
         
         p = testgame.players[0]

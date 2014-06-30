@@ -147,6 +147,13 @@ class Player(object):
         for inf, freq in sorted(self.probable_influences.items(), reverse=True, key=lambda t: t[1])[0:2]:
             actions.update([a for a in Influence.__subclasses__() if a.__name__ == inf][0].ACTIONS)
         return actions
+        
+    @property
+    def probable_blocks(self):
+        actions = set()
+        for inf, freq in sorted(self.probable_influences.items(), reverse=True, key=lambda t: t[1])[0:2]:
+            actions.update([a for a in Influence.__subclasses__() if a.__name__ == inf][0].BLOCKS)
+        return actions
 
     @property
     def improbable_influences(self):
