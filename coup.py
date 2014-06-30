@@ -10,6 +10,8 @@ __license__ = "GNU GPL v3.0"
 __version__ = "0.0.1"
 __email__ = "wdchromium@gmail.com"
 
+from heuristics import *
+
 class Play_Coup(object):
     ACTIONS = {
         'all': ['income', 'foreign_aid', 'coup', 'steal', 'tax', 'assassinate', 'exchange'],
@@ -67,22 +69,6 @@ class Play_Coup(object):
         
 
 class Player(object):
-    PERFORMED_ACTION = {
-        'steal': ['Captain'],
-        'tax': ['Duke'],
-        'assassinate': ['Assassin'],
-        }
-    BLOCKED_ACTION = {
-        'foreign_aid': ['Duke'],
-        'steal': ['Ambassador', 'Captain'],
-        'assassinate': ['Contessa']
-        }
-    BETTER_ALTERNATIVE = {
-        'foreign_aid': ['Duke'],
-        'income': ['Duke'],
-        'coup': ['Assassin']
-        }
-    
     def __init__(self):
         self.coins = 2
         self.left = None
@@ -124,11 +110,11 @@ class Player(object):
                (not self.right.revealed and str(self.right) == influence)
 
     def remove_suspicion(self, influence):
-        for k,v in self.PERFORMED_ACTION.items():
+        for k,v in IMPLIED_INFORMATION['perform'].items():
             if influence in v:
                 self.public_information['perform'] = [a for a in self.public_information['perform'] if a != k]
                 break
-        for k,v in self.BLOCKED_ACTION.items():
+        for k,v in IMPLIED_INFORMATION['block'].items():
             if influence in v:
                 self.public_information['victim'] = [a for a in self.public_information['victim'] if a != k]
                 self.public_information['spectator'] = [a for a in self.public_information['spectator'] if a != k]
@@ -143,9 +129,9 @@ class Player(object):
         VICTIM_SAVE_WEIGHT = 1
         SPECTATOR_SAVE_WEIGHT = 2
         
-        performed = Counter(chain(*[self.PERFORMED_ACTION[i] for i in self.public_information['perform'] if self.PERFORMED_ACTION.get(i)]))
-        victim = Counter(chain(*[self.BLOCKED_ACTION[i] for i in self.public_information['victim'] if self.BLOCKED_ACTION.get(i)]))
-        spectator = Counter(chain(*[self.BLOCKED_ACTION[i] for i in self.public_information['spectator'] if self.BLOCKED_ACTION.get(i)]))
+        performed = Counter(chain(*[WEIGHTS['performed_action'][i] for i in self.public_information['perform'] if WEIGHTS['performed_action'].get(i)]))
+        victim = Counter(chain(*[WEIGHTS['blocked_selfishly'][i] for i in self.public_information['victim'] if WEIGHTS['blocked_selfishly'].get(i)]))
+        spectator = Counter(chain(*[WEIGHTS['blocked_selflessly'][i] for i in self.public_information['spectator'] if WEIGHTS['blocked_selflessly'].get(i)]))
 
         result = Counter()
         for _ in range(PERFORMED_WEIGHT):
@@ -175,9 +161,9 @@ class Player(object):
         VICTIM_SAVE_WEIGHT = 10
         SPECTATOR_SAVE_WEIGHT = 1
         
-        performed = Counter(chain(*[self.BETTER_ALTERNATIVE[i] for i in self.public_information['perform'] if self.BETTER_ALTERNATIVE.get(i)]))
-        victim = Counter(chain(*[self.BLOCKED_ACTION[i] for i in self.not_acting_like['victim'] if self.BLOCKED_ACTION.get(i)]))
-        spectator = Counter(chain(*[self.BLOCKED_ACTION[i] for i in self.not_acting_like['spectator'] if self.BLOCKED_ACTION.get(i)]))
+        performed = Counter(chain(*[WEIGHTS['suboptimal_move'][i] for i in self.public_information['perform'] if WEIGHTS['suboptimal_move'].get(i)]))
+        victim = Counter(chain(*[WEIGHTS['didnt_block_selfishly'][i] for i in self.not_acting_like['victim'] if WEIGHTS['didnt_block_selfishly'].get(i)]))
+        spectator = Counter(chain(*[WEIGHTS['didnt_block_selflessly'][i] for i in self.not_acting_like['spectator'] if WEIGHTS['didnt_block_selflessly'].get(i)]))
 
         result = Counter()
         for _ in range(PERFORMED_WEIGHT):
@@ -224,8 +210,6 @@ class Player(object):
 class AI_Persona(Player):        
     def __init__(self, personality='passive'):
         Player.__init__(self)
-
-        from personalities import PERSONALITIES
         from copy import deepcopy
 
         self.personality = personality
@@ -394,7 +378,7 @@ class Ambassador(Influence):
     
     @staticmethod
     def exchange(self, court_deck):
-        from random import randint, shuffle
+        from random import randint
 
         available_influence = []
         available_influence.append(court_deck.pop())
