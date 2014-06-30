@@ -424,11 +424,20 @@ class TestCoup(unittest.TestCase):
         p = testgame.players[0]
         
         p.perform('foreign_aid')
-        for i in range(1,5):
-            testgame.players[i].public_information['not_acting_like'].extend([p.BLOCKED_ACTION['foreign_aid'],])
+        testgame.players[1].not_acting_like['spectator'].extend(['foreign_aid'])
         
-        for i in range(1,5):
-            self.assertIn('Duke', testgame.players[i].not_acting_like)
+        self.assertIn('Duke', testgame.players[1].unlikely_guesses)
+
+        ppp = testgame.players[2]
+        
+        ppp.perform('steal', testgame.players[0])        
+        testgame.players[0].not_acting_like['victim'].extend(['steal'])
+        testgame.players[3].not_acting_like['spectator'].extend(['steal'])
+            
+        self.assertIn('Ambassador/Captain', testgame.players[0].unlikely_guesses)
+        self.assertIn('Ambassador/Captain', testgame.players[3].unlikely_guesses)
+        
+        self.assertEquals(p.unlikely_guesses, ['Ambassador/Captain', 'Duke'])
 
     def test_remove_suspicion(self):
         p = AI_Persona()

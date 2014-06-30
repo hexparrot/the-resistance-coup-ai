@@ -77,16 +77,24 @@ class Player(object):
         'steal': 'Ambassador/Captain',
         'assassinate': 'Contessa'
         }
+    BETTER_ALTERNATIVE = {
+        'foreign_aid': 'Duke',
+        'income': 'Duke',
+        'coup': 'Assassin'
+        }
     
     def __init__(self):
         self.coins = 2
         self.left = None
         self.right = None
-        self.public_information = {
-            'perform': [],
-            'victim': [],
-            'spectator': [],
-            'not_acting_like': []
+        self.public_information = { #increase likelihood
+            'perform': [], #player did this action
+            'victim': [], #player blocked somebody doing this to him
+            'spectator': [] #player blocked action when not involved in action
+            }
+        self.not_acting_like = { #decrease likelihood
+            'victim': [], #player didnt block even while targetted
+            'spectator': [] #didnt block an uninvolved action
             }
 
     def __str__(self):
@@ -158,9 +166,28 @@ class Player(object):
         return actions
 
     @property
-    def not_acting_like(self):
+    def unlikely_guesses(self):
         from collections import Counter
-        return dict(Counter(self.public_information['not_acting_like']).most_common())
+
+        PERFORMED_WEIGHT = 3
+        VICTIM_SAVE_WEIGHT = 10
+        SPECTATOR_SAVE_WEIGHT = 1
+        
+        performed = Counter(self.BETTER_ALTERNATIVE[i] for i in self.public_information['perform'] if self.BETTER_ALTERNATIVE.get(i))
+        victim = Counter(self.BLOCKED_ACTION[i] for i in self.not_acting_like['victim'] if self.BLOCKED_ACTION.get(i))
+        spectator = Counter(self.BLOCKED_ACTION[i] for i in self.not_acting_like['spectator'] if self.BLOCKED_ACTION.get(i))
+
+        result = Counter()
+        for _ in range(PERFORMED_WEIGHT):
+            result.update(performed)
+
+        for _ in range(VICTIM_SAVE_WEIGHT):
+            result.update(victim)
+
+        for _ in range(SPECTATOR_SAVE_WEIGHT):
+            result.update(spectator)
+
+        return [inf for inf, freq in result.most_common()]
 
     @property
     def valid_actions(self):
