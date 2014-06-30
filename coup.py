@@ -121,8 +121,8 @@ class Player(object):
                 break
         for k,v in self.BLOCKED_ACTION.items():
             if v == influence:
-                self.public_information['victim'] = [a for a in self.public_information['perform'] if a != k]
-                self.public_information['spectator'] = [a for a in self.public_information['perform'] if a != k]
+                self.public_information['victim'] = [a for a in self.public_information['victim'] if a != k]
+                self.public_information['spectator'] = [a for a in self.public_information['spectator'] if a != k]
                 break
 
     @property

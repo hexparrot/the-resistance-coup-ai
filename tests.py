@@ -397,26 +397,26 @@ class TestCoup(unittest.TestCase):
     def test_deduce(self):
         testgame = Play_Coup(5)
 
-        z = testgame.players[0]
+        p = testgame.players[0]
 
-        self.assertEqual(z.best_guesses, [])
+        self.assertEqual(p.best_guesses, [])
 
-        z.public_information['perform'].extend(['tax','tax','tax'])
-        z.public_information['spectator'].extend(['foreign_aid','foreign_aid'])
+        p.public_information['perform'].extend(['tax','tax','tax'])
+        p.public_information['spectator'].extend(['foreign_aid','foreign_aid'])
 
-        self.assertEqual(z.best_guesses, ['Duke'])
+        self.assertEqual(p.best_guesses, ['Duke'])
 
-        z.public_information['perform'].append('steal')
-        self.assertEqual(z.best_guesses, ['Duke', 'Captain'])
+        p.public_information['perform'].append('steal')
+        self.assertEqual(p.best_guesses, ['Duke', 'Captain'])
 
-        z.public_information['perform'].append('steal')
-        self.assertEqual(z.best_guesses, ['Duke', 'Captain'])
+        p.public_information['perform'].append('steal')
+        self.assertEqual(p.best_guesses, ['Duke', 'Captain'])
 
-        z.public_information['spectator'].extend(['steal', 'steal', 'steal'])
-        self.assertEqual(z.best_guesses, ['Duke', 'Ambassador/Captain'])
+        p.public_information['spectator'].extend(['steal', 'steal', 'steal'])
+        self.assertEqual(p.best_guesses, ['Duke', 'Ambassador/Captain'])
 
-        z.public_information['spectator'].extend(['assassinate'])
-        self.assertEqual(z.best_guesses, ['Duke', 'Ambassador/Captain'])
+        p.public_information['spectator'].extend(['assassinate'])
+        self.assertEqual(p.best_guesses, ['Duke', 'Ambassador/Captain'])
 
     def test_remove_suspicion(self):
         p = AI_Persona()
@@ -438,6 +438,16 @@ class TestCoup(unittest.TestCase):
         pp.right.reveal()
         pp.remove_suspicion('Assassin')
         self.assertEqual(pp.best_guesses, ['Captain'])
+        
+        ppp = AI_Persona()
+        ppp.left = Duke()
+        ppp.right = Assassin()
+
+        ppp.public_information['spectator'].extend(['foreign_aid', 'foreign_aid'])
+        self.assertIn('Duke', ppp.best_guesses)
+        ppp.left.reveal()
+        ppp.remove_suspicion('Duke')
+        self.assertEqual(ppp.best_guesses, [])
 
     def test_ai_profile_will_intervene_foreign_aid(self):
         p = AI_Persona() #not duke
