@@ -168,6 +168,13 @@ class Player(object):
             result.update(spectator)
         
         return dict(result.most_common())
+        
+    @property
+    def unlikely_blocks(self):
+        blocks = set()
+        for inf in self.unlikely_guesses:
+            blocks.update([a for a in Influence.__subclasses__() if a.__name__ == inf][0].BLOCKS)
+        return blocks
 
     @property
     def valid_actions(self):

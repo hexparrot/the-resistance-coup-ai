@@ -574,7 +574,7 @@ class TestCoup(unittest.TestCase):
         p.left = Duke()
         p.right = Captain()
         
-        self.assertNotIn('assassinate', p.guessed_actions,)
+        self.assertNotIn('assassinate', p.guessed_actions)
         self.assertNotIn('tax', p.guessed_actions)
         self.assertNotIn('steal', p.guessed_actions)
         
@@ -601,6 +601,17 @@ class TestCoup(unittest.TestCase):
         self.assertIn('assassinate', p.guessed_actions)
         self.assertIn('tax', p.guessed_actions)
         self.assertIn('steal', p.guessed_actions)
+        
+    def test_unlikely_guessed_blocks(self):
+        testgame = Play_Coup(5)
+        
+        p = testgame.players[0]
+        
+        p.not_acting_like['spectator'].extend(['steal'])
+        self.assertIn('steal', p.unlikely_blocks)
+        
+        p.perform('income')
+        self.assertIn('foreign_aid', p.unlikely_blocks)
 
     def test_ai_profile_will_intervene_steal_victim(self):
         p = AI_Persona() #not captain
