@@ -148,6 +148,13 @@ class Player(object):
             result.update(spectator)
 
         return [inf for inf, freq in result.most_common(2)][0:2]
+        
+    @property
+    def guessed_actions(self):
+        actions = set()
+        for inf in self.best_guesses:
+            actions.update([a for a in Influence.__subclasses__() if a.__name__ == inf][0].ACTIONS)
+        return actions
 
     @property
     def valid_actions(self):
@@ -386,7 +393,7 @@ class RethinkAction(Exception):
         self.performer = performer
         self.victim = victim
 
-        self.message = '{0} rethinks {1} on {2}'.format(performer, action, victim)
+        self.message = '{0} rethinks {1} on {2}'.format(performer.status, action, victim.status)
 
 class BlockedAction(Exception):
     def __init__(self, action, performer, victim, spectator):

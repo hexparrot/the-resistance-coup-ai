@@ -501,6 +501,41 @@ class TestCoup(unittest.TestCase):
             'performer': lambda q: q.coins + 2 >= 3
             }
         self.assertTrue(ppp.will_intervene('steal', p, pp))
+        
+    def test_best_guessed_actions(self):
+        testgame = Play_Coup(5)
+        
+        p = testgame.players[0]
+        p.left = Duke()
+        p.right = Captain()
+        
+        self.assertNotIn('assassinate', p.guessed_actions,)
+        self.assertNotIn('tax', p.guessed_actions)
+        self.assertNotIn('steal', p.guessed_actions)
+        
+        p.public_information['perform'].extend(['steal', 'steal', 'steal'])
+        
+        self.assertNotIn('assassinate', p.guessed_actions)
+        self.assertNotIn('tax', p.guessed_actions)
+        self.assertIn('steal', p.guessed_actions)
+        
+        p.public_information['perform'].extend(['tax','tax','tax'])
+        
+        self.assertNotIn('assassinate', p.guessed_actions)
+        self.assertIn('tax', p.guessed_actions)
+        self.assertIn('steal', p.guessed_actions)
+        
+        p.public_information['perform'].extend(['assassinate'])
+        
+        self.assertNotIn('assassinate', p.guessed_actions)
+        self.assertIn('tax', p.guessed_actions)
+        self.assertIn('steal', p.guessed_actions)
+        
+        p.public_information['perform'].extend(['tax', 'assassinate','assassinate','assassinate'])
+
+        self.assertIn('assassinate', p.guessed_actions)
+        self.assertIn('tax', p.guessed_actions)
+        self.assertNotIn('steal', p.guessed_actions)
 
     def test_ai_profile_will_intervene_steal_victim(self):
         p = AI_Persona() #not captain

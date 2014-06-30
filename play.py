@@ -141,7 +141,7 @@ class simulations(object):
                 except BlockedAction:
                     break
                 except RethinkAction as e:
-                    print e.message
+                    print(e.message)
                 else:
                     break
                     
