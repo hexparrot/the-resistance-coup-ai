@@ -144,7 +144,7 @@ class Player(object):
     @property
     def guessed_actions(self):
         actions = set()
-        for inf in self.best_guesses:
+        for inf, freq in sorted(self.best_guesses.items(), reverse=True, key=lambda t: t[1])[0:2]:
             actions.update([a for a in Influence.__subclasses__() if a.__name__ == inf][0].ACTIONS)
         return actions
 
@@ -172,7 +172,7 @@ class Player(object):
     @property
     def unlikely_blocks(self):
         blocks = set()
-        for inf in self.unlikely_guesses:
+        for inf, freq in sorted(self.unlikely_guesses.items(), reverse=True, key=lambda t: t[1])[0:2]:
             blocks.update([a for a in Influence.__subclasses__() if a.__name__ == inf][0].BLOCKS)
         return blocks
 
