@@ -1,3 +1,15 @@
+"""
+Python scripts to simulate the game "The Resistance: Coup designed by Rikki Tahta
+The purpose of this project is to model human personalities and predict/score
+behaviors and bluffs in order to win the game.
+
+"""
+
+__author__ = "William Dizon"
+__license__ = "GNU GPL v3.0"
+__version__ = "0.0.1"
+__email__ = "wdchromium@gmail.com"
+
 class Play_Coup(object):
     ACTIONS = {
         'all': ['income', 'foreign_aid', 'coup', 'steal', 'tax', 'assassinate', 'exchange'],
