@@ -529,7 +529,8 @@ class TestCoup(unittest.TestCase):
         pp = AI_Persona() #not duke
         pp.left = Captain()
         pp.right = Captain()
-
+        
+        self.assertFalse(pp.will_intervene('foreign_aid', p))
         self.assertFalse(p.will_intervene('foreign_aid', pp))
 
         p.left = Duke()
@@ -543,14 +544,32 @@ class TestCoup(unittest.TestCase):
             'performer': lambda q: q.coins > 5
             }
         self.assertFalse(p.will_intervene('foreign_aid', pp))
-
+        
+        p.rules['honest_intervention']['foreign_aid'] = {}
+        self.assertFalse(p.will_intervene('foreign_aid', pp))
+        
+        p.rules['calculated_intervention']['foreign_aid'] = {}
+        self.assertFalse(p.will_intervene('foreign_aid', pp))
+        
         p.rules['calculated_intervention']['foreign_aid'] = {
             'performer': lambda q: q.influence_remaining == 2
             }
         self.assertTrue(p.will_intervene('foreign_aid', pp))
 
-        pp.left.reveal()
+        p.left.reveal()
+        p.rules['honest_intervention']['foreign_aid'] = {
+            'performer': lambda q: True
+            }
+        p.rules['calculated_intervention']['foreign_aid'] = {}
         self.assertFalse(p.will_intervene('foreign_aid', pp))
+        
+        p.rules['honest_intervention']['foreign_aid'] = {}
+        p.rules['calculated_intervention']['foreign_aid'] = {}
+        
+        p.rules['calculated_intervention']['foreign_aid'] = {
+            'performer': lambda q: q.influence_remaining == 2
+            }
+        self.assertTrue(p.will_intervene('foreign_aid', pp))
 
     def test_ai_profile_will_intervene_steal_performer(self):
         p = AI_Persona() #not captain

@@ -276,26 +276,29 @@ class AI_Persona(Player):
 
     def will_intervene(self, action, performer, victim=None):
         try:
-            if action in self.valid_blocks:
-                participants = self.rules['honest_intervention'][action]
-                for p, cond in participants.items():
-                    if cond and not cond(locals()[p]):
+            rules = self.rules['honest_intervention'][action].items()
+            
+            if action in self.valid_blocks and len(rules):
+                for participant, lambda_func in rules:
+                    if lambda_func and not lambda_func(locals()[participant]):
                         break
                 else:
-                    return True
+                    return True  
         except KeyError:
             pass
 
         try:
-            participants = self.rules['calculated_intervention'][action]
-            for p, cond in participants.items():
-                if cond and not cond(locals()[p]):
-                    break
-            else:
-                return True
-        except KeyError as e:
+            rules = self.rules['calculated_intervention'][action].items()
+            
+            if len(rules):
+                for participant, lambda_func in rules:
+                    if lambda_func and not lambda_func(locals()[participant]):
+                        break
+                else:
+                    return True  
+        except KeyError:
             pass
-
+        
         return False
 
     @property
