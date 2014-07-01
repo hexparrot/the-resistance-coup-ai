@@ -57,7 +57,7 @@ def play_game():
         print()
 
 class simulations(object):
-    def test_gameplay_calculated_actions_calculated_targets_calculated_blocks_no_doubts(self):
+    def test_gameplay_calculated_actions_calculated_targets_more_calculated_blocks_no_doubts(self):
         """
         AI PROFILE:
         
@@ -72,6 +72,7 @@ class simulations(object):
 
         """
         from itertools import cycle
+        from random import random
 
         PLAYERS = 5
         testgame = Play_Coup(PLAYERS)
@@ -88,59 +89,51 @@ class simulations(object):
                 try:
                     action = acting_player.random_naive_priority()
 
-                    if action in Play_Coup.ACTIONS['blockable']:
-                        if action == 'steal':
-                            random_player = acting_player.select_opponent(testgame.players)
-                            if set(random_player.best_guesses).intersection(set([str(a()) for a in Influence.__subclasses__() if action in a.BLOCKS])):
-                                raise RethinkAction(action, acting_player, random_player)
-                            if 'steal' in random_player.valid_blocks:
-                                raise BlockedAction(action, acting_player, random_player, None)
-                            else:
-                                for savior in range(PLAYERS):
-                                    if savior != i and \
-                                       random_player is not testgame.players[savior] and \
-                                       testgame.players[savior].will_intervene(action, acting_player, random_player):
-                                        raise BlockedAction(action, acting_player, random_player, testgame.players[savior])
-                                else:
-                                    testgame.players[i].perform(action, random_player)
-                        elif action == 'assassinate':
-                            random_player = acting_player.select_opponent(testgame.players)
-                            if set(random_player.best_guesses).intersection(set([str(a()) for a in Influence.__subclasses__() if action in a.BLOCKS])):
-                                raise RethinkAction(action, acting_player, random_player)
-                            if 'assassinate' in random_player.valid_blocks:
-                                raise BlockedAction(action, acting_player, random_player, None)
-                            else:
-                                for savior in range(PLAYERS):
-                                    if savior != i and \
-                                       random_player is not testgame.players[savior] and \
-                                       testgame.players[savior].will_intervene(action, acting_player, random_player):
-                                        raise BlockedAction(action, acting_player, random_player, testgame.players[savior])
-                                else:
-                                    position, random_target = random_player.random_remaining_influence
-                                    testgame.players[i].perform(action, random_target)
-                                    random_player.remove_suspicion(str(random_target))
-                        elif action == 'foreign_aid':
-                            for savior in range(PLAYERS):
-                                if savior != i and testgame.players[savior].will_intervene(action, acting_player):
-                                    raise BlockedAction(action, acting_player, None, testgame.players[savior])
-                            else:
-                                testgame.players[i].perform(action)
-                    else:
-                        if action == 'exchange':
-                            testgame.players[i].perform(action, testgame.court_deck)
-                        elif action == 'coup':
-                            random_player = acting_player.select_opponent(testgame.players)
-                            position, random_target = random_player.random_remaining_influence
-                            testgame.players[i].perform(action, random_target)
-                            random_player.remove_suspicion(str(random_target))
+                    if action == 'steal':
+                        random_player = acting_player.select_opponent(testgame.players)
+                        if (action in random_player.probable_blocks and random() > .24) or \
+                            action in random_player.valid_blocks:
+                            raise RethinkAction(action, acting_player, random_player)
+
+                        for savior in testgame.filter_out_players([acting_player, random_player]):
+                            if savior.will_intervene(action, acting_player, random_player):
+                                raise BlockedAction(action, acting_player, random_player, savior)
                         else:
-                            testgame.players[i].perform(action)
+                            acting_player.perform(action, random_player)
+                    elif action == 'assassinate':
+                        random_player = acting_player.select_opponent(testgame.players)
+                        if (action in random_player.probable_blocks and random() > .24) or \
+                            action in random_player.valid_blocks:
+                            raise RethinkAction(action, acting_player, random_player)
+
+                        for savior in testgame.filter_out_players([acting_player, random_player]):
+                            if savior.will_intervene(action, acting_player, random_player):
+                                raise BlockedAction(action, acting_player, random_player, savior)
+                        else:
+                            position, random_target = random_player.random_remaining_influence
+                            acting_player.perform(action, random_target)
+                            random_player.remove_suspicion(str(random_target))
+                    elif action == 'foreign_aid':
+                        for savior in testgame.filter_out_players([acting_player]):
+                            if savior.will_intervene(action, acting_player):
+                                raise BlockedAction(action, acting_player, None, savior)
+                        else:
+                            acting_player.perform(action)
+                    elif action == 'exchange':
+                        acting_player.perform(action, testgame.court_deck)
+                    elif action == 'coup':
+                        random_player = acting_player.select_opponent(testgame.players)
+                        position, random_target = random_player.random_remaining_influence
+                        acting_player.perform(action, random_target)
+                        random_player.remove_suspicion(str(random_target))
+                    else:
+                        acting_player.perform(action)
                 except (IllegalTarget, IllegalAction):
                     pass
                 except BlockedAction:
                     break
                 except RethinkAction as e:
-                    print(e.message)
+                    pass
                 else:
                     break
                     
@@ -149,7 +142,7 @@ class simulations(object):
 if __name__ == "__main__":
     c = Counter()
     for _ in range(1000):
-        c.update([simulations().test_gameplay_calculated_actions_calculated_targets_calculated_blocks_no_doubts(),])
+        c.update([simulations().test_gameplay_calculated_actions_calculated_targets_more_calculated_blocks_no_doubts(),])
 
     for i,v in c.most_common():
         print('{0}{1}'.format(i.ljust(25), v))
