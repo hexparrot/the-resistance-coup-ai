@@ -335,14 +335,13 @@ class TestCoup(unittest.TestCase):
     def test_ai_persona(self):
         a = AI_Persona()
         self.assertIsInstance(a, Player)
-        self.assertEqual(a.personality, 'passive')
         self.assertIsInstance(a.rules, dict)
 
         PLAYERS = 5
         testgame = Play_Coup(PLAYERS)
 
         for i in range(PLAYERS):
-            self.assertEqual(testgame.players[i].personality, 'passive')
+            self.assertIsInstance(testgame.players[i].rules, dict)
 
     def test_ai_persona_replace_player(self):
         testgame = Play_Coup(5)

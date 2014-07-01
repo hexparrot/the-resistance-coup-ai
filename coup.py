@@ -216,9 +216,10 @@ class Player(object):
 class AI_Persona(Player):        
     def __init__(self, personality='passive'):
         Player.__init__(self)
+        self.personalize(personality)
+        
+    def personalize(self, personality):
         from copy import deepcopy
-
-        self.personality = personality
         self.rules = deepcopy(PERSONALITIES[personality])
         
     def select_opponent(self, all_players):
