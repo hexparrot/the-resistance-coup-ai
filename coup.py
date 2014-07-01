@@ -38,7 +38,10 @@ class Play_Coup(object):
             self.players[p].right = self.court_deck.pop()
             
     def filter_out_players(self, list_of_players):
-        return set([p for i,p in self.players.items() if p not in list_of_players and i not in list_of_players])
+        return set([p for i,p in self.players.items() \
+                if p not in list_of_players and \
+                i not in list_of_players and \
+                p.influence_remaining])
 
     def random_targetable_player(self,
                                  safe_player,
@@ -227,7 +230,7 @@ class AI_Persona(Player):
         
     def select_opponent(self, all_players):
         from random import choice
-        return choice([v for i,v in all_players.items() if v is not self])
+        return choice([v for i,v in all_players.items() if v is not self and v.influence_remaining])
 
     def naive_priority(self):
         if self.coins >= 10:

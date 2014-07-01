@@ -349,6 +349,14 @@ class TestCoup(unittest.TestCase):
             testgame.players[3],
             testgame.players[4],        
             })
+            
+        testgame.players[3].left.reveal()
+        testgame.players[3].right.reveal()
+            
+        self.assertEqual(testgame.filter_out_players([0,1]), {
+            testgame.players[2],    
+            testgame.players[4],        
+            })
 
     def test_ai_persona(self):
         a = AI_Persona()
@@ -383,15 +391,18 @@ class TestCoup(unittest.TestCase):
     def test_ai_persona_select_opponent(self):
         testgame = Play_Coup(5)
 
-        a = AI_Persona.clone(testgame.players[0])
-        testgame.players[0] = a
+        p = testgame.players[0]
+        
+        for i in range(50):
+            self.assertIsNot(p, p.select_opponent(testgame.players))
 
-        z = testgame.players
-
-        self.assertIsNot(a.select_opponent(z), a)
-        self.assertIsNot(a.select_opponent(z), testgame.players[0])
-
-        self.assertIsInstance(a.select_opponent(z), Player)
+        pppp = testgame.players[4]
+        pppp.left.reveal()
+        pppp.right.reveal()
+        
+        for i in range(50):
+            self.assertIsNot(p, p.select_opponent(testgame.players))
+            self.assertIsNot(pppp, p.select_opponent(testgame.players))
 
     def test_record_actions(self):
         testgame = Play_Coup(5)
