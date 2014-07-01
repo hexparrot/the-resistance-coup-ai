@@ -331,6 +331,24 @@ class TestCoup(unittest.TestCase):
 
         p.left.reveal()
         self.assertFalse(p.influences('Assassin'))
+        
+    def test_filter_out_players(self):
+        testgame = Play_Coup(5)
+        
+        p = testgame.players[0]
+        pp = testgame.players[1]
+        
+        self.assertEqual(testgame.filter_out_players([p,pp]), {
+            testgame.players[2],    
+            testgame.players[3],
+            testgame.players[4],        
+            })
+        
+        self.assertEqual(testgame.filter_out_players([0,1]), {
+            testgame.players[2],    
+            testgame.players[3],
+            testgame.players[4],        
+            })
 
     def test_ai_persona(self):
         a = AI_Persona()
