@@ -38,9 +38,7 @@ class Play_Coup(object):
             self.players[p].right = self.court_deck.pop()
             
     def filter_out_players(self, list_of_players):
-        if all(isinstance(i, int) for i in list_of_players):
-            return set([p for i,p in self.players.items() if i not in list_of_players])
-        return set([p for i,p in self.players.items() if p not in list_of_players])
+        return set([p for i,p in self.players.items() if p not in list_of_players and i not in list_of_players])
 
     def random_targetable_player(self,
                                  safe_player,
