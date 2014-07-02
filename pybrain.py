@@ -17,7 +17,7 @@ influences = ['Ambassador', 'Assassin', 'Captain', 'Contessa', 'Duke']
 
 
 
-for _ in range(50):
+for _ in range(20):
     from itertools import cycle
     from random import random
 
@@ -102,10 +102,22 @@ print "Time PyBrain {}".format(time()-t1)
 
 #PRINT RESULTS
 
+def highest_positions(lst):
+    highest = [i for i,v in enumerate(lst) if v == max(lst)][0]
+    second = -float('infinity')
+    for i in lst:
+        if i > second and i != lst[highest]:
+            second = i
+    return highest, [i for i,v in enumerate(lst) if v == second][0]
+
 made_up_game = {
     3: (1,0,1,0,0, 0,1,1,0,0, 0,0,1,0,1),
     4: (1,0,1,0,0, 0,1,1,0,0, 0,0,0,1,1, 0,0,1,0,1),
     5: (1,1,0,0,0, 1,0,1,0,0, 0,1,1,0,0, 0,0,0,1,1, 0,0,1,0,1),
     6: (1,1,0,0,0, 1,0,1,0,0, 0,1,1,0,0, 0,0,0,1,1, 0,0,1,0,1, 0,1,0,0,1)
     }
-print net.activate( made_up_game[PLAYERS] )
+
+simulated_game = net.activate(made_up_game[PLAYERS])
+highest = highest_positions(simulated_game)
+print influences[highest[0]], influences[highest[1]] 
+print simulated_game
