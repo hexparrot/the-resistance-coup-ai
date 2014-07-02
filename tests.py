@@ -1353,9 +1353,10 @@ class TestCoup(unittest.TestCase):
 
                     if action == 'steal':
                         random_player = acting_player.select_opponent(testgame.players)
-                        if (action in random_player.probable_blocks and random() > .24) or \
-                            action in random_player.valid_blocks:
+                        if (action in random_player.probable_blocks and random() > .24):
                             raise RethinkAction(action, acting_player, random_player)
+                        if action in random_player.valid_blocks:
+                            raise BlockedAction(action, acting_player, random_player, None)
 
                         for savior in testgame.filter_out_players([acting_player, random_player]):
                             if savior.will_intervene(action, acting_player, random_player):
@@ -1364,9 +1365,10 @@ class TestCoup(unittest.TestCase):
                             acting_player.perform(action, random_player)
                     elif action == 'assassinate':
                         random_player = acting_player.select_opponent(testgame.players)
-                        if (action in random_player.probable_blocks and random() > .24) or \
-                            action in random_player.valid_blocks:
+                        if (action in random_player.probable_blocks and random() > .24):
                             raise RethinkAction(action, acting_player, random_player)
+                        if action in random_player.valid_blocks:
+                            raise BlockedAction(action, acting_player, random_player, None)
 
                         for savior in testgame.filter_out_players([acting_player, random_player]):
                             if savior.will_intervene(action, acting_player, random_player):
