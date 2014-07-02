@@ -7,15 +7,20 @@ from time import time
 
 from coup import *
 
-ds = SupervisedDataSet(25,5 )
-net = buildNetwork(25, 5, 5, bias=True, outputbias= True, hiddenclass=SigmoidLayer)
+PLAYERS = 5
+
+ds = SupervisedDataSet(PLAYERS * 5, 5)
+net = buildNetwork(PLAYERS * 5, 10, 5, bias=True, outputbias= True, hiddenclass=SigmoidLayer)
 trainer = BackpropTrainer(net, ds, learningrate= 0.1)
 
-for _ in range(200):
+influences = ['Ambassador', 'Assassin', 'Captain', 'Contessa', 'Duke']
+
+
+
+for _ in range(50):
     from itertools import cycle
     from random import random
 
-    PLAYERS = 5
     testgame = Play_Coup(PLAYERS)
 
     for i in cycle(range(PLAYERS)):
@@ -24,41 +29,13 @@ for _ in range(200):
         if not acting_player.influence_remaining:
             continue
         elif sum(1 for p in range(PLAYERS) if testgame.players[p].influence_remaining) == 1:
-            gamestate = (testgame.players[0].influences('Ambassador'),
-                        testgame.players[0].influences('Assassin'),
-                        testgame.players[0].influences('Captain'),
-                        testgame.players[0].influences('Contessa'),
-                        testgame.players[0].influences('Duke'),
-
-                        testgame.players[1].influences('Ambassador'),
-                        testgame.players[1].influences('Assassin'),
-                        testgame.players[1].influences('Captain'),
-                        testgame.players[1].influences('Contessa'),
-                        testgame.players[1].influences('Duke'),
-
-                        testgame.players[2].influences('Ambassador'),
-                        testgame.players[2].influences('Assassin'),
-                        testgame.players[2].influences('Captain'),
-                        testgame.players[2].influences('Contessa'),
-                        testgame.players[2].influences('Duke'),
-
-                        testgame.players[3].influences('Ambassador'),
-                        testgame.players[3].influences('Assassin'),
-                        testgame.players[3].influences('Captain'),
-                        testgame.players[3].influences('Contessa'),
-                        testgame.players[3].influences('Duke'),
-                        
-                        testgame.players[4].influences('Ambassador'),
-                        testgame.players[4].influences('Assassin'),
-                        testgame.players[4].influences('Captain'),
-                        testgame.players[4].influences('Contessa'),
-                        testgame.players[4].influences('Duke'))
+            gamestate = ([i in testgame.players[p] for i in influences for p in range(PLAYERS)])
             
-            win_result = (testgame.players[i].influences('Ambassador'),
-                        testgame.players[i].influences('Assassin'),
-                        testgame.players[i].influences('Captain'),
-                        testgame.players[i].influences('Contessa'),
-                        testgame.players[i].influences('Duke'))
+            win_result = ('Ambassador' in acting_player,
+                        'Assassin' in acting_player,
+                        'Captain' in acting_player,
+                        'Contessa' in acting_player,
+                        'Duke' in acting_player)
 
             ds.addSample(gamestate, win_result)
             break
@@ -120,9 +97,15 @@ for _ in range(200):
 
 
 t1 = time()
-trainer.trainEpochs(3000)
+trainer.trainEpochs(300)
 print "Time PyBrain {}".format(time()-t1)
 
 #PRINT RESULTS
 
-print net.activate( (1,1,0,0,0, 1,0,1,0,0, 0,1,1,0,0, 0,0,0,1,1, 0,0,1,0,1) )
+made_up_game = {
+    3: (1,0,1,0,0, 0,1,1,0,0, 0,0,1,0,1),
+    4: (1,0,1,0,0, 0,1,1,0,0, 0,0,0,1,1, 0,0,1,0,1),
+    5: (1,1,0,0,0, 1,0,1,0,0, 0,1,1,0,0, 0,0,0,1,1, 0,0,1,0,1),
+    6: (1,1,0,0,0, 1,0,1,0,0, 0,1,1,0,0, 0,0,0,1,1, 0,0,1,0,1, 0,1,0,0,1)
+    }
+print net.activate( made_up_game[PLAYERS] )
