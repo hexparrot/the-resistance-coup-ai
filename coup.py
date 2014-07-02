@@ -71,7 +71,11 @@ class Play_Coup(object):
                        if v is not safe_player and \
                        v.influence_remaining], \
                       key=lambda p: p.coins, reverse=True)[0]
-        
+    
+    @property
+    def playerstate_binary(self):
+        from itertools import chain
+        return tuple(chain(*[p.influence_binary for p in self.players]))
 
 class Player(object):
     def __init__(self):
@@ -220,6 +224,11 @@ class Player(object):
     @property
     def influence_remaining(self):
         return sum(1 for i in (self.left, self.right) if not i.revealed)
+    
+    @property
+    def influence_binary(self):
+        influences = ['Ambassador', 'Assassin', 'Captain', 'Contessa', 'Duke']
+        return tuple(1 if inf in self else 0 for inf in influences)
 
 class AI_Persona(Player):        
     def __init__(self, personality='passive'):
