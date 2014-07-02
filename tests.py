@@ -427,6 +427,17 @@ class TestCoup(unittest.TestCase):
 
         BlockedAction('steal', z, None, testgame.players[2])
         self.assertEqual(testgame.players[2].public_information['spectator'][1], 'steal')
+        
+    def test_blocked_actions_cost(self):
+        testgame = Play_Coup(5)
+        
+        z = testgame.players[0]
+        
+        z.coins = 5
+        self.assertEqual(z.coins, 5)
+        BlockedAction('assassinate', z, testgame.players[2], None)
+        self.assertEqual(z.coins, 2)
+        
 
     def test_deduce(self):
         testgame = Play_Coup(5)

@@ -440,6 +440,9 @@ class BlockedAction(Exception):
         self.spectator = spectator
 
         if self.victim:
+            if action == 'assassinate':
+                self.performer.coins -= 3
+                
             if not spectator:
                 self.message = "{0} blocks {1}'s {2}".format(self.victim,
                                                              self.performer,
