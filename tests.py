@@ -149,6 +149,17 @@ class TestCoup(unittest.TestCase):
         self.assertEqual(p.coins, 2)
         p.perform('tax')
         self.assertEqual(p.coins, 5)
+        
+    def test_membership_of_influence(self):
+        p = Player()
+        p.left = Assassin()
+        p.right = Contessa()
+        
+        self.assertFalse('Ambassador' in p)
+        self.assertTrue('Assassin' in p)
+        self.assertFalse('Captain' in p)
+        self.assertTrue('Contessa' in p)
+        self.assertFalse('Duke' in p)
 
     def test_influence_remaining(self):
         p = Player()
