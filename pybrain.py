@@ -20,7 +20,7 @@ trainer = BackpropTrainer(net, ds, learningrate= 0.1)
 
 influences = ['Ambassador', 'Assassin', 'Captain', 'Contessa', 'Duke']
 
-for _ in range(200):
+for _ in range(150):
 
     testgame = Play_Coup(PLAYERS)
 
@@ -43,9 +43,10 @@ for _ in range(200):
                 action = acting_player.random_naive_priority()
 
                 if action == 'steal':
-                    if (action in random_player.probable_blocks and random() > .24) or \
-                        action in random_player.valid_blocks:
+                    if action in random_player.probable_blocks and random() > .24:
                         raise RethinkAction(action, acting_player, random_player)
+                    if action in random_player.valid_blocks:
+                        raise BlockedAction(action, acting_player, random_player, None)
 
                     for savior in testgame.filter_out_players([acting_player, random_player]):
                         if savior.will_intervene(action, acting_player, random_player):
@@ -53,9 +54,10 @@ for _ in range(200):
                     else:
                         acting_player.perform(action, random_player)
                 elif action == 'assassinate':
-                    if (action in random_player.probable_blocks and random() > .24) or \
-                        action in random_player.valid_blocks:
+                    if action in random_player.probable_blocks and random() > .24:
                         raise RethinkAction(action, acting_player, random_player)
+                    if action in random_player.valid_blocks:
+                        raise BlockedAction(action, acting_player, random_player, None)
 
                     for savior in testgame.filter_out_players([acting_player, random_player]):
                         if savior.will_intervene(action, acting_player, random_player):
@@ -82,7 +84,7 @@ for _ in range(200):
                 pass
             except BlockedAction:
                 continue
-            except RethinkAction as e:
+            except RethinkAction:
                 pass
             else:
                 break
@@ -90,7 +92,7 @@ for _ in range(200):
 
 
 t1 = time()
-trainer.trainEpochs(200)
+trainer.trainEpochs(300)
 print "Time PyBrain {}".format(time()-t1)
 
 #PRINT RESULTS
