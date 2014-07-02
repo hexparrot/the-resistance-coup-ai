@@ -91,6 +91,9 @@ class Player(object):
 
     def __str__(self):
         return '{0} {1}'.format(self.left, self.right)
+        
+    def __contains__(self, inf):
+        return inf in [str(self.left), str(self.right)]
 
     def perform(self, action, player_target=None):
         from itertools import chain
