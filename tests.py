@@ -362,6 +362,46 @@ class TestCoup(unittest.TestCase):
             testgame.players[2],    
             testgame.players[4],        
             })
+    
+    def test_gamestate(self):
+        testgame = Play_Coup(5)
+        testgame.players[0].left = Ambassador()
+        testgame.players[0].right = Ambassador()
+        testgame.players[1].left = Assassin()
+        testgame.players[1].right = Assassin()
+        testgame.players[2].left = Captain()
+        testgame.players[2].right = Captain()
+        testgame.players[3].left = Contessa()
+        testgame.players[3].right = Contessa()
+        testgame.players[4].left = Duke()
+        testgame.players[4].right = Duke()
+        
+        self.assertEqual(testgame.playerstate_binary, \
+                         (1,0,0,0,0, 0,1,0,0,0, 0,0,1,0,0, 0,0,0,1,0, 0,0,0,0,1))
+                         
+        testgame.players[0].left = Ambassador()
+        testgame.players[0].right = Assassin()
+        testgame.players[1].left = Assassin()
+        testgame.players[1].right = Captain()
+        testgame.players[2].left = Captain()
+        testgame.players[2].right = Contessa()
+        testgame.players[3].left = Contessa()
+        testgame.players[3].right = Duke()
+        testgame.players[4].left = Duke()
+        testgame.players[4].right = Ambassador()
+        
+        self.assertEqual(testgame.playerstate_binary, \
+                         (1,1,0,0,0, 0,1,1,0,0, 0,0,1,1,0, 0,0,0,1,1, 1,0,0,0,1))   
+                         
+    def test_influence_binary(self):
+        p = Player()
+        p.left = Assassin()
+        p.right = Contessa()
+        self.assertEqual(p.influence_binary, (0,1,0,1,0))
+        
+        p.left = Duke()
+        p.right = Ambassador()
+        self.assertEqual(p.influence_binary, (1,0,0,0,1))
 
     def test_ai_persona(self):
         a = AI_Persona()
