@@ -80,19 +80,14 @@ class simulations(object):
         for acting_player in cycle(testgame.players):
             if not acting_player.influence_remaining:
                 continue
+            elif len(testgame) == 1:
+                return acting_player.alpha
 
             while 1:
                 try:
-                    random_player = acting_player.select_opponent(testgame.players)
-                except IndexError:
-                    #IndexError indicates no valid opponents found. if so, game won!
-                    #lots of the time, this will simply set random_player and be thrown away
-                    return acting_player.alpha
-                
-                try:
                     action = acting_player.random_naive_priority()
-
                     if action == 'steal':
+                        random_player = acting_player.select_opponent(testgame.players)
                         if (action in random_player.probable_blocks and random() > .24):
                             raise RethinkAction(action, acting_player, random_player)
                         if action in random_player.valid_blocks:
@@ -104,6 +99,7 @@ class simulations(object):
                         else:
                             acting_player.perform(action, random_player)
                     elif action == 'assassinate':
+                        random_player = acting_player.select_opponent(testgame.players)
                         if (action in random_player.probable_blocks and random() > .24):
                             raise RethinkAction(action, acting_player, random_player)
                         if action in random_player.valid_blocks:
@@ -125,6 +121,7 @@ class simulations(object):
                     elif action == 'exchange':
                         acting_player.perform(action, testgame.court_deck)
                     elif action == 'coup':
+                        random_player = acting_player.select_opponent(testgame.players)
                         position, random_target = random_player.random_remaining_influence
                         acting_player.perform(action, random_target)
                         random_player.remove_suspicion(str(random_target))
@@ -133,11 +130,11 @@ class simulations(object):
                 except (IllegalTarget, IllegalAction):
                     pass
                 except BlockedAction:
-                    continue
+                    break
                 except RethinkAction:
                     pass
                 else:
-                    continue
+                    break
                     
                 
         

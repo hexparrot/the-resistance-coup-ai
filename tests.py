@@ -362,8 +362,25 @@ class TestCoup(unittest.TestCase):
             testgame.players[2],    
             testgame.players[4],        
             })
+            
+    def test_len_remaining_players(self):
+        testgame = Play_Coup(3)
+        
+        self.assertEqual(len(testgame), 3)
+        testgame.players[0].left.reveal()
+        self.assertEqual(len(testgame), 3)
+        testgame.players[0].right.reveal()
+        self.assertEqual(len(testgame), 2)
+        testgame.players[1].left.reveal()
+        self.assertEqual(len(testgame), 2)
+        testgame.players[1].right.reveal()
+        self.assertEqual(len(testgame), 1)
+        testgame.players[2].left.reveal()
+        self.assertEqual(len(testgame), 1)
+        testgame.players[2].right.reveal()
+        self.assertEqual(len(testgame), 0)
     
-    def test_gamestate(self):
+    def test_playerstate(self):
         testgame = Play_Coup(5)
         testgame.players[0].left = Ambassador()
         testgame.players[0].right = Ambassador()
@@ -1387,19 +1404,14 @@ class TestCoup(unittest.TestCase):
         for acting_player in cycle(testgame.players):
             if not acting_player.influence_remaining:
                 continue
+            elif len(testgame) == 1:
+                return acting_player.alpha
 
             while 1:
                 try:
-                    random_player = acting_player.select_opponent(testgame.players)
-                except IndexError:
-                    #IndexError indicates no valid opponents found. if so, game won!
-                    #lots of the time, this will simply set random_player and be thrown away
-                    return acting_player.alpha
-                
-                try:
                     action = acting_player.random_naive_priority()
-
                     if action == 'steal':
+                        random_player = acting_player.select_opponent(testgame.players)
                         if (action in random_player.probable_blocks and random() > .24):
                             raise RethinkAction(action, acting_player, random_player)
                         if action in random_player.valid_blocks:
@@ -1411,6 +1423,7 @@ class TestCoup(unittest.TestCase):
                         else:
                             acting_player.perform(action, random_player)
                     elif action == 'assassinate':
+                        random_player = acting_player.select_opponent(testgame.players)
                         if (action in random_player.probable_blocks and random() > .24):
                             raise RethinkAction(action, acting_player, random_player)
                         if action in random_player.valid_blocks:
@@ -1432,6 +1445,7 @@ class TestCoup(unittest.TestCase):
                     elif action == 'exchange':
                         acting_player.perform(action, testgame.court_deck)
                     elif action == 'coup':
+                        random_player = acting_player.select_opponent(testgame.players)
                         position, random_target = random_player.random_remaining_influence
                         acting_player.perform(action, random_target)
                         random_player.remove_suspicion(str(random_target))
@@ -1440,11 +1454,11 @@ class TestCoup(unittest.TestCase):
                 except (IllegalTarget, IllegalAction):
                     pass
                 except BlockedAction:
-                    continue
+                    break
                 except RethinkAction:
                     pass
                 else:
-                    continue
+                    break
 
 def gameplay_suite():
     suite = unittest.TestSuite()

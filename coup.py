@@ -37,6 +37,9 @@ class Play_Coup(object):
             self.players[p].left = self.court_deck.pop()
             self.players[p].right = self.court_deck.pop()
             
+    def __len__(self):
+        return sum(1 for p in self.players if p.influence_remaining)
+            
     def filter_out_players(self, list_of_players):
         return set([p for p in self.players \
                 if p not in list_of_players and \
