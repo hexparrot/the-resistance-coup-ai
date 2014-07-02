@@ -24,7 +24,7 @@ class Play_Coup(object):
     def __init__(self, players):
         from random import shuffle
         
-        self.players = {i:AI_Persona() for i in range(players)}
+        self.players = [AI_Persona() for i in range(players)]
         self.court_deck = [Contessa() for _ in range(3)] + \
                           [Ambassador() for _ in range(3)] + \
                           [Duke() for _ in range(3)] + \
@@ -38,9 +38,8 @@ class Play_Coup(object):
             self.players[p].right = self.court_deck.pop()
             
     def filter_out_players(self, list_of_players):
-        return set([p for i,p in self.players.items() \
+        return set([p for p in self.players \
                 if p not in list_of_players and \
-                i not in list_of_players and \
                 p.influence_remaining])
 
     def random_targetable_player(self,
@@ -48,7 +47,7 @@ class Play_Coup(object):
                                  influence_amount=[1,2]):
         from random import choice
         try:
-            return choice([self.players[i] for i,v in self.players.items() \
+            return choice([v for v in self.players \
                            if v.influence_remaining in influence_amount \
                            and v is not safe_player])
         except IndexError:
@@ -59,7 +58,7 @@ class Play_Coup(object):
                                           coins=[2,12]):
         from random import choice
         try:
-            return choice([self.players[i] for i,v in self.players.items() \
+            return choice([v for v in self.players \
                            if v.influence_remaining and \
                            coins[0] <= v.coins <= coins[1] and \
                            v is not safe_player])
@@ -68,7 +67,7 @@ class Play_Coup(object):
 
     def random_richest_player(self,
                               safe_player):
-        return sorted([v for i,v in self.players.items() \
+        return sorted([v for v in self.players \
                        if v is not safe_player and \
                        v.influence_remaining], \
                       key=lambda p: p.coins, reverse=True)[0]
@@ -233,7 +232,7 @@ class AI_Persona(Player):
         
     def select_opponent(self, all_players):
         from random import choice
-        return choice([v for i,v in all_players.items() if v is not self and v.influence_remaining])
+        return choice([v for v in all_players if v is not self and v.influence_remaining])
 
     def naive_priority(self):
         if self.coins >= 10:
