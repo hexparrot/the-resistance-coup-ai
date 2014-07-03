@@ -334,14 +334,36 @@ class simulations(object):
         
 if __name__ == "__main__":
 
-    results = defaultdict(Counter)
+    sims = [method for method in dir(simulations) if callable(getattr(simulations, method)) and not method.startswith('_')]
 
-    for sim in [method for method in dir(simulations) if callable(getattr(simulations, method)) and not method.startswith('_')]:
-        for _ in range(1000):
-            results[sim].update([getattr(simulations(), sim)(),])
+    pairs = ['Ambassador Contessa',
+     'Captain Duke',
+     'Contessa Duke',
+     'Ambassador Assassin',
+     'Ambassador Captain',
+     'Assassin Contessa',
+     'Assassin Captain',
+     'Assassin Duke',
+     'Ambassador Duke',
+     'Captain Contessa',
+     'Duke Duke',
+     'Ambassador Ambassador',
+     'Contessa Contessa',
+     'Captain Captain',
+     'Assassin Assassin']
     
-    for sim in results:
-        for i,v in results[sim].most_common():
+    from scipy.stats import f_oneway
+    
+    wins = defaultdict(Counter)
+    
+    for sim in sims:
+        for _ in range(200):
+            wins[sim].update([getattr(simulations(), sim)(),])
+        
+    for sim in wins:
+        print sim
+        for i,v in wins[sim].most_common():
             print('{0}{1}'.format(i.ljust(25), v))
         print '*' * 25
+
 
