@@ -11,28 +11,18 @@ __version__ = "0.0.1"
 __email__ = "wdchromium@gmail.com"
 
 from itertools import cycle
-from collections import Counter, defaultdict
 from random import choice, random
 from coup import *
 
-pairs = ['Ambassador Contessa',
-     'Captain Duke',
-     'Contessa Duke',
-     'Ambassador Assassin',
-     'Ambassador Captain',
-     'Assassin Contessa',
-     'Assassin Captain',
-     'Assassin Duke',
-     'Ambassador Duke',
-     'Captain Contessa',
-     'Duke Duke',
-     'Ambassador Ambassador',
-     'Contessa Contessa',
-     'Captain Captain',
-     'Assassin Assassin']
-
 class simulations(object):
     PLAYERS = 5    
+
+    def _run_simulation(self, simulation_to_run, num):
+        from collections import Counter
+        wins = Counter()
+        for _ in range(num):
+            wins.update([getattr(self, simulation_to_run)(),])
+        return dict(wins)
     
     def random_actions_random_targets_no_blocking(self):  
         """
@@ -346,35 +336,5 @@ class simulations(object):
                     pass
                 else:
                     break
-
-def simulate_games(name, num):
-    wins = Counter()
-    for _ in range(num):
-        wins.update([getattr(simulations(), sim)(),])
-    return dict(wins)
-     
-
-if __name__ == "__main__":
-
-    sims = [method for method in dir(simulations) if callable(getattr(simulations, method)) and not method.startswith('_')]
-
-    from scipy.stats import f_oneway
-    
-    results = {} 
-
-    for sim in sims:
-        samples = defaultdict(list)
-        for _ in range(3):
-            for pair, wins in simulate_games(sim, 200).items():
-                samples[pair].append(wins)
-        results[sim] = samples
-
-
-    for pair in pairs:
-        f, p = f_oneway(*[results[sim][pair] for sim in sims])
-        print('{0}{1} at sig {2}: {3}'.format(pair.ljust(25), 
-                                              str(round(f, 3)).ljust(7), 
-                                              str(round(p, 3)).ljust(7),
-                                              ['NULL','REJECT'][p <= .05]))
-
+         
 
