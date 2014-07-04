@@ -15,6 +15,10 @@ from random import choice, random
 from coup import *
 from simulations import simulations
 
+SAMPLE_COUNT = 5
+GAMES_PER_SAMPLE = 500
+
+    
 pairs = ['Ambassador Contessa',
      'Captain Duke',
      'Contessa Duke',
@@ -33,26 +37,20 @@ pairs = ['Ambassador Contessa',
      
      
 if __name__ == "__main__":
-    
-    SAMPLE_COUNT = 3
-    GAMES_PER_SAMPLE = 200
-
-    sims = [method for method in dir(simulations) if callable(getattr(simulations, method)) and not method.startswith('_')]
-
     from scipy.stats import f_oneway, ttest_rel
     
     results = {} 
 
-    for sim in sims:
+    for sim in simulations.available_simulations():
         samples = defaultdict(list)
         for _ in range(SAMPLE_COUNT):
-            for pair, wins in simulations()._run_simulation(sim, GAMES_PER_SAMPLE).items():
+            for pair, wins in simulations().run(sim, GAMES_PER_SAMPLE).items():
                 samples[pair].append(wins)
         results[sim] = samples
 
     print('ANOVA')
     for pair in pairs:
-        f, p = f_oneway(*[results[sim][pair] for sim in sims])
+        f, p = f_oneway(*[results[sim][pair] for sim in simulations.available_simulations()])
         print('{0}{1} at sig {2}: {3}'.format(pair.ljust(25), 
                                               str(round(f, 3)).ljust(7), 
                                               str(round(p, 3)).ljust(7),
@@ -62,12 +60,12 @@ if __name__ == "__main__":
     print('t-test')
     for pair in pairs:
         try:
-            t, p = ttest_rel(results['random_actions_random_targets_no_blocking'][pair],
-                             results['random_actions_random_targets_selfish_blocks_no_doubts'][pair])
+            t, p = ttest_rel(results['sim_random_actions_random_targets_no_blocking'][pair],
+                             results['sim_random_actions_random_targets_selfish_blocks_no_doubts'][pair])
             print('{0}{1} at sig {2}: {3}'.format(pair.ljust(25), 
                                                   str(round(t, 3)).ljust(7), 
                                                   str(round(p, 3)).ljust(7),
                                                   ['NULL','REJECT'][p <= .05]))
         except ValueError:
-            print('{0}: test failed due to no wins in {1} samples'.format(pair.ljust(25), SAMPLE_COUNT))
+            print('{0}: test failed due to no wins in one or more samples'.format(pair.ljust(25)))
                          
