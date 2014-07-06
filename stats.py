@@ -15,7 +15,7 @@ from random import choice, random
 from coup import *
 from simulations import simulations
 
-SAMPLE_COUNT = 5
+SAMPLE_COUNT = 3
 GAMES_PER_SAMPLE = 500
 
     
@@ -56,16 +56,23 @@ if __name__ == "__main__":
                                               str(round(p, 3)).ljust(7),
                                               ['NULL','REJECT'][p <= .05]))
 
-    print('\n')
-    print('t-test')
-    for pair in pairs:
-        try:
-            t, p = ttest_rel(results['sim_random_actions_random_targets_no_blocking'][pair],
-                             results['sim_random_actions_random_targets_selfish_blocks_no_doubts'][pair])
-            print('{0}{1} at sig {2}: {3}'.format(pair.ljust(25), 
-                                                  str(round(t, 3)).ljust(7), 
-                                                  str(round(p, 3)).ljust(7),
-                                                  ['NULL','REJECT'][p <= .05]))
-        except ValueError:
-            print('{0}: test failed due to no wins in one or more samples'.format(pair.ljust(25)))
-                         
+
+    
+    
+    from itertools import combinations
+    
+    for sim_one, sim_two in combinations(simulations.available_simulations(), 2):
+        print('t-test comparing')
+        print sim_one
+        print sim_two
+        for pair in pairs:
+            try:
+                t, p = ttest_rel(results[sim_one][pair],
+                                 results[sim_two][pair])
+                print('{0}{1} at sig {2}: {3}'.format(pair.ljust(25), 
+                                                      str(round(t, 3)).ljust(7), 
+                                                      str(round(p, 3)).ljust(7),
+                                                      ['NULL','REJECT'][p <= .05]))
+            except ValueError:
+                print('{0}: test failed due to no wins in one or more samples'.format(pair.ljust(25)))
+    
