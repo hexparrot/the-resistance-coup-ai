@@ -16,7 +16,7 @@ from coup import *
 from simulations import simulations
 
 SAMPLE_COUNT = 5
-GAMES_PER_SAMPLE = 100
+GAMES_PER_SAMPLE = 500
 
     
 pairs = ['Ambassador Contessa',
@@ -40,51 +40,27 @@ if __name__ == "__main__":
     from scipy.stats import f_oneway
     from statsmodels.stats.multicomp import pairwise_tukeyhsd, MultiComparison
     
-    results = {} 
-
-    for sim in simulations.available_simulations():
-        samples = defaultdict(list)
-        for _ in range(SAMPLE_COUNT):
-            for pair, wins in simulations().run(sim, GAMES_PER_SAMPLE).items():
-                samples[pair].append(wins)
-        results[sim] = samples
-
-    print('ANOVA')
-    for pair in pairs:
-        f, p = f_oneway(*[results[sim][pair] for sim in simulations.available_simulations()])
-        print('{0}{1} at sig {2}: {3}'.format(pair.ljust(25), 
-                                              str(round(f, 3)).ljust(7), 
-                                              str(round(p, 3)).ljust(7),
-                                              ['NULL','REJECT'][p <= .05]))
-
-
-    
-
     container = defaultdict(list)
     
     for i in range(SAMPLE_COUNT):
-        for p, wins in simulations().run('sim_random_actions_random_targets_no_blocking', GAMES_PER_SAMPLE).items():
-            container[p].append(('random_all', wins))
-        for p, wins in simulations().run('sim_random_actions_random_targets_selfish_blocks_no_doubts', GAMES_PER_SAMPLE).items():
-            container[p].append(('random_selfish', wins))
-        for p, wins in simulations().run('sim_naive_actions_calculated_targets_selfish_blocks_no_doubts', GAMES_PER_SAMPLE).items():
-            container[p].append(('naive', wins))
-        for p, wins in simulations().run('sim_naive_actions_calculated_targets_calculated_blocks_no_doubts', GAMES_PER_SAMPLE).items():
-            container[p].append(('naive_calc', wins))
-        for p, wins in simulations().run('sim_calculated_actions_calculated_targets_more_calculated_blocks_no_doubts', GAMES_PER_SAMPLE).items():
-            container[p].append(('calc', wins))
-    
-    dta2 = np.rec.array(container['Contessa Duke'],  
-                        dtype=[('test', '|S20'),
-                               ('wins', int)])
-                               
-    
+        for sim in simulations().available_simulations():
+            for p, wins in simulations().run(sim, GAMES_PER_SAMPLE).items():
+                container[p].append((sim, wins))
 
-    res2 = pairwise_tukeyhsd(dta2['wins'], dta2['test'])
-    print res2
-
-    mod = MultiComparison(dta2['wins'], dta2['test'])
-    print mod.tukeyhsd()
+    for pair in pairs:
+        print('')
+        print(pair)
+        f, p = f_oneway(*[[i[1] for i in container[pair] if i[0] == sim] for sim in simulations().available_simulations()])
+        print('F-stat: {0} at sig {1}: {2}'.format(str(round(f, 3)).ljust(7), 
+                                                   str(round(p, 3)).ljust(7),
+                                                   ['NULL','REJECT'][p <= .05]))
+    
+        if p <= .05:
+            dta2 = np.rec.array(container[pair],  
+                                dtype=[('test', '|S100'),
+                                       ('wins', int)])
+                                       
+            print(pairwise_tukeyhsd(dta2['wins'], dta2['test']))
 
     
     
