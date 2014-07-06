@@ -755,6 +755,15 @@ class TestCoup(unittest.TestCase):
         self.assertIn('assassinate', p.improbable_blocks)
         self.assertIn('foreign_aid', p.improbable_blocks)   
 
+    def test_improbable_actions(self):
+        testgame = Play_Coup(5)
+        
+        p = testgame.players[0]
+        
+        p.not_acting_like['spectator'].extend(['steal'])
+        self.assertIn('steal', p.improbable_actions)
+        
+
     def test_ai_profile_will_intervene_steal_victim(self):
         p = AI_Persona() #not captain
         p.left = Assassin()
@@ -1014,7 +1023,7 @@ class TestCoup(unittest.TestCase):
             self.assertEqual(p.influence_remaining, 0)
             self.assertEqual(pp.influence_remaining, 2)
     
-    def test_exchange_revealed_cart(self):
+    def test_exchange_revealed_influence(self):
         testgame = Play_Coup(5)
         
         p = testgame.players[0]

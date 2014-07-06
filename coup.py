@@ -202,6 +202,13 @@ class Player(object):
             result.update(spectator)
         
         return dict(result.most_common())
+
+    @property
+    def improbable_actions(self):
+        actions = set()
+        for inf, freq in sorted(self.improbable_influences.items(), reverse=True, key=lambda t: t[1])[0:2]:
+            actions.update([a for a in Influence.__subclasses__() if a.__name__ == inf][0].ACTIONS)
+        return actions
         
     @property
     def improbable_blocks(self):
