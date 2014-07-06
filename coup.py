@@ -134,6 +134,18 @@ class Player(object):
                 self.public_information['victim'] = [a for a in self.public_information['victim'] if a != k]
                 self.public_information['spectator'] = [a for a in self.public_information['spectator'] if a != k]
                 break
+            
+    def restore(self, position, court_deck):
+        from random import randint, shuffle
+
+        card = getattr(self, position)
+        card.revealed = False
+        
+        court_deck.append(card)
+        court_deck.pop()
+
+        shuffle(court_deck)
+        setattr(self, position, court_deck.pop())       
 
     @property
     def probable_influences(self):

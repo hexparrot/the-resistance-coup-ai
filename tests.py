@@ -1013,7 +1013,17 @@ class TestCoup(unittest.TestCase):
             self.assertTrue(e.performer_is_honest)
             self.assertEqual(p.influence_remaining, 0)
             self.assertEqual(pp.influence_remaining, 2)
+    
+    def test_exchange_revealed_cart(self):
+        testgame = Play_Coup(5)
         
+        p = testgame.players[0]
+        
+        self.assertFalse(p.left.revealed)
+        p.left.reveal()
+        self.assertTrue(p.left.revealed)
+        p.restore('left', testgame.court_deck)
+        self.assertFalse(p.left.revealed)
 
 def gameplay_suite():
     suite = unittest.TestSuite()
