@@ -472,5 +472,21 @@ class BlockedAction(Exception):
                                                          action)
             self.spectator.public_information['spectator'].append(action)
 
-
+class QuestionInfluence(Exception):
+    def __init__(self, action, performer, doubter):
+        self.action = action
+        self.performer = performer
+        self.doubter = doubter
         
+        if action in self.performer.valid_actions:
+            self.message = "{0} doubts {1} can {2}: doubter loses one influence!".format(self.doubter,
+                                                                                         self.performer,
+                                                                                         self.action)
+            self.performer_is_honest = True
+            self.doubter.random_remaining_influence[1].reveal()
+        else:
+            self.message = "{0} doubts {1} can {2}: performer loses one influence!".format(self.doubter,
+                                                                                           self.performer,
+                                                                                           self.action)
+            self.performer_is_honest = False
+            self.performer.random_remaining_influence[1].reveal()

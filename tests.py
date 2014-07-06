@@ -982,7 +982,38 @@ class TestCoup(unittest.TestCase):
             self.assertEqual(e.message, "{0} blocks {1}'s {2}".format(victim,
                                                                       performer,
                                                                       action))
-
+                                                                      
+    def test_question_influence(self):
+        testgame = Play_Coup(5)
+        
+        p = testgame.players[0]
+        pp = testgame.players[1]
+        
+        p.left = Duke()
+        p.right = Duke()
+        pp.left = Assassin()
+        pp.right = Duke()
+        
+        try:
+            raise QuestionInfluence('assassinate', p, pp)
+        except QuestionInfluence as e:
+            self.assertEqual(e.message, "{0} doubts {1} can {2}: performer loses one influence!".format(pp,
+                                                                                                        p,
+                                                                                                        'assassinate'))
+            self.assertFalse(e.performer_is_honest)
+            self.assertEqual(p.influence_remaining, 1)
+            self.assertEqual(pp.influence_remaining, 2)
+            
+        try:
+            raise QuestionInfluence('assassinate', pp, p)
+        except QuestionInfluence as e:
+            self.assertEqual(e.message, "{0} doubts {1} can {2}: doubter loses one influence!".format(p,
+                                                                                                      pp,
+                                                                                                      'assassinate'))
+            self.assertTrue(e.performer_is_honest)
+            self.assertEqual(p.influence_remaining, 0)
+            self.assertEqual(pp.influence_remaining, 2)
+        
 
 def gameplay_suite():
     suite = unittest.TestSuite()
