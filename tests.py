@@ -755,6 +755,15 @@ class TestCoup(unittest.TestCase):
         self.assertIn('assassinate', p.improbable_blocks)
         self.assertIn('foreign_aid', p.improbable_blocks)   
 
+    def test_improbable_actions(self):
+        testgame = Play_Coup(5)
+        
+        p = testgame.players[0]
+        
+        p.not_acting_like['spectator'].extend(['steal'])
+        self.assertIn('steal', p.improbable_actions)
+        
+
     def test_ai_profile_will_intervene_steal_victim(self):
         p = AI_Persona() #not captain
         p.left = Assassin()
@@ -982,7 +991,48 @@ class TestCoup(unittest.TestCase):
             self.assertEqual(e.message, "{0} blocks {1}'s {2}".format(victim,
                                                                       performer,
                                                                       action))
-
+                                                                      
+    def test_question_influence(self):
+        testgame = Play_Coup(5)
+        
+        p = testgame.players[0]
+        pp = testgame.players[1]
+        
+        p.left = Duke()
+        p.right = Duke()
+        pp.left = Assassin()
+        pp.right = Duke()
+        
+        try:
+            raise QuestionInfluence('assassinate', p, pp)
+        except QuestionInfluence as e:
+            self.assertEqual(e.message, "{0} doubts {1} can {2}: performer loses one influence!".format(pp,
+                                                                                                        p,
+                                                                                                        'assassinate'))
+            self.assertFalse(e.performer_is_honest)
+            self.assertEqual(p.influence_remaining, 1)
+            self.assertEqual(pp.influence_remaining, 2)
+            
+        try:
+            raise QuestionInfluence('assassinate', pp, p)
+        except QuestionInfluence as e:
+            self.assertEqual(e.message, "{0} doubts {1} can {2}: doubter loses one influence!".format(p,
+                                                                                                      pp,
+                                                                                                      'assassinate'))
+            self.assertTrue(e.performer_is_honest)
+            self.assertEqual(p.influence_remaining, 0)
+            self.assertEqual(pp.influence_remaining, 2)
+    
+    def test_exchange_revealed_influence(self):
+        testgame = Play_Coup(5)
+        
+        p = testgame.players[0]
+        
+        self.assertFalse(p.left.revealed)
+        p.left.reveal()
+        self.assertTrue(p.left.revealed)
+        p.restore('left', testgame.court_deck)
+        self.assertFalse(p.left.revealed)
 
 def gameplay_suite():
     suite = unittest.TestSuite()

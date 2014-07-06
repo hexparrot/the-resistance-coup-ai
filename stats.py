@@ -10,8 +10,8 @@ __license__ = "GNU GPL v3.0"
 __version__ = "0.0.1"
 __email__ = "wdchromium@gmail.com"
 
-from collections import Counter, defaultdict
-from random import choice, random
+import numpy
+from collections import defaultdict
 from coup import *
 from simulations import simulations
 
@@ -42,6 +42,9 @@ if __name__ == "__main__":
     
     container = defaultdict(list)
     
+    for index, sim in enumerate(simulations().available_simulations()):
+        print("{0}: {1}".format(str(index).ljust(2), sim))
+    
     for i in range(SAMPLE_COUNT):
         for sim in simulations().available_simulations():
             for p, wins in simulations().run(sim, GAMES_PER_SAMPLE).items():
@@ -56,7 +59,7 @@ if __name__ == "__main__":
                                                    ['NULL','REJECT'][p <= .05]))
     
         if p <= .05:
-            dta2 = np.rec.array(container[pair],  
+            dta2 = numpy.rec.array(container[pair],  
                                 dtype=[('test', '|S100'),
                                        ('wins', int)])
                                        

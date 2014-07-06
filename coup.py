@@ -134,6 +134,18 @@ class Player(object):
                 self.public_information['victim'] = [a for a in self.public_information['victim'] if a != k]
                 self.public_information['spectator'] = [a for a in self.public_information['spectator'] if a != k]
                 break
+            
+    def restore(self, position, court_deck):
+        from random import shuffle
+
+        card = getattr(self, position)
+        card.revealed = False
+        
+        court_deck.append(card)
+        court_deck.pop()
+
+        shuffle(court_deck)
+        setattr(self, position, court_deck.pop())       
 
     @property
     def probable_influences(self):
@@ -190,6 +202,13 @@ class Player(object):
             result.update(spectator)
         
         return dict(result.most_common())
+
+    @property
+    def improbable_actions(self):
+        actions = set()
+        for inf, freq in sorted(self.improbable_influences.items(), reverse=True, key=lambda t: t[1])[0:2]:
+            actions.update([a for a in Influence.__subclasses__() if a.__name__ == inf][0].ACTIONS)
+        return actions
         
     @property
     def improbable_blocks(self):
@@ -472,5 +491,25 @@ class BlockedAction(Exception):
                                                          action)
             self.spectator.public_information['spectator'].append(action)
 
-
+class QuestionInfluence(Exception):
+    def __init__(self, action, performer, doubter):
+        self.action = action
+        self.performer = performer
+        self.doubter = doubter
         
+        if action in self.performer.valid_actions:
+            self.message = "{0} doubts {1} can {2}: doubter loses one influence!".format(self.doubter,
+                                                                                         self.performer,
+                                                                                         self.action)
+            self.performer_is_honest = True
+            influence = self.doubter.random_remaining_influence[1]
+            influence.reveal()
+            self.doubter.remove_suspicion(str(influence))
+        else:
+            self.message = "{0} doubts {1} can {2}: performer loses one influence!".format(self.doubter,
+                                                                                           self.performer,
+                                                                                           self.action)
+            self.performer_is_honest = False
+            influence = self.performer.random_remaining_influence[1]
+            influence.reveal()
+            self.performer.remove_suspicion(str(influence))
