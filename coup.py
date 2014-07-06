@@ -136,7 +136,7 @@ class Player(object):
                 break
             
     def restore(self, position, court_deck):
-        from random import randint, shuffle
+        from random import shuffle
 
         card = getattr(self, position)
         card.revealed = False
@@ -502,10 +502,14 @@ class QuestionInfluence(Exception):
                                                                                          self.performer,
                                                                                          self.action)
             self.performer_is_honest = True
-            self.doubter.random_remaining_influence[1].reveal()
+            influence = self.doubter.random_remaining_influence[1]
+            influence.reveal()
+            self.doubter.remove_suspicion(str(influence))
         else:
             self.message = "{0} doubts {1} can {2}: performer loses one influence!".format(self.doubter,
                                                                                            self.performer,
                                                                                            self.action)
             self.performer_is_honest = False
-            self.performer.random_remaining_influence[1].reveal()
+            influence = self.performer.random_remaining_influence[1]
+            influence.reveal()
+            self.performer.remove_suspicion(str(influence))
