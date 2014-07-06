@@ -11,14 +11,24 @@ __version__ = "0.0.1"
 __email__ = "wdchromium@gmail.com"
 
 from itertools import cycle
-from collections import Counter, defaultdict
 from random import choice, random
 from coup import *
 
 class simulations(object):
     PLAYERS = 5    
+
+    def run(self, simulation_to_run, num):
+        from collections import Counter
+        wins = Counter()
+        for _ in range(num):
+            wins.update([getattr(self, simulation_to_run)(),])
+        return dict(wins)
+        
+    @classmethod
+    def available_simulations(cls):
+        return sorted([method for method in dir(cls) if callable(getattr(cls, method)) and method.startswith('sim_')])
     
-    def random_actions_random_targets_no_blocking(self):  
+    def sim_random_actions_random_targets_no_blocking(self):  
         """
         AI PROFILE:
         
@@ -66,7 +76,7 @@ class simulations(object):
                 else:
                     break
 
-    def random_actions_random_targets_selfish_blocks_no_doubts(self):
+    def sim_random_actions_random_targets_selfish_blocks_no_doubts(self):
         """
         AI PROFILE:
         
@@ -123,7 +133,7 @@ class simulations(object):
                 else:
                     break
 
-    def naive_actions_calculated_targets_selfish_blocks_no_doubts(self):
+    def sim_naive_actions_calculated_targets_selfish_blocks_no_doubts(self):
         """
         AI PROFILE:
         
@@ -185,7 +195,7 @@ class simulations(object):
                     break
 
 
-    def naive_actions_calculated_targets_calculated_blocks_no_doubts(self):
+    def sim_naive_actions_calculated_targets_calculated_blocks_no_doubts(self):
         """
         AI PROFILE:
         
@@ -258,7 +268,7 @@ class simulations(object):
                 else:
                     break
 
-    def calculated_actions_calculated_targets_more_calculated_blocks_no_doubts(self):
+    def sim_calculated_actions_calculated_targets_more_calculated_blocks_no_doubts(self):
         """
         AI PROFILE:
         
@@ -331,7 +341,7 @@ class simulations(object):
                 else:
                     break
 
-    def calculated_actions_calculated_targets_more_calculated_blocks_random_doubts(self):
+    def sim_calculated_actions_calculated_targets_more_calculated_blocks_random_doubts(self):
         """
         AI PROFILE:
         
@@ -430,16 +440,3 @@ class simulations(object):
                         break
                     break                       
         
-if __name__ == "__main__":
-
-    results = defaultdict(Counter)
-
-    for sim in [method for method in dir(simulations) if callable(getattr(simulations, method)) and not method.startswith('_')]:
-        for _ in range(1000):
-            results[sim].update([getattr(simulations(), sim)(),])
-    
-    for sim in results:
-        for i,v in results[sim].most_common():
-            print('{0}{1}'.format(i.ljust(25), v))
-        print '*' * 25
-
