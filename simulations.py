@@ -361,19 +361,15 @@ class simulations(object):
                     action = acting_player.random_naive_priority()
                     
                     doubter = choice(list(testgame.filter_out_players([acting_player])))
+
                     if action in acting_player.improbable_actions and random() > .74:
                         try:
                             raise QuestionInfluence(action, acting_player, doubter)
                         except QuestionInfluence as e:
-                            print e.message
                             if e.performer_is_honest:
                                 performer_will_restore = True
                             if not e.doubter.influence_remaining:
-                                if action in e.performer.left.ACTIONS:
-                                    e.performer.restore('left', testgame.court_deck)
-                                else:
-                                    e.performer.restore('right', testgame.court_deck)
-                                break
+                                raise
                             
                     if action == 'steal':
                         random_player = acting_player.select_opponent(testgame.players)
@@ -413,20 +409,25 @@ class simulations(object):
                         random_player.remove_suspicion(str(random_target))
                     else:
                         acting_player.perform(action)
-                except IllegalAction:
+                except (IllegalTarget, IllegalAction):
                     pass
-                except IllegalTarget:
-                    if performer_will_restore:
-                        if action in e.performer.left.ACTIONS:
-                            e.performer.restore('left')
-                        else:
-                            e.performer.restore('right')
-                        break
                 except BlockedAction:
                     break
                 except RethinkAction:
                     pass
+                except QuestionInfluence as e:
+                    if action in e.performer.left.ACTIONS:
+                        e.performer.restore('left', testgame.court_deck)
+                    else:
+                        e.performer.restore('right', testgame.court_deck)
+                    break
                 else:
+                    if performer_will_restore:
+                        if action in e.performer.left.ACTIONS:
+                            acting_player.restore('left', testgame.court_deck)
+                        else:
+                            acting_player.restore('right', testgame.court_deck)
+                        break
                     break                       
         
 if __name__ == "__main__":
