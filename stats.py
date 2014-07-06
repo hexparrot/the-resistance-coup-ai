@@ -15,8 +15,8 @@ from random import choice, random
 from coup import *
 from simulations import simulations
 
-SAMPLE_COUNT = 3
-GAMES_PER_SAMPLE = 500
+SAMPLE_COUNT = 5
+GAMES_PER_SAMPLE = 100
 
     
 pairs = ['Ambassador Contessa',
@@ -37,7 +37,8 @@ pairs = ['Ambassador Contessa',
      
      
 if __name__ == "__main__":
-    from scipy.stats import f_oneway, ttest_rel
+    from scipy.stats import f_oneway
+    from statsmodels.stats.multicomp import pairwise_tukeyhsd, MultiComparison
     
     results = {} 
 
@@ -58,21 +59,33 @@ if __name__ == "__main__":
 
 
     
+
+    container = defaultdict(list)
     
-    from itertools import combinations
+    for i in range(SAMPLE_COUNT):
+        for p, wins in simulations().run('sim_random_actions_random_targets_no_blocking', GAMES_PER_SAMPLE).items():
+            container[p].append(('random_all', wins))
+        for p, wins in simulations().run('sim_random_actions_random_targets_selfish_blocks_no_doubts', GAMES_PER_SAMPLE).items():
+            container[p].append(('random_selfish', wins))
+        for p, wins in simulations().run('sim_naive_actions_calculated_targets_selfish_blocks_no_doubts', GAMES_PER_SAMPLE).items():
+            container[p].append(('naive', wins))
+        for p, wins in simulations().run('sim_naive_actions_calculated_targets_calculated_blocks_no_doubts', GAMES_PER_SAMPLE).items():
+            container[p].append(('naive_calc', wins))
+        for p, wins in simulations().run('sim_calculated_actions_calculated_targets_more_calculated_blocks_no_doubts', GAMES_PER_SAMPLE).items():
+            container[p].append(('calc', wins))
     
-    for sim_one, sim_two in combinations(simulations.available_simulations(), 2):
-        print('t-test comparing')
-        print sim_one
-        print sim_two
-        for pair in pairs:
-            try:
-                t, p = ttest_rel(results[sim_one][pair],
-                                 results[sim_two][pair])
-                print('{0}{1} at sig {2}: {3}'.format(pair.ljust(25), 
-                                                      str(round(t, 3)).ljust(7), 
-                                                      str(round(p, 3)).ljust(7),
-                                                      ['NULL','REJECT'][p <= .05]))
-            except ValueError:
-                print('{0}: test failed due to no wins in one or more samples'.format(pair.ljust(25)))
+    dta2 = np.rec.array(container['Contessa Duke'],  
+                        dtype=[('test', '|S20'),
+                               ('wins', int)])
+                               
+    
+
+    res2 = pairwise_tukeyhsd(dta2['wins'], dta2['test'])
+    print res2
+
+    mod = MultiComparison(dta2['wins'], dta2['test'])
+    print mod.tukeyhsd()
+
+    
+    
     
