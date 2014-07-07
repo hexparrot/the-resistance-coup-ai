@@ -81,7 +81,7 @@ These must be integers
 WEIGHTS = {
     'performed_action': 1,
     'blocked_selfishly': 1,
-    'blocked_selflessly': 2,
+    'blocked_selflessly': 6,
     'suboptimal_move': -3, #income when could have taxed, -x to likelihood of duke
     'didnt_block_selfishly': -10, #eg allowed somebody to steal from him, but was captain/ambass
     'didnt_block_selflessly': -1 #didnt block a foreign aid, for example

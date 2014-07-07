@@ -89,15 +89,16 @@ class simulations(object):
                     action = acting_player.random_naive_priority()
                     random_player = acting_player.select_opponent(testgame.players)
                     
-                    if action != 'coup':
+                    if action not in ['coup', 'assassinate']:
                         try:
-                            doubter = choice(list(testgame.filter_out_players([acting_player])))
-                            guessed_influences = sum(1 for inf, freq in acting_player.judge_player.items() if freq > 0)
-                            if guessed_influences == 2:
+                            relevant_inf = [a for a in Influence.__subclasses__() if action in a.ACTIONS][0].__name__
+                            if acting_player.judge_player[relevant_inf] < -10:
+                                doubter = choice(list(testgame.filter_out_players([acting_player])))
                                 raise QuestionInfluence(action, acting_player, doubter)
-                            elif guessed_influences == 1:
-                                if random() > .60:
-                                    raise QuestionInfluence(action, acting_player, doubter)
+                        except (IndexError, KeyError):
+                            #indexerror if action not influence-specific
+                            #keyerror if inf doesnt exist in acting_player.judge_player
+                            pass
                         except QuestionInfluence as e:
                             if e.performer_is_honest:
                                 performer_will_restore = True
@@ -118,6 +119,8 @@ class simulations(object):
 
                         for savior in testgame.filter_out_players([acting_player, random_player]):
                             if savior.will_intervene(action, acting_player, random_player):
+                                for spectators in testgame.filter_out_players([acting_player, savior]):
+                                    spectators.not_acting_like['spectator'].extend([action])
                                 raise BlockedAction(action, acting_player, random_player, savior)
                         acting_player.perform(action, random_player)
                     elif action == 'assassinate':
@@ -128,6 +131,8 @@ class simulations(object):
 
                         for savior in testgame.filter_out_players([acting_player, random_player]):
                             if savior.will_intervene(action, acting_player, random_player):
+                                for spectators in testgame.filter_out_players([acting_player, savior]):
+                                    spectators.not_acting_like['spectator'].extend([action])
                                 raise BlockedAction(action, acting_player, random_player, savior)
                         position, random_target = random_player.random_remaining_influence
                         acting_player.perform(action, random_target)
@@ -135,6 +140,8 @@ class simulations(object):
                     elif action == 'foreign_aid':
                         for savior in testgame.filter_out_players([acting_player]):
                             if savior.will_intervene(action, acting_player):
+                                for spectators in testgame.filter_out_players([acting_player, savior]):
+                                    spectators.not_acting_like['spectator'].extend([action])
                                 raise BlockedAction(action, acting_player, None, savior)
                         acting_player.perform(action)
                     elif action == 'exchange':
