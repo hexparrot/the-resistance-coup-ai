@@ -697,8 +697,29 @@ class TestCoup(unittest.TestCase):
         
         self.assertEqual(p.judge_player, {
             'Captain': WEIGHTS['performed_action'] * 3 - abs(WEIGHTS['didnt_block_selfishly'] * 1), 
-            'Ambassador': WEIGHTS['didnt_block_selfishly'] * 1
+            'Ambassador': -abs(WEIGHTS['didnt_block_selfishly'] * 1)
             })
+            
+    def test_judge_actions(self):
+        testgame = Play_Coup(5)
+        
+        p = testgame.players[0]
+        
+        p.public_information['perform'].extend(['steal', 'steal', 'steal'])
+        self.assertIn('steal', p.judge_actions)
+        p.not_acting_like['victim'].extend(['steal'])
+        p.public_information['perform'].extend(['assassinate'])
+        
+        self.assertIn('assassinate', p.judge_actions)
+        self.assertNotIn('steal', p.judge_actions)
+    
+    def test_judge_blocks(self):
+        testgame = Play_Coup(5)
+        
+        p = testgame.players[0]
+        
+        p.public_information['perform'].extend(['steal', 'steal', 'steal']) 
+        self.assertIn('steal', p.judge_blocks)        
         
     def test_best_probable_actions(self):
         testgame = Play_Coup(5)

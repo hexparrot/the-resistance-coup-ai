@@ -146,11 +146,27 @@ class Player(object):
 
         shuffle(court_deck)
         setattr(self, position, court_deck.pop())
-    
+
     @property
     def judge_player(self):
         return {k:self.probable_influences.get(k, 0) - self.improbable_influences.get(k, 0) for k in set(self.probable_influences).union(set(self.improbable_influences))}
 
+    @property
+    def judge_actions(self):
+        actions = set()
+        for inf, score in sorted(self.judge_player.items(), reverse=True, key=lambda t: t[1])[0:2]:
+            if score > 0:
+                actions.update([a for a in Influence.__subclasses__() if a.__name__ == inf][0].ACTIONS)
+        return actions
+    
+    @property
+    def judge_blocks(self):
+        actions = set()
+        for inf, score in sorted(self.judge_player.items(), reverse=True, key=lambda t: t[1])[0:2]:
+            if score > 0:
+                actions.update([a for a in Influence.__subclasses__() if a.__name__ == inf][0].BLOCKS)
+        return actions
+    
     @property
     def probable_influences(self):
         from collections import Counter
