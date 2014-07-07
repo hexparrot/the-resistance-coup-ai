@@ -145,7 +145,11 @@ class Player(object):
         court_deck.pop()
 
         shuffle(court_deck)
-        setattr(self, position, court_deck.pop())       
+        setattr(self, position, court_deck.pop())
+    
+    @property
+    def judge_player(self):
+        return {k:self.probable_influences.get(k, 0) - self.improbable_influences.get(k, 0) for k in set(self.probable_influences).union(set(self.improbable_influences))}
 
     @property
     def probable_influences(self):

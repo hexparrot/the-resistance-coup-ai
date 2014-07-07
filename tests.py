@@ -683,6 +683,23 @@ class TestCoup(unittest.TestCase):
             }
         self.assertTrue(ppp.will_intervene('steal', p, pp))
         
+    def test_judge_player(self):
+        from heuristics import WEIGHTS
+        testgame = Play_Coup(5)
+        
+        p = testgame.players[0]
+        
+        p.public_information['perform'].extend(['steal', 'steal', 'steal'])
+        
+        self.assertEqual(p.judge_player, {'Captain': WEIGHTS['performed_action'] * 3})
+        
+        p.not_acting_like['victim'].extend(['steal'])
+        
+        self.assertEqual(p.judge_player, {
+            'Captain': WEIGHTS['performed_action'] * 3 - abs(WEIGHTS['didnt_block_selfishly'] * 1), 
+            'Ambassador': WEIGHTS['didnt_block_selfishly'] * 1
+            })
+        
     def test_best_probable_actions(self):
         testgame = Play_Coup(5)
         
