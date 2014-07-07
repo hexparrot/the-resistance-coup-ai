@@ -1103,11 +1103,13 @@ class TestCoup(unittest.TestCase):
         
         p = testgame.players[0]
         
+        self.assertEqual(len(testgame.court_deck), 5)
         self.assertFalse(p.left.revealed)
         p.left.reveal()
         self.assertTrue(p.left.revealed)
         p.restore('left', testgame.court_deck)
         self.assertFalse(p.left.revealed)
+        self.assertEqual(len(testgame.court_deck), 5)
 
 def gameplay_suite():
     suite = unittest.TestSuite()

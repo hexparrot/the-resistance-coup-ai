@@ -142,7 +142,6 @@ class Player(object):
         card.revealed = False
         
         court_deck.append(card)
-        court_deck.pop()
 
         shuffle(court_deck)
         setattr(self, position, court_deck.pop())
