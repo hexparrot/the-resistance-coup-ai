@@ -356,6 +356,16 @@ class AI_Persona(Player):
             pass
         
         return False
+        
+    def will_callout(self, action, performer):
+        try:
+            if sum(len(a) for a in performer.public_information) >= self.rules['callout']['min_actions'] and \
+                sum(len(a) for a in performer.not_acting_like) >= self.rules['callout']['min_inactions'] and \
+                performer.judge_player[[a.__name__ for a in Influence.__subclasses__() if action in a.ACTIONS][0]] <= self.rules['callout']['threshold']:
+                return True
+        except KeyError:
+            pass
+        return False
 
     @property
     def random_remaining_influence(self):

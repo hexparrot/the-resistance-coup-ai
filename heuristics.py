@@ -13,6 +13,11 @@ PERSONALITIES = {
                 }
             },
         'calculated_intervention': {},
+        'callout': {
+            'threshold': -3,
+            'min_actions': 3,
+            'min_inactions': 3
+            }
         },
     'cautious': {
         'honest_intervention': {

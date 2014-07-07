@@ -796,7 +796,6 @@ class TestCoup(unittest.TestCase):
         
         p.not_acting_like['spectator'].extend(['steal'])
         self.assertIn('steal', p.improbable_actions)
-        
 
     def test_ai_profile_will_intervene_steal_victim(self):
         p = AI_Persona() #not captain
@@ -832,6 +831,48 @@ class TestCoup(unittest.TestCase):
         self.assertFalse(ppp.will_intervene('steal', p, pp))
         pp.coins = 5
         self.assertTrue(ppp.will_intervene('steal', p, pp))
+
+    def test_will_callout(self):
+        testgame = Play_Coup(5)
+        
+        p = testgame.players[0]
+        pp = testgame.players[1]
+        
+        self.assertFalse(pp.will_callout('tax', p)) #no rule
+        
+        pp.rules['callout'] = {
+            'threshold': -3,
+            'min_actions': 3,
+            'min_inactions': 3
+            }
+        
+        self.assertFalse(pp.will_callout('tax', p))
+
+        p.perform('tax')
+        self.assertFalse(pp.will_callout('tax', p))
+        p.perform('tax')
+        self.assertFalse(pp.will_callout('tax', p))
+        
+        for _ in range(5):
+            p.not_acting_like['spectator'].extend(['foreign_aid'])
+
+        self.assertTrue(pp.will_callout('tax', p))
+        
+        pp.rules['callout'] = {
+            'threshold': -30,
+            'min_actions': 3,
+            'min_inactions': 3
+            }
+            
+        self.assertFalse(pp.will_callout('tax', p))
+        
+        pp.rules['callout'] = {
+            'threshold': -3,
+            'min_actions': 3,
+            'min_inactions': 3
+            }
+        
+        self.assertTrue(pp.will_callout('tax', p))
 
     def test_naive_priorities(self):
         p = AI_Persona()
