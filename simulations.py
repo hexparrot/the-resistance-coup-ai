@@ -370,6 +370,7 @@ class simulations(object):
                 try:
                     action = acting_player.random_naive_priority()
                     
+                    random_player = acting_player.select_opponent(testgame.players)
                     doubter = choice(list(testgame.filter_out_players([acting_player])))
 
                     if action in acting_player.improbable_actions and random() > .74:
@@ -378,8 +379,14 @@ class simulations(object):
                         except QuestionInfluence as e:
                             if e.performer_is_honest:
                                 performer_will_restore = True
-                            if not e.doubter.influence_remaining:
-                                raise
+                                if action == 'steal':
+                                    acting_player.perform(action, random_player)
+                                if not random_player.influence_remaining and \
+                                    random_player is doubter:
+                                    action = None
+                            else:
+                                action = None
+                            
                             
                     if action == 'steal':
                         random_player = acting_player.select_opponent(testgame.players)
@@ -417,6 +424,8 @@ class simulations(object):
                         position, random_target = random_player.random_remaining_influence
                         acting_player.perform(action, random_target)
                         random_player.remove_suspicion(str(random_target))
+                    elif not action:
+                        pass
                     else:
                         acting_player.perform(action)
                 except (IllegalTarget, IllegalAction):
@@ -425,12 +434,6 @@ class simulations(object):
                     break
                 except RethinkAction:
                     pass
-                except QuestionInfluence as e:
-                    if action in e.performer.left.ACTIONS:
-                        e.performer.restore('left', testgame.court_deck)
-                    else:
-                        e.performer.restore('right', testgame.court_deck)
-                    break
                 else:
                     if performer_will_restore:
                         if action in e.performer.left.ACTIONS:
