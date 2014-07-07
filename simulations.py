@@ -389,7 +389,6 @@ class simulations(object):
                             
                             
                     if action == 'steal':
-                        random_player = acting_player.select_opponent(testgame.players)
                         if (action in random_player.probable_blocks and random() > .24):
                             raise RethinkAction(action, acting_player, random_player)
                         if action in random_player.valid_blocks:
@@ -400,7 +399,6 @@ class simulations(object):
                                 raise BlockedAction(action, acting_player, random_player, savior)
                         acting_player.perform(action, random_player)
                     elif action == 'assassinate':
-                        random_player = acting_player.select_opponent(testgame.players)
                         if (action in random_player.probable_blocks and random() > .24):
                             raise RethinkAction(action, acting_player, random_player)
                         if action in random_player.valid_blocks:
@@ -420,7 +418,6 @@ class simulations(object):
                     elif action == 'exchange':
                         acting_player.perform(action, testgame.court_deck)
                     elif action == 'coup':
-                        random_player = acting_player.select_opponent(testgame.players)
                         position, random_target = random_player.random_remaining_influence
                         acting_player.perform(action, random_target)
                         random_player.remove_suspicion(str(random_target))
