@@ -103,11 +103,12 @@ class simulations(object):
                                 performer_will_restore = True
                                 if action == 'steal':
                                     acting_player.perform(action, random_player)
+                                    raise EndTurn
                                 if not random_player.influence_remaining and \
                                     random_player is doubter:
-                                    action = None
+                                    raise EndTurn
                             else:
-                                action = None
+                                raise EndTurn
 
                     if action == 'steal':
                         if (action in random_player.probable_blocks and random() > .24):
@@ -142,12 +143,12 @@ class simulations(object):
                         position, random_target = random_player.random_remaining_influence
                         acting_player.perform(action, random_target)
                         random_player.remove_suspicion(str(random_target))
-                    elif not action:
-                        pass
                     else:
                         acting_player.perform(action)
                 except (IllegalTarget, IllegalAction):
                     pass
+                except EndTurn:
+                    break
                 except BlockedAction:
                     break
                 except RethinkAction:
@@ -155,11 +156,12 @@ class simulations(object):
                 else:
                     if performer_will_restore:
                         #will need refinement for captain/ambassador on blocked steal
-                        if action in e.performer.left.ACTIONS:
+                        if action in acting_player.left.ACTIONS:
+                            acting_player.remove_suspicion(str(acting_player.left))
                             acting_player.restore('left', testgame.court_deck)
                         else:
+                            acting_player.remove_suspicion(str(acting_player.right))
                             acting_player.restore('right', testgame.court_deck)
-                        break
                     break
                     
                 
