@@ -87,13 +87,17 @@ class simulations(object):
             while 1:
                 try:
                     action = acting_player.random_naive_priority()
-                    
                     random_player = acting_player.select_opponent(testgame.players)
-                    doubter = choice(list(testgame.filter_out_players([acting_player])))
-
-                    if action in acting_player.improbable_actions and random() > .74:
+                    
+                    if action != 'coup':
                         try:
-                            raise QuestionInfluence(action, acting_player, doubter)
+                            doubter = choice(list(testgame.filter_out_players([acting_player])))
+                            guessed_influences = sum(1 for inf, freq in acting_player.judge_player.items() if freq > 0)
+                            if guessed_influences == 2:
+                                raise QuestionInfluence(action, acting_player, doubter)
+                            elif guessed_influences == 1:
+                                if random() > .60:
+                                    raise QuestionInfluence(action, acting_player, doubter)
                         except QuestionInfluence as e:
                             if e.performer_is_honest:
                                 performer_will_restore = True
@@ -104,7 +108,7 @@ class simulations(object):
                                     action = None
                             else:
                                 action = None
-                            
+
                     if action == 'steal':
                         if (action in random_player.probable_blocks and random() > .24):
                             raise RethinkAction(action, acting_player, random_player)
@@ -150,6 +154,7 @@ class simulations(object):
                     pass
                 else:
                     if performer_will_restore:
+                        #will need refinement for captain/ambassador on blocked steal
                         if action in e.performer.left.ACTIONS:
                             acting_player.restore('left', testgame.court_deck)
                         else:
