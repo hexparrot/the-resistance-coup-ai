@@ -441,10 +441,6 @@ class TestCoup(unittest.TestCase):
         self.assertIs(a.left, p.left)
         self.assertIs(a.right, p.right)
 
-    def test_ai_persona_replace_player(self):
-        testgame = Play_Coup(5)
-
-        a = AI_Persona.clone(testgame.players[0])
         testgame.players[0] = a
 
         self.assertIs(a, testgame.players[0])
