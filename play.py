@@ -57,7 +57,8 @@ def play_game():
         print()
 
 class simulations(object):
-    def test_gameplay_calculated_actions_calculated_targets_more_calculated_blocks_no_doubts(self):
+    PLAYERS = 5
+    def sim_calculated_actions_calculated_targets_more_calculated_blocks_calculated_doubts(self):
         """
         AI PROFILE:
         
@@ -71,21 +72,31 @@ class simulations(object):
         exchange        yes         random      no
 
         """
-        from itertools import cycle
-        from random import random
 
-        PLAYERS = 5
-        testgame = Play_Coup(PLAYERS)
+        testgame = Play_Coup(self.PLAYERS)
 
         for acting_player in cycle(testgame.players):
             if not acting_player.influence_remaining:
                 continue
             elif len(testgame) == 1:
                 return acting_player.alpha
+                
+            performer_will_restore = False
 
             while 1:
                 try:
                     action = acting_player.random_naive_priority()
+                    
+                    for savior in testgame.filter_out_players([acting_player]):
+                        try:
+                            if savior.will_callout(action, acting_player):
+                                raise QuestionInfluence(action, acting_player, savior)
+                        except QuestionInfluence as e:
+                            if e.performer_is_honest:
+                                performer_will_restore = True
+                            if savior is doubter and not e.doubter.influence_remaining:
+                                raise
+                            
                     if action == 'steal':
                         random_player = acting_player.select_opponent(testgame.players)
                         if (action in random_player.probable_blocks and random() > .24):
@@ -96,8 +107,7 @@ class simulations(object):
                         for savior in testgame.filter_out_players([acting_player, random_player]):
                             if savior.will_intervene(action, acting_player, random_player):
                                 raise BlockedAction(action, acting_player, random_player, savior)
-                        else:
-                            acting_player.perform(action, random_player)
+                        acting_player.perform(action, random_player)
                     elif action == 'assassinate':
                         random_player = acting_player.select_opponent(testgame.players)
                         if (action in random_player.probable_blocks and random() > .24):
@@ -108,16 +118,14 @@ class simulations(object):
                         for savior in testgame.filter_out_players([acting_player, random_player]):
                             if savior.will_intervene(action, acting_player, random_player):
                                 raise BlockedAction(action, acting_player, random_player, savior)
-                        else:
-                            position, random_target = random_player.random_remaining_influence
-                            acting_player.perform(action, random_target)
-                            random_player.remove_suspicion(str(random_target))
+                        position, random_target = random_player.random_remaining_influence
+                        acting_player.perform(action, random_target)
+                        random_player.remove_suspicion(str(random_target))
                     elif action == 'foreign_aid':
                         for savior in testgame.filter_out_players([acting_player]):
                             if savior.will_intervene(action, acting_player):
                                 raise BlockedAction(action, acting_player, None, savior)
-                        else:
-                            acting_player.perform(action)
+                        acting_player.perform(action)
                     elif action == 'exchange':
                         acting_player.perform(action, testgame.court_deck)
                     elif action == 'coup':
@@ -133,15 +141,27 @@ class simulations(object):
                     break
                 except RethinkAction:
                     pass
-                else:
+                except QuestionInfluence as e:
+                    if action in e.performer.left.ACTIONS:
+                        e.performer.restore('left', testgame.court_deck)
+                    else:
+                        e.performer.restore('right', testgame.court_deck)
                     break
+                else:
+                    if performer_will_restore:
+                        if action in e.performer.left.ACTIONS:
+                            acting_player.restore('left', testgame.court_deck)
+                        else:
+                            acting_player.restore('right', testgame.court_deck)
+                        break
+                    break    
                     
                 
         
 if __name__ == "__main__":
     c = Counter()
     for _ in range(1000):
-        c.update([simulations().test_gameplay_calculated_actions_calculated_targets_more_calculated_blocks_no_doubts(),])
+        c.update([simulations().sim_calculated_actions_calculated_targets_more_calculated_blocks_calculated_doubts(),])
 
     for i,v in c.most_common():
         print('{0}{1}'.format(i.ljust(25), v))
