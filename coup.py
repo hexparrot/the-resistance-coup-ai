@@ -272,12 +272,20 @@ class Player(object):
         return tuple(1 if inf in self else 0 for inf in influences)
 
     @staticmethod
-    def actions_for_influence(influences):
+    def actions_for_influences(influences):
         actions = []
         for inf in Influence.__subclasses__():
             if inf.__name__ in influences:
                 actions.extend(inf.ACTIONS)
         return sorted(actions)
+        
+    @staticmethod
+    def blocks_for_influences(influences):
+        blocks = []
+        for inf in Influence.__subclasses__():
+            if inf.__name__ in influences:
+                blocks.extend(inf.BLOCKS)
+        return sorted(blocks)
 
 class AI_Persona(Player):        
     def __init__(self, personality='passive'):
