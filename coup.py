@@ -22,11 +22,17 @@ class Play_Coup(object):
         'bluffable': ['steal', 'tax', 'assassinate', 'exchange'],
         }
     
-    def __init__(self, players):
+    def __init__(self, player_count, personalities=[]):
         from random import shuffle, choice
         
-        #self.players = [AI_Persona(choice(['obnoxious','cautious','passive'])) for i in range(players)]
-        self.players = [AI_Persona() for i in range(players)]
+        self.players = []
+        
+        for i in range(player_count):
+            if personalities:
+                self.players.append(AI_Persona(choice(personalities)))
+            else:
+                self.players.append(AI_Persona())
+
         self.court_deck = [Contessa() for _ in range(3)] + \
                           [Ambassador() for _ in range(3)] + \
                           [Duke() for _ in range(3)] + \
@@ -35,7 +41,7 @@ class Play_Coup(object):
         
         shuffle(self.court_deck)
 
-        for p in range(players):
+        for p in range(player_count):
             self.players[p].left = self.court_deck.pop()
             self.players[p].right = self.court_deck.pop()
             

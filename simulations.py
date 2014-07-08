@@ -13,6 +13,7 @@ __email__ = "wdchromium@gmail.com"
 from itertools import cycle
 from random import choice, random
 from coup import *
+from heuristics import PERSONALITIES
 
 class simulations(object):
     PLAYERS = 5    
@@ -43,7 +44,7 @@ class simulations(object):
 
         """
         
-        testgame = Play_Coup(self.PLAYERS)
+        testgame = Play_Coup(self.PLAYERS, PERSONALITIES.keys())
         
         for acting_player in cycle(testgame.players):
             if not acting_player.influence_remaining:
@@ -91,7 +92,7 @@ class simulations(object):
 
         """
 
-        testgame = Play_Coup(self.PLAYERS)
+        testgame = Play_Coup(self.PLAYERS, PERSONALITIES.keys())
 
         for acting_player in cycle(testgame.players):
             if not acting_player.influence_remaining:
@@ -148,7 +149,7 @@ class simulations(object):
 
         """
 
-        testgame = Play_Coup(self.PLAYERS)
+        testgame = Play_Coup(self.PLAYERS, PERSONALITIES.keys())
 
         for acting_player in cycle(testgame.players):
             if not acting_player.influence_remaining:
@@ -210,7 +211,7 @@ class simulations(object):
 
         """
         
-        testgame = Play_Coup(self.PLAYERS)
+        testgame = Play_Coup(self.PLAYERS, PERSONALITIES.keys())
 
         for acting_player in cycle(testgame.players):
             if not acting_player.influence_remaining:
@@ -283,7 +284,7 @@ class simulations(object):
 
         """
 
-        testgame = Play_Coup(self.PLAYERS)
+        testgame = Play_Coup(self.PLAYERS, PERSONALITIES.keys())
 
         for acting_player in cycle(testgame.players):
             if not acting_player.influence_remaining:
@@ -356,7 +357,7 @@ class simulations(object):
 
         """
 
-        testgame = Play_Coup(self.PLAYERS)
+        testgame = Play_Coup(self.PLAYERS, PERSONALITIES.keys())
 
         for acting_player in cycle(testgame.players):
             if not acting_player.influence_remaining:
