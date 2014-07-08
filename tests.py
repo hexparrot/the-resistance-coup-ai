@@ -885,6 +885,19 @@ class TestCoup(unittest.TestCase):
         self.assertEqual(p.calculate('improbable', 'actions'), ['tax'])
         self.assertEqual(p.calculate('judge', 'actions'), ['assassinate'])
 
+    def test_add_free_actions(self):
+        p = Player()
+        p.left = Assassin()
+        p.right = Contessa()
+        
+        self.assertEqual(p.add_free_actions(p.calculate('judge', 'actions')), \
+                         ['coup', 'foreign_aid', 'income'])
+        
+        p.public_information['perform'].extend(['assassinate'])
+        
+        self.assertEqual(p.add_free_actions(p.calculate('judge', 'actions')), \
+                         ['assassinate', 'coup', 'foreign_aid', 'income'])
+
     def test_probable_blocks(self):
         testgame = Play_Coup(5)
         

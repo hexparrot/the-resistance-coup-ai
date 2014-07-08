@@ -15,6 +15,7 @@ from heuristics import *
 class Play_Coup(object):
     ACTIONS = {
         'all': ['income', 'foreign_aid', 'coup', 'steal', 'tax', 'assassinate', 'exchange'],
+        'free': ['income', 'foreign_aid', 'coup'],
         'blockable': ['assassinate', 'steal', 'foreign_aid'],
         'targets_influence': ['coup', 'assassinate'],
         'targets_player': ['steal'],
@@ -226,6 +227,10 @@ class Player(object):
     def influence_binary(self):
         influences = ['Ambassador', 'Assassin', 'Captain', 'Contessa', 'Duke']
         return tuple(1 if inf in self else 0 for inf in influences)
+        
+    @staticmethod
+    def add_free_actions(actions):
+        return sorted(actions + Play_Coup.ACTIONS['free'])
 
     @classmethod
     def actions_for_influences(cls, influences):
