@@ -818,6 +818,60 @@ class TestCoup(unittest.TestCase):
         self.assertIn('assassinate', p.probable_actions)
         self.assertIn('tax', p.probable_actions)
         self.assertNotIn('steal', p.probable_actions)
+    
+    def test_calculate(self):
+        p = AI_Persona()
+        
+        p.left = Contessa()
+        p.right = Assassin()
+        
+        self.assertEqual(p.calculate('probable', 'blocks'), [])
+        self.assertEqual(p.calculate('improbable', 'blocks'), [])
+        self.assertEqual(p.calculate('judge', 'blocks'), [])
+        
+        self.assertEqual(p.calculate('probable', 'actions'), [])
+        self.assertEqual(p.calculate('improbable', 'actions'), [])
+        self.assertEqual(p.calculate('judge', 'actions'), [])
+        
+        p.public_information['perform'].extend(['tax'])
+        
+        self.assertEqual(p.calculate('probable', 'blocks'), ['foreign_aid'])
+        self.assertEqual(p.calculate('improbable', 'blocks'), [])
+        self.assertEqual(p.calculate('judge', 'blocks'), ['foreign_aid'])
+        
+        self.assertEqual(p.calculate('probable', 'actions'), ['tax'])
+        self.assertEqual(p.calculate('improbable', 'actions'), [])
+        self.assertEqual(p.calculate('judge', 'actions'), ['tax'])
+        
+        p.public_information['perform'].extend(['steal'])
+        
+        self.assertEqual(p.calculate('probable', 'blocks'), ['foreign_aid', 'steal'])
+        self.assertEqual(p.calculate('improbable', 'blocks'), [])
+        self.assertEqual(p.calculate('judge', 'blocks'), ['foreign_aid', 'steal'])
+        
+        self.assertEqual(p.calculate('probable', 'actions'), ['steal', 'tax'])
+        self.assertEqual(p.calculate('improbable', 'actions'), [])
+        self.assertEqual(p.calculate('judge', 'actions'), ['steal', 'tax'])
+        
+        p.not_acting_like['spectator'].extend(['foreign_aid', 'foreign_aid', 'foreign_aid'])
+        
+        self.assertEqual(p.calculate('probable', 'blocks'), ['foreign_aid', 'steal'])
+        self.assertEqual(p.calculate('improbable', 'blocks'), ['foreign_aid'])
+        self.assertEqual(p.calculate('judge', 'blocks'), ['steal'])
+        
+        self.assertEqual(p.calculate('probable', 'actions'), ['steal', 'tax'])
+        self.assertEqual(p.calculate('improbable', 'actions'), ['tax'])
+        self.assertEqual(p.calculate('judge', 'actions'), ['steal'])
+        
+        p.public_information['perform'].extend(['assassinate', 'assassinate', 'steal'])
+        
+        self.assertEqual(p.calculate('probable', 'blocks'), ['steal'])
+        self.assertEqual(p.calculate('improbable', 'blocks'), ['foreign_aid'])
+        self.assertEqual(p.calculate('judge', 'blocks'), ['steal'])
+        
+        self.assertEqual(p.calculate('probable', 'actions'), ['assassinate', 'steal'])
+        self.assertEqual(p.calculate('improbable', 'actions'), ['tax'])
+        self.assertEqual(p.calculate('judge', 'actions'), ['assassinate', 'steal'])
 
     def test_probable_blocks(self):
         testgame = Play_Coup(5)
@@ -825,10 +879,10 @@ class TestCoup(unittest.TestCase):
         p = testgame.players[0]
         
         p.public_information['perform'].extend(['tax'])
-        self.assertIn('foreign_aid', p.probable_blocks)
+        self.assertIn('foreign_aid', p.blocks_for_influences(p.probable_influences))
         
         p.perform('steal', testgame.players[1])
-        self.assertIn('steal', p.probable_blocks)
+        self.assertIn('steal', p.blocks_for_influences(p.probable_influences))
         
     def test_improbable_blocks(self):
         testgame = Play_Coup(5)

@@ -271,21 +271,48 @@ class Player(object):
         influences = ['Ambassador', 'Assassin', 'Captain', 'Contessa', 'Duke']
         return tuple(1 if inf in self else 0 for inf in influences)
 
-    @staticmethod
-    def actions_for_influences(influences):
+    @classmethod
+    def actions_for_influences(cls, influences):
         actions = []
         for inf in Influence.__subclasses__():
             if inf.__name__ in influences:
                 actions.extend(inf.ACTIONS)
         return sorted(actions)
         
-    @staticmethod
-    def blocks_for_influences(influences):
+    @classmethod
+    def blocks_for_influences(cls, influences):
         blocks = []
         for inf in Influence.__subclasses__():
             if inf.__name__ in influences:
                 blocks.extend(inf.BLOCKS)
         return sorted(blocks)
+        
+    def calculate(self, likelihood, type_of_action):
+        if type_of_action == 'actions':
+            if likelihood == 'probable':
+                infs = sorted(self.probable_influences.items(), reverse=True, key=lambda i: i[1])
+                infs = [inf for inf, score in infs[0:2]]
+                return self.actions_for_influences(infs)
+            elif likelihood == 'improbable':
+                infs = sorted(self.improbable_influences.items(), key=lambda i: i[1])
+                infs = [inf for inf, score in infs[0:2]]
+                return self.actions_for_influences(infs)
+            elif likelihood == 'judge':
+                infs = [i for i,v in self.judge_player.items() if v > 0]
+                return self.actions_for_influences(infs)
+        elif type_of_action == 'blocks':
+            if likelihood == 'probable':
+                infs = sorted(self.probable_influences.items(), reverse=True, key=lambda i: i[1])
+                infs = [inf for inf, score in infs[0:2]]
+                return self.blocks_for_influences(infs)
+            elif likelihood == 'improbable':
+                print self.improbable_influences
+                infs = sorted(self.improbable_influences.items(), key=lambda i: i[1])
+                infs = [inf for inf, score in infs[0:2]]
+                return self.blocks_for_influences(infs)
+            elif likelihood == 'judge':
+                infs = [i for i,v in self.judge_player.items() if v > 0]
+                return self.blocks_for_influences(infs)
 
 class AI_Persona(Player):        
     def __init__(self, personality='passive'):
