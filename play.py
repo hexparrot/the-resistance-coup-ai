@@ -112,7 +112,7 @@ class simulations(object):
                                 raise EndTurn
 
                     if action == 'steal':
-                        if (action in random_player.probable_blocks and random() > .24):
+                        if (action in random_player.calculate('probable', 'blocks') and random() > .24):
                             raise RethinkAction(action, acting_player, random_player)
                         if action in random_player.valid_blocks:
                             raise BlockedAction(action, acting_player, random_player, None)
@@ -124,7 +124,7 @@ class simulations(object):
                                 raise BlockedAction(action, acting_player, random_player, savior)
                         acting_player.perform(action, random_player)
                     elif action == 'assassinate':
-                        if (action in random_player.probable_blocks and random() > .24):
+                        if (action in random_player.calculate('probable', 'blocks') and random() > .24):
                             raise RethinkAction(action, acting_player, random_player)
                         if action in random_player.valid_blocks:
                             raise BlockedAction(action, acting_player, random_player, None)

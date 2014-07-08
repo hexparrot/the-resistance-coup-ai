@@ -872,6 +872,18 @@ class TestCoup(unittest.TestCase):
         self.assertEqual(p.calculate('probable', 'actions'), ['assassinate', 'steal'])
         self.assertEqual(p.calculate('improbable', 'actions'), ['tax'])
         self.assertEqual(p.calculate('judge', 'actions'), ['assassinate', 'steal'])
+        
+        p.public_information['perform'].extend(['income', 'income', 'income'])
+        p.public_information['spectator'].extend(['assassinate'])
+        p.public_information['perform'].extend(['assassinate'])
+        
+        self.assertEqual(p.calculate('probable', 'blocks'), ['assassinate'])
+        self.assertEqual(p.calculate('improbable', 'blocks'), ['foreign_aid'])
+        self.assertEqual(p.calculate('judge', 'blocks'), ['assassinate'])
+        
+        self.assertEqual(p.calculate('probable', 'actions'), ['assassinate'])
+        self.assertEqual(p.calculate('improbable', 'actions'), ['tax'])
+        self.assertEqual(p.calculate('judge', 'actions'), ['assassinate'])
 
     def test_probable_blocks(self):
         testgame = Play_Coup(5)

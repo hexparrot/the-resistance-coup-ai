@@ -254,7 +254,8 @@ class Player(object):
                 infs = [inf for inf, score in infs[0:2]]
                 return self.actions_for_influences(infs)
             elif likelihood == 'judge':
-                infs = [i for i,v in self.judge_player.items() if v > 0]
+                infs = sorted(self.judge_player.items(), reverse=True, key=lambda i: i[1])
+                infs = [i for i,v in infs if v > 0][0:2]
                 return self.actions_for_influences(infs)
         elif type_of_action == 'blocks':
             if likelihood == 'probable':
@@ -266,7 +267,8 @@ class Player(object):
                 infs = [inf for inf, score in infs[0:2]]
                 return self.blocks_for_influences(infs)
             elif likelihood == 'judge':
-                infs = [i for i,v in self.judge_player.items() if v > 0]
+                infs = sorted(self.judge_player.items(), reverse=True, key=lambda i: i[1])
+                infs = [i for i,v in infs if v > 0][0:2]
                 return self.blocks_for_influences(infs)
 
 class AI_Persona(Player):        
