@@ -11,12 +11,17 @@ __version__ = "0.0.1"
 __email__ = "wdchromium@gmail.com"
 
 from itertools import cycle
-from collections import Counter
+from collections import Counter, defaultdict
 from coup import *
 from heuristics import PERSONALITIES
 
 class simulations(object):
     PLAYERS = 5
+    ACTIONS = defaultdict(list)
+    BLOCKS = defaultdict(list)
+    DOUBTS = defaultdict(dict)
+    WINS = defaultdict(int)
+    
     def sim_calculated_actions_calculated_targets_more_calculated_blocks_random_doubts(self):
         """
         AI PROFILE:
@@ -38,24 +43,28 @@ class simulations(object):
             if not acting_player.influence_remaining:
                 continue
             elif len(testgame) == 1:
+                self.WINS[acting_player.saved_personality] += 1
                 return acting_player.alpha
-
+                
             while 1:
                 try:
                     action = acting_player.random_naive_priority()
-                    #print '{0} performing {1} (coins={2})'.format(acting_player, action, acting_player.coins)
+                    #print '{0} performing {1} (coins={2})'.format(acting_player.status, action, acting_player.coins)
                     
                     if action == 'income':
                         acting_player.perform(action)
+                        self.ACTIONS[acting_player.alpha].append(action)
                         break
                     if action == 'tax':
                         acting_player.perform(action)
+                        self.ACTIONS[acting_player.alpha].append(action)
                         break
                     elif action == 'coup':
                         random_player = acting_player.select_opponent(testgame.players)
                         position, random_target = random_player.random_remaining_influence
                         acting_player.perform(action, random_target)
                         random_player.remove_suspicion(str(random_target))
+                        self.ACTIONS[acting_player.alpha].append(action)
                         break
                     elif action == 'foreign_aid':
                         for savior in testgame.filter_out_players([acting_player]):
@@ -65,6 +74,7 @@ class simulations(object):
                                 raise BlockedAction(action, acting_player, None, savior)
                         else:
                             acting_player.perform(action)
+                            self.ACTIONS[acting_player.alpha].append(action)
                             break
                     elif action == 'steal':
                         random_player = acting_player.select_opponent(testgame.players)
@@ -84,6 +94,7 @@ class simulations(object):
                                     raise QuestionInfluence(action, acting_player, doubter)
                         
                             acting_player.perform(action, random_player)
+                            self.ACTIONS[acting_player.alpha].append(action)
                             for spectators in testgame.filter_out_players([acting_player, savior]):
                                 spectators.not_acting_like['spectator'].extend([action])
                             break
@@ -108,6 +119,7 @@ class simulations(object):
                             position, random_target = random_player.random_remaining_influence
                             acting_player.perform(action, random_target)
                             random_player.remove_suspicion(str(random_target))
+                            self.ACTIONS[acting_player.alpha].append(action)
                             for spectators in testgame.filter_out_players([acting_player, random_player]):
                                 spectators.not_acting_like['spectator'].extend([action])
                             break
@@ -117,16 +129,19 @@ class simulations(object):
                                 if action in acting_player.valid_actions:
                                     acting_player.perform(action, testgame.court_deck)
                                 raise QuestionInfluence(action, acting_player, doubter)
+                        self.ACTIONS[acting_player.alpha].append(action)
                         break
                     elif action == 'coup':
                         random_player = acting_player.select_opponent(testgame.players)
                         position, random_target = random_player.random_remaining_influence
                         acting_player.perform(action, random_target)
                         random_player.remove_suspicion(str(random_target))
+                        self.ACTIONS[acting_player.alpha].append(action)
                         break
                 except (IllegalAction, IllegalTarget):
                     pass
                 except BlockedAction:
+                    self.BLOCKS[acting_player.alpha].append(action)
                     break
                 except RethinkAction:
                     pass
@@ -139,14 +154,32 @@ class simulations(object):
                         else:
                             acting_player.remove_suspicion(str(acting_player.right))
                             acting_player.restore('right', testgame.court_deck)
+                    self.DOUBTS[acting_player.alpha] = action
                     break
+
+                    
                     
                 
         
 if __name__ == "__main__":
+    from pprint import pprint
+    
     c = Counter()
-    for _ in range(1000):
+    for _ in range(10):
         c.update([simulations().sim_calculated_actions_calculated_targets_more_calculated_blocks_random_doubts(),])
         
     for i,v in c.most_common():
         print('{0}{1}'.format(i.ljust(25), v))
+    
+    print 'ACTIONS'
+    for inf in simulations.ACTIONS:
+        print '  {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.ACTIONS[inf]).most_common()))
+        
+    print 'BLOCKS'
+    for inf in simulations.BLOCKS:
+        print '  {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.BLOCKS[inf]).most_common()))
+    
+    print 'DOUBTS'
+    for inf in simulations.DOUBTS:
+        print '  {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.DOUBTS[inf]).most_common()))
+   

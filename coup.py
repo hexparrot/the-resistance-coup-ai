@@ -287,6 +287,7 @@ class AI_Persona(Player):
     def personalize(self, personality):
         from copy import deepcopy
         self.rules = deepcopy(PERSONALITIES[personality])
+        self.saved_personality = personality
         
     def select_opponent(self, all_players):
         from random import choice
