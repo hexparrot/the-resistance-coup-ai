@@ -490,7 +490,19 @@ class TestCoup(unittest.TestCase):
         self.assertEqual(z.coins, 5)
         BlockedAction('assassinate', z, testgame.players[2], None)
         self.assertEqual(z.coins, 2)
+     
+    def test_actions_for_given_influences(self):
+        self.assertEqual(Player.actions_for_influence('Assassin'), ['assassinate'])
+        self.assertEqual(Player.actions_for_influence('Contessa'), [])
+        self.assertEqual(Player.actions_for_influence('Duke'), ['tax'])
+        self.assertEqual(Player.actions_for_influence('Ambassador'), ['exchange'])
+        self.assertEqual(Player.actions_for_influence('Captain'), ['steal'])
         
+        self.assertEqual(Player.actions_for_influence(['Assassin', 'Duke']), ['assassinate', 'tax'])
+        self.assertEqual(Player.actions_for_influence(['Contessa', 'Assassin']), ['assassinate'])
+        self.assertEqual(Player.actions_for_influence(['Duke', 'Captain']), ['steal', 'tax'])
+        self.assertEqual(Player.actions_for_influence(['Ambassador', 'Ambassador']), ['exchange'])
+        self.assertEqual(Player.actions_for_influence(['Captain', 'Assassin']), ['assassinate', 'steal'])
 
     def test_deduce(self):
         testgame = Play_Coup(5)

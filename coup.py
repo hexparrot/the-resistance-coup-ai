@@ -271,6 +271,18 @@ class Player(object):
         influences = ['Ambassador', 'Assassin', 'Captain', 'Contessa', 'Duke']
         return tuple(1 if inf in self else 0 for inf in influences)
 
+    @staticmethod
+    def actions_for_influence(influences):
+        actions = []
+        for inf in Influence.__subclasses__():
+            if type(influences) is str:
+                if inf.__name__ == influences:
+                    actions.extend(inf.ACTIONS)
+            else:
+                if inf.__name__ in influences:
+                    actions.extend(inf.ACTIONS)
+        return sorted(actions)
+
 class AI_Persona(Player):        
     def __init__(self, personality='passive'):
         Player.__init__(self)
