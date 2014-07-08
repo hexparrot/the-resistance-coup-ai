@@ -161,7 +161,7 @@ class simulations(object):
                     action = acting_player.random_naive_priority()
                     if action == 'steal':
                         random_player = acting_player.select_opponent(testgame.players)
-                        if action in random_player.probable_blocks:
+                        if action in random_player.calculate('probable', 'blocks'):
                             raise RethinkAction(action, acting_player, random_player)
                         if action in random_player.valid_blocks:
                             raise BlockedAction(action, acting_player, random_player, None)
@@ -223,7 +223,7 @@ class simulations(object):
                     action = acting_player.random_naive_priority()
                     if action == 'steal':
                         random_player = acting_player.select_opponent(testgame.players)
-                        if action in random_player.probable_blocks:
+                        if action in random_player.calculate('probable', 'blocks'):
                             raise RethinkAction(action, acting_player, random_player)
                         if action in random_player.valid_blocks:
                             raise BlockedAction(action, acting_player, random_player, None)
@@ -234,7 +234,7 @@ class simulations(object):
                         acting_player.perform(action, random_player)
                     elif action == 'assassinate':
                         random_player = acting_player.select_opponent(testgame.players)
-                        if action in random_player.probable_blocks:
+                        if action in random_player.calculate('probable', 'blocks'):
                             raise RethinkAction(action, acting_player, random_player)
                         if action in random_player.valid_blocks:
                             raise BlockedAction(action, acting_player, random_player, None)
@@ -296,7 +296,7 @@ class simulations(object):
                     action = acting_player.random_naive_priority()
                     if action == 'steal':
                         random_player = acting_player.select_opponent(testgame.players)
-                        if (action in random_player.probable_blocks and random() > .24):
+                        if (action in random_player.calculate('probable', 'blocks') and random() > .24):
                             raise RethinkAction(action, acting_player, random_player)
                         if action in random_player.valid_blocks:
                             raise BlockedAction(action, acting_player, random_player, None)
@@ -307,7 +307,7 @@ class simulations(object):
                         acting_player.perform(action, random_player)
                     elif action == 'assassinate':
                         random_player = acting_player.select_opponent(testgame.players)
-                        if (action in random_player.probable_blocks and random() > .24):
+                        if (action in random_player.calculate('probable', 'blocks') and random() > .24):
                             raise RethinkAction(action, acting_player, random_player)
                         if action in random_player.valid_blocks:
                             raise BlockedAction(action, acting_player, random_player, None)
@@ -371,30 +371,31 @@ class simulations(object):
                     action = acting_player.random_naive_priority()
                     random_player = acting_player.select_opponent(testgame.players)
                     
-                    if action not in ['coup', 'assassinate']:
-                        try:
-                            relevant_inf = [a for a in Influence.__subclasses__() if action in a.ACTIONS][0].__name__
-                            if acting_player.judge_player[relevant_inf] < -10:
-                                doubter = choice(list(testgame.filter_out_players([acting_player])))
-                                raise QuestionInfluence(action, acting_player, doubter)
-                        except (IndexError, KeyError):
-                            #indexerror if action not influence-specific
-                            #keyerror if inf doesnt exist in acting_player.judge_player
-                            pass
-                        except QuestionInfluence as e:
-                            if e.performer_is_honest:
-                                performer_will_restore = True
-                                if action == 'steal':
-                                    acting_player.perform(action, random_player)
+                    if action not in ['coup', 'assassinate', 'income'] and \
+                        action not in acting_player.calculate('judge', 'actions') and \
+                        action not in Play_Coup.ACTIONS['free']:
+                        for doubter in testgame.filter_out_players([acting_player]):
+                            try:
+                                if doubter.will_callout(action, acting_player):
+                                    raise QuestionInfluence(action, acting_player, doubter)
+                            except (IndexError, KeyError):
+                                #indexerror if action not influence-specific
+                                #keyerror if inf doesnt exist in acting_player.judge_player
+                                pass
+                            except QuestionInfluence as e:
+                                if e.performer_is_honest:
+                                    performer_will_restore = True
+                                    if action == 'steal':
+                                        acting_player.perform(action, random_player)
+                                        raise EndTurn
+                                    if not random_player.influence_remaining and \
+                                        random_player is doubter:
+                                        raise EndTurn
+                                else:
                                     raise EndTurn
-                                if not random_player.influence_remaining and \
-                                    random_player is doubter:
-                                    raise EndTurn
-                            else:
-                                raise EndTurn
 
                     if action == 'steal':
-                        if (action in random_player.probable_blocks and random() > .24):
+                        if (action in random_player.calculate('probable', 'blocks') and random() > .24):
                             raise RethinkAction(action, acting_player, random_player)
                         if action in random_player.valid_blocks:
                             raise BlockedAction(action, acting_player, random_player, None)
@@ -406,7 +407,7 @@ class simulations(object):
                                 raise BlockedAction(action, acting_player, random_player, savior)
                         acting_player.perform(action, random_player)
                     elif action == 'assassinate':
-                        if (action in random_player.probable_blocks and random() > .24):
+                        if (action in random_player.calculate('probable', 'blocks') and random() > .24):
                             raise RethinkAction(action, acting_player, random_player)
                         if action in random_player.valid_blocks:
                             raise BlockedAction(action, acting_player, random_player, None)
@@ -437,6 +438,14 @@ class simulations(object):
                 except (IllegalTarget, IllegalAction):
                     pass
                 except EndTurn:
+                    if performer_will_restore:
+                        #will need refinement for captain/ambassador on blocked steal
+                        if action in acting_player.left.ACTIONS:
+                            acting_player.remove_suspicion(str(acting_player.left))
+                            acting_player.restore('left', testgame.court_deck)
+                        else:
+                            acting_player.remove_suspicion(str(acting_player.right))
+                            acting_player.restore('right', testgame.court_deck)
                     break
                 except BlockedAction:
                     break

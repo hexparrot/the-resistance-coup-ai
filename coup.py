@@ -23,8 +23,9 @@ class Play_Coup(object):
         }
     
     def __init__(self, players):
-        from random import shuffle
+        from random import shuffle, choice
         
+        #self.players = [AI_Persona(choice(['obnoxious','cautious','passive'])) for i in range(players)]
         self.players = [AI_Persona() for i in range(players)]
         self.court_deck = [Contessa() for _ in range(3)] + \
                           [Ambassador() for _ in range(3)] + \
@@ -228,10 +229,6 @@ class Player(object):
         influences = ['Ambassador', 'Assassin', 'Captain', 'Contessa', 'Duke']
         return tuple(1 if inf in self else 0 for inf in influences)
         
-    @staticmethod
-    def add_free_actions(actions):
-        return sorted(actions + Play_Coup.ACTIONS['free'])
-
     @classmethod
     def actions_for_influences(cls, influences):
         actions = []

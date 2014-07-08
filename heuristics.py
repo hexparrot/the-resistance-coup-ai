@@ -1,15 +1,17 @@
+from random import random
+
 PERSONALITIES = {
     'obnoxious': {
         'honest_intervention': {
             'foreign_aid': {
-                'performer': lambda p: True
+                'performer': lambda p: random() > .5
                 },
             'assassinate': {
-                'performer': lambda p: True,
+                'performer': lambda p: random() > .5,
                 'victim': lambda v: v.coins < 7
                 },
             'steal': {
-                'performer': lambda p: True
+                'performer': lambda p: random() > .5
                 }
             },
         'calculated_intervention': {},
@@ -22,16 +24,21 @@ PERSONALITIES = {
     'cautious': {
         'honest_intervention': {
             'foreign_aid': {
-                'performer': lambda p: True
+                'performer': lambda p: random() > .8
                 },
             'assassinate': {
-                'performer': False
+                'performer': lambda p: False
                 },
             'steal': {
-                'performer': lambda p: True
+                'performer': lambda p: random() > .8
                 }
             },
-        'calculated_intervention': {}
+        'calculated_intervention': {},
+        'callout': {
+            'threshold': -10,
+            'min_actions': 3,
+            'min_inactions': 3
+            }
         },
     'passive': {
         'honest_intervention': {},
