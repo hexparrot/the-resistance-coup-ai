@@ -149,22 +149,6 @@ class Player(object):
     @property
     def judge_player(self):
         return {k:self.probable_influences.get(k, 0) - self.improbable_influences.get(k, 0) for k in set(self.probable_influences).union(set(self.improbable_influences))}
-
-    @property
-    def judge_actions(self):
-        actions = set()
-        for inf, score in sorted(self.judge_player.items(), reverse=True, key=lambda t: t[1])[0:2]:
-            if score > 0:
-                actions.update([a for a in Influence.__subclasses__() if a.__name__ == inf][0].ACTIONS)
-        return actions
-    
-    @property
-    def judge_blocks(self):
-        actions = set()
-        for inf, score in sorted(self.judge_player.items(), reverse=True, key=lambda t: t[1])[0:2]:
-            if score > 0:
-                actions.update([a for a in Influence.__subclasses__() if a.__name__ == inf][0].BLOCKS)
-        return actions
     
     @property
     def probable_influences(self):
@@ -186,20 +170,6 @@ class Player(object):
             result.update(spectator)
 
         return dict(result.most_common())
-        
-    @property
-    def probable_actions(self):
-        actions = set()
-        for inf, freq in sorted(self.probable_influences.items(), reverse=True, key=lambda t: t[1])[0:2]:
-            actions.update([a for a in Influence.__subclasses__() if a.__name__ == inf][0].ACTIONS)
-        return actions
-        
-    @property
-    def probable_blocks(self):
-        actions = set()
-        for inf, freq in sorted(self.probable_influences.items(), reverse=True, key=lambda t: t[1])[0:2]:
-            actions.update([a for a in Influence.__subclasses__() if a.__name__ == inf][0].BLOCKS)
-        return actions
 
     @property
     def improbable_influences(self):
@@ -221,20 +191,6 @@ class Player(object):
             result.update(spectator)
         
         return dict(result.most_common())
-
-    @property
-    def improbable_actions(self):
-        actions = set()
-        for inf, freq in sorted(self.improbable_influences.items(), reverse=True, key=lambda t: t[1])[0:2]:
-            actions.update([a for a in Influence.__subclasses__() if a.__name__ == inf][0].ACTIONS)
-        return actions
-        
-    @property
-    def improbable_blocks(self):
-        blocks = set()
-        for inf, freq in sorted(self.improbable_influences.items(), reverse=True, key=lambda t: t[1])[0:2]:
-            blocks.update([a for a in Influence.__subclasses__() if a.__name__ == inf][0].BLOCKS)
-        return blocks
 
     @property
     def valid_actions(self):
@@ -294,7 +250,7 @@ class Player(object):
                 infs = [inf for inf, score in infs[0:2]]
                 return self.actions_for_influences(infs)
             elif likelihood == 'improbable':
-                infs = sorted(self.improbable_influences.items(), key=lambda i: i[1])
+                infs = sorted(self.improbable_influences.items(), reverse=True, key=lambda i: i[1])
                 infs = [inf for inf, score in infs[0:2]]
                 return self.actions_for_influences(infs)
             elif likelihood == 'judge':
@@ -306,8 +262,7 @@ class Player(object):
                 infs = [inf for inf, score in infs[0:2]]
                 return self.blocks_for_influences(infs)
             elif likelihood == 'improbable':
-                print self.improbable_influences
-                infs = sorted(self.improbable_influences.items(), key=lambda i: i[1])
+                infs = sorted(self.improbable_influences.items(), reverse=True, key=lambda i: i[1])
                 infs = [inf for inf, score in infs[0:2]]
                 return self.blocks_for_influences(infs)
             elif likelihood == 'judge':

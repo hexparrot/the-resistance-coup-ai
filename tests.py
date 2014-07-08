@@ -769,12 +769,12 @@ class TestCoup(unittest.TestCase):
         p = testgame.players[0]
         
         p.public_information['perform'].extend(['steal', 'steal', 'steal'])
-        self.assertIn('steal', p.judge_actions)
+        self.assertIn('steal', p.calculate('judge', 'actions'))
         p.not_acting_like['victim'].extend(['steal'])
         p.public_information['perform'].extend(['assassinate'])
         
-        self.assertIn('assassinate', p.judge_actions)
-        self.assertNotIn('steal', p.judge_actions)
+        self.assertIn('assassinate', p.calculate('judge', 'actions')) 
+        self.assertNotIn('steal', p.calculate('judge', 'actions'))
     
     def test_judge_blocks(self):
         testgame = Play_Coup(5)
@@ -782,7 +782,7 @@ class TestCoup(unittest.TestCase):
         p = testgame.players[0]
         
         p.public_information['perform'].extend(['steal', 'steal', 'steal']) 
-        self.assertIn('steal', p.judge_blocks)        
+        self.assertIn('steal', p.calculate('judge', 'blocks'))        
         
     def test_best_probable_actions(self):
         testgame = Play_Coup(5)
@@ -791,33 +791,33 @@ class TestCoup(unittest.TestCase):
         p.left = Duke()
         p.right = Captain()
         
-        self.assertNotIn('assassinate', p.probable_actions)
-        self.assertNotIn('tax', p.probable_actions)
-        self.assertNotIn('steal', p.probable_actions)
+        self.assertNotIn('assassinate', p.calculate('probable', 'actions'))
+        self.assertNotIn('tax', p.calculate('probable', 'actions'))
+        self.assertNotIn('steal', p.calculate('probable', 'actions'))
         
         p.public_information['perform'].extend(['steal', 'steal', 'steal'])
         
-        self.assertNotIn('assassinate', p.probable_actions)
-        self.assertNotIn('tax', p.probable_actions)
-        self.assertIn('steal', p.probable_actions)
+        self.assertNotIn('assassinate', p.calculate('probable', 'actions'))
+        self.assertNotIn('tax', p.calculate('probable', 'actions'))
+        self.assertIn('steal', p.calculate('probable', 'actions'))
         
         p.public_information['perform'].extend(['tax','tax','tax'])
         
-        self.assertNotIn('assassinate', p.probable_actions)
-        self.assertIn('tax', p.probable_actions)
-        self.assertIn('steal', p.probable_actions)
+        self.assertNotIn('assassinate', p.calculate('probable', 'actions'))
+        self.assertIn('tax', p.calculate('probable', 'actions'))
+        self.assertIn('steal', p.calculate('probable', 'actions'))
         
         p.public_information['perform'].extend(['assassinate'])
         
-        self.assertNotIn('assassinate', p.probable_actions)
-        self.assertIn('tax', p.probable_actions)
-        self.assertIn('steal', p.probable_actions)
+        self.assertNotIn('assassinate', p.calculate('probable', 'actions'))
+        self.assertIn('tax', p.calculate('probable', 'actions'))
+        self.assertIn('steal', p.calculate('probable', 'actions'))
         
         p.public_information['perform'].extend(['tax', 'assassinate','assassinate','assassinate'])
 
-        self.assertIn('assassinate', p.probable_actions)
-        self.assertIn('tax', p.probable_actions)
-        self.assertNotIn('steal', p.probable_actions)
+        self.assertIn('assassinate', p.calculate('probable', 'actions'))
+        self.assertIn('tax', p.calculate('probable', 'actions'))
+        self.assertNotIn('steal', p.calculate('probable', 'actions'))
     
     def test_calculate(self):
         p = AI_Persona()
@@ -879,10 +879,10 @@ class TestCoup(unittest.TestCase):
         p = testgame.players[0]
         
         p.public_information['perform'].extend(['tax'])
-        self.assertIn('foreign_aid', p.blocks_for_influences(p.probable_influences))
+        self.assertIn('foreign_aid', p.calculate('probable', 'blocks'))
         
         p.perform('steal', testgame.players[1])
-        self.assertIn('steal', p.blocks_for_influences(p.probable_influences))
+        self.assertIn('steal', p.calculate('probable', 'blocks'))
         
     def test_improbable_blocks(self):
         testgame = Play_Coup(5)
@@ -890,21 +890,21 @@ class TestCoup(unittest.TestCase):
         p = testgame.players[0]
         
         p.not_acting_like['spectator'].extend(['steal'])
-        self.assertIn('steal', p.improbable_blocks)
-        self.assertNotIn('assassinate', p.improbable_blocks)
-        self.assertNotIn('foreign_aid', p.improbable_blocks)
+        self.assertIn('steal', p.calculate('improbable', 'blocks')) 
+        self.assertNotIn('assassinate', p.calculate('improbable', 'blocks'))
+        self.assertNotIn('foreign_aid', p.calculate('improbable', 'blocks'))
         
         p.perform('income')
-        self.assertIn('steal', p.improbable_blocks)
-        self.assertNotIn('assassinate', p.improbable_blocks)
-        self.assertIn('foreign_aid', p.improbable_blocks)
+        self.assertIn('steal', p.calculate('improbable', 'blocks'))
+        self.assertNotIn('assassinate', p.calculate('improbable', 'blocks'))
+        self.assertIn('foreign_aid', p.calculate('improbable', 'blocks'))
         
         p.not_acting_like['spectator'].extend(['assassinate'])
         p.not_acting_like['spectator'].extend(['assassinate'])
         
-        self.assertNotIn('steal', p.improbable_blocks)
-        self.assertIn('assassinate', p.improbable_blocks)
-        self.assertIn('foreign_aid', p.improbable_blocks)   
+        self.assertNotIn('steal', p.calculate('improbable', 'blocks'))
+        self.assertIn('assassinate', p.calculate('improbable', 'blocks'))
+        self.assertIn('foreign_aid', p.calculate('improbable', 'blocks'))   
 
     def test_improbable_actions(self):
         testgame = Play_Coup(5)
@@ -912,7 +912,7 @@ class TestCoup(unittest.TestCase):
         p = testgame.players[0]
         
         p.not_acting_like['spectator'].extend(['steal'])
-        self.assertIn('steal', p.improbable_actions)
+        self.assertIn('steal', p.calculate('improbable', 'actions'))
 
     def test_ai_profile_will_intervene_steal_victim(self):
         p = AI_Persona() #not captain
