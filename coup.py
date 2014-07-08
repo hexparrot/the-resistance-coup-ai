@@ -275,12 +275,8 @@ class Player(object):
     def actions_for_influence(influences):
         actions = []
         for inf in Influence.__subclasses__():
-            if type(influences) is str:
-                if inf.__name__ == influences:
-                    actions.extend(inf.ACTIONS)
-            else:
-                if inf.__name__ in influences:
-                    actions.extend(inf.ACTIONS)
+            if inf.__name__ in influences:
+                actions.extend(inf.ACTIONS)
         return sorted(actions)
 
 class AI_Persona(Player):        

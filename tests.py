@@ -503,6 +503,25 @@ class TestCoup(unittest.TestCase):
         self.assertEqual(Player.actions_for_influence(['Duke', 'Captain']), ['steal', 'tax'])
         self.assertEqual(Player.actions_for_influence(['Ambassador', 'Ambassador']), ['exchange'])
         self.assertEqual(Player.actions_for_influence(['Captain', 'Assassin']), ['assassinate', 'steal'])
+        
+        self.assertEqual(Player.actions_for_influence('Assassin Duke'), ['assassinate', 'tax'])
+        self.assertEqual(Player.actions_for_influence('Assassin Contessa'), ['assassinate'])
+        self.assertEqual(Player.actions_for_influence('Duke Captain'), ['steal', 'tax'])
+        self.assertEqual(Player.actions_for_influence('Ambassador Ambassador'), ['exchange'])
+        self.assertEqual(Player.actions_for_influence('Captain Assassin'), ['assassinate', 'steal'])
+
+    def test_actions_for_probable_influences(self):
+        p = AI_Persona()
+        
+        p.left = Assassin()
+        p.right = Duke()
+        
+        self.assertEqual(Player.actions_for_influence(p), ['assassinate', 'tax'])
+        
+        p.left = Contessa()
+        p.right = Contessa()
+        
+        self.assertEqual(Player.actions_for_influence(p), [])
 
     def test_deduce(self):
         testgame = Play_Coup(5)
