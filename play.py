@@ -134,13 +134,6 @@ class simulations(object):
                                 raise QuestionInfluence(action, acting_player, doubter)
                         self.ACTIONS[acting_player.alpha].append(action)
                         break
-                    elif action == 'coup':
-                        random_player = acting_player.select_opponent(testgame.players)
-                        position, random_target = random_player.random_remaining_influence
-                        acting_player.perform(action, random_target)
-                        random_player.remove_suspicion(str(random_target))
-                        self.ACTIONS[acting_player.alpha].append(action)
-                        break
                 except (IllegalAction, IllegalTarget):
                     pass
                 except BlockedAction as e:
@@ -154,11 +147,9 @@ class simulations(object):
                 except QuestionInfluence as e:
                     if e.performer_is_honest:
                         #will need refinement for captain/ambassador on blocked steal
-                        if action in acting_player.left.ACTIONS:
-                            acting_player.remove_suspicion(str(acting_player.left))
+                        if action in acting_player.left.ACTIONS and not acting_player.left.revealed:
                             acting_player.restore('left', testgame.court_deck)
-                        else:
-                            acting_player.remove_suspicion(str(acting_player.right))
+                        elif action in acting_player.right.ACTIONS and not acting_player.right.revealed:
                             acting_player.restore('right', testgame.court_deck)
                     self.DOUBTS_A[e.doubter.saved_personality].append(action)
                     self.DOUBTS_W[e.doubter.saved_personality].append(e.performer_is_honest)

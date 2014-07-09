@@ -118,6 +118,7 @@ class Player(object):
 
         card = getattr(self, position)
         card.revealed = False
+        self.remove_suspicion(card)
         
         court_deck.append(card)
 
