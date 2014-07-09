@@ -349,19 +349,22 @@ class TestCoup(unittest.TestCase):
         p = testgame.players[0]
         pp = testgame.players[1]
         
-        self.assertEqual(testgame.filter_out_players([p,pp]), {
-            testgame.players[2],    
-            testgame.players[3],
-            testgame.players[4],        
-            })
+        filtered = testgame.filter_out_players([p,pp])
+        self.assertNotIn(p, filtered)
+        self.assertNotIn(pp, filtered)
+        self.assertIn(testgame.players[2], filtered)
+        self.assertIn(testgame.players[3], filtered)
+        self.assertIn(testgame.players[4], filtered)
             
         testgame.players[3].left.reveal()
         testgame.players[3].right.reveal()
-            
-        self.assertEqual(testgame.filter_out_players([testgame.players[0], testgame.players[1]]), {
-            testgame.players[2],    
-            testgame.players[4],        
-            })
+        
+        filtered = testgame.filter_out_players([testgame.players[0], testgame.players[1]])
+        self.assertNotIn(p, filtered)
+        self.assertNotIn(pp, filtered)
+        self.assertIn(testgame.players[2], filtered)
+        self.assertNotIn(testgame.players[3], filtered)
+        self.assertIn(testgame.players[4], filtered)
             
     def test_len_remaining_players(self):
         testgame = Play_Coup(3)
