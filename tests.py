@@ -982,12 +982,15 @@ class TestCoup(unittest.TestCase):
 
         p.perform('tax')
         self.assertFalse(pp.will_callout('tax', p))
+
         p.perform('tax')
         self.assertFalse(pp.will_callout('tax', p))
         
-        for _ in range(5):
+        for _ in range(6):
             p.didnt_block_as['spectator'].extend(['foreign_aid'])
-
+        self.assertFalse(pp.will_callout('tax', p))
+        
+        p.perform('tax')
         self.assertTrue(pp.will_callout('tax', p))
         
         pp.rules['callout'] = {
@@ -1005,6 +1008,14 @@ class TestCoup(unittest.TestCase):
             }
         
         self.assertTrue(pp.will_callout('tax', p))
+        
+        pp.rules['callout'] = {
+            'threshold': -3,
+            'min_actions': 12,
+            'min_inactions': 12
+            }
+        
+        self.assertFalse(pp.will_callout('tax', p))
 
     def test_naive_priorities(self):
         p = AI_Persona()

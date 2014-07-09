@@ -11,18 +11,19 @@ __version__ = "0.0.1"
 __email__ = "wdchromium@gmail.com"
 
 from itertools import cycle
-from collections import Counter, defaultdict
+from collections import Counter, defaultdict, OrderedDict
 from coup import *
 from heuristics import PERSONALITIES
 
 class simulations(object):
     PLAYERS = 5
     ACTIONS = defaultdict(list)
-    BLOCKS_S = defaultdict(list)
-    BLOCKS_V = defaultdict(list)
-    DOUBTS_P = defaultdict(list)
-    DOUBTS_A = defaultdict(list)
-    DOUBTS_W = defaultdict(list)
+    BLOCKS_SAVIOR = defaultdict(list)
+    BLOCKS_VICTIM = defaultdict(list)
+    DOUBTS_ACTIONS = defaultdict(list)
+    DOUBTS_WRONG = defaultdict(list)
+    DOUBTS_THRESHOLD_RIGHT = defaultdict(list)
+    DOUBTS_THRESHOLD_WRONG = defaultdict(list)
     WINS = defaultdict(int)
     ILL_ACT = defaultdict(list)
     ILL_TAR = defaultdict(list)
@@ -144,9 +145,9 @@ class simulations(object):
                     self.ILL_TAR[acting_player.alpha].append(e.message)
                 except BlockedAction as e:
                     if e.spectator:
-                        self.BLOCKS_S[e.spectator.saved_personality].append(action)
+                        self.BLOCKS_SAVIOR[e.spectator.saved_personality].append(action)
                     else:
-                        self.BLOCKS_V[e.victim.saved_personality].append(action)
+                        self.BLOCKS_VICTIM[e.victim.saved_personality].append(action)
                     break
                 except RethinkAction as e:
                     if action in e.victim.valid_blocks:
@@ -160,8 +161,13 @@ class simulations(object):
                             acting_player.restore('left', testgame.court_deck)
                         elif action in acting_player.right.ACTIONS and not acting_player.right.revealed:
                             acting_player.restore('right', testgame.court_deck)
-                    self.DOUBTS_A[e.doubter.saved_personality].append(action)
-                    self.DOUBTS_W[e.doubter.saved_personality].append(e.performer_is_honest)
+                    self.DOUBTS_ACTIONS[e.doubter.saved_personality].append(action)
+                    self.DOUBTS_WRONG[e.doubter.saved_personality].append(e.performer_is_honest)
+                    
+                    if e.performer_is_honest:
+                        self.DOUBTS_THRESHOLD_WRONG[e.doubter.saved_personality].append(e.performer.judge_player[[a.__name__ for a in Influence.__subclasses__() if action in a.ACTIONS][0]])
+                    else:
+                        self.DOUBTS_THRESHOLD_RIGHT[e.doubter.saved_personality].append(e.performer.judge_player[[a.__name__ for a in Influence.__subclasses__() if action in a.ACTIONS][0]])
                     break
 
                     
@@ -170,7 +176,7 @@ class simulations(object):
         
 if __name__ == "__main__":
     c = Counter()
-    for _ in range(1000):
+    for _ in range(100):
         c.update([simulations().sim_calculated_actions_calculated_targets_more_calculated_blocks_random_doubts(),])
         
     for i,v in c.most_common():
@@ -183,19 +189,27 @@ if __name__ == "__main__":
         
     print 'BLOCKS'
     print '  Spectator'
-    for inf in simulations.BLOCKS_S:
-        print '    {0}{1}'.format(inf.ljust(23), dict(Counter(simulations.BLOCKS_S[inf]).most_common()))
+    for inf in simulations.BLOCKS_SAVIOR:
+        print '    {0}{1}'.format(inf.ljust(23), dict(Counter(simulations.BLOCKS_SAVIOR[inf]).most_common()))
     
     print '  Victim'      
-    for inf in simulations.BLOCKS_V:
-      
-        print '    {0}{1}'.format(inf.ljust(23), dict(Counter(simulations.BLOCKS_V[inf]).most_common()))
+    for inf in simulations.BLOCKS_VICTIM:
+        print '    {0}{1}'.format(inf.ljust(23), dict(Counter(simulations.BLOCKS_VICTIM[inf]).most_common()))
     
     print 'CALLOUTS'
-    for inf in simulations.DOUBTS_A:
-        print '  {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.DOUBTS_A[inf]).most_common()))
-        print '  {0}{1}'.format(''.ljust(25), dict(Counter(simulations.DOUBTS_W[inf]).most_common()))
+    print '  Actions'
+    for inf in simulations.DOUBTS_ACTIONS:
+        print '    {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.DOUBTS_ACTIONS[inf]).most_common()))
+        print '    {0}{1}'.format(''.ljust(25), dict(Counter(simulations.DOUBTS_WRONG[inf]).most_common()))
     
+    print '  DOUBTER WRONG- Threshold:Frequency'
+    for personality in simulations.DOUBTS_THRESHOLD_WRONG:
+        print '    {0}{1}'.format(personality.ljust(25), ''.join('{0}:{1}  '.format(str(k).rjust(3),str(v).ljust(3)) for k,v in sorted(Counter(simulations.DOUBTS_THRESHOLD_WRONG[personality]).most_common())))
+
+    print '  DOUBTER RIGHT- Threshold:Frequency'
+    for personality in simulations.DOUBTS_THRESHOLD_RIGHT:
+        print '    {0}{1}'.format(personality.ljust(25), ''.join('{0}:{1}  '.format(str(k).rjust(3),str(v).ljust(3)) for k,v in sorted(Counter(simulations.DOUBTS_THRESHOLD_RIGHT[personality]).most_common())))
+
     print 'EXCEPTIONS'
     print '  IllegalAction'
     for inf in simulations.ILL_ACT:
@@ -210,3 +224,4 @@ if __name__ == "__main__":
     print '    Regret'
     for inf in simulations.RET_ACT_REGRET:
         print '      {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.RET_ACT_REGRET[inf]).most_common()))
+    
