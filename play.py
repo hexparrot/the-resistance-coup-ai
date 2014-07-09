@@ -18,8 +18,11 @@ from heuristics import PERSONALITIES
 class simulations(object):
     PLAYERS = 5
     ACTIONS = defaultdict(list)
-    BLOCKS = defaultdict(list)
-    DOUBTS = defaultdict(dict)
+    BLOCKS_P = defaultdict(list)
+    BLOCKS_A = defaultdict(list)
+    DOUBTS_P = defaultdict(list)
+    DOUBTS_A = defaultdict(list)
+    DOUBTS_W = defaultdict(list)
     WINS = defaultdict(int)
     
     def sim_calculated_actions_calculated_targets_more_calculated_blocks_random_doubts(self):
@@ -140,8 +143,12 @@ class simulations(object):
                         break
                 except (IllegalAction, IllegalTarget):
                     pass
-                except BlockedAction:
-                    self.BLOCKS[acting_player.alpha].append(action)
+                except BlockedAction as e:
+                    if e.spectator:
+                        self.BLOCKS_P[acting_player.alpha].append(e.spectator.saved_personality)
+                    else:
+                        self.BLOCKS_P[acting_player.alpha].append(e.victim.saved_personality)
+                    self.BLOCKS_A[acting_player.alpha].append(action)
                     break
                 except RethinkAction:
                     pass
@@ -154,7 +161,9 @@ class simulations(object):
                         else:
                             acting_player.remove_suspicion(str(acting_player.right))
                             acting_player.restore('right', testgame.court_deck)
-                    self.DOUBTS[acting_player.alpha] = action
+                    self.DOUBTS_P[acting_player.alpha].append(e.doubter.saved_personality)
+                    self.DOUBTS_A[acting_player.alpha].append(action)
+                    self.DOUBTS_W[acting_player.alpha].append(e.performer_is_honest)
                     break
 
                     
@@ -162,24 +171,26 @@ class simulations(object):
                 
         
 if __name__ == "__main__":
-    from pprint import pprint
-    
     c = Counter()
-    for _ in range(10):
+    for _ in range(1000):
         c.update([simulations().sim_calculated_actions_calculated_targets_more_calculated_blocks_random_doubts(),])
         
     for i,v in c.most_common():
         print('{0}{1}'.format(i.ljust(25), v))
     
+    print
     print 'ACTIONS'
     for inf in simulations.ACTIONS:
         print '  {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.ACTIONS[inf]).most_common()))
         
     print 'BLOCKS'
-    for inf in simulations.BLOCKS:
-        print '  {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.BLOCKS[inf]).most_common()))
+    for inf in simulations.BLOCKS_P:
+        print '  {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.BLOCKS_P[inf]).most_common()))
+        print '  {0}{1}'.format(''.ljust(25), dict(Counter(simulations.BLOCKS_A[inf]).most_common()))
     
     print 'DOUBTS'
-    for inf in simulations.DOUBTS:
-        print '  {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.DOUBTS[inf]).most_common()))
-   
+    for inf in simulations.DOUBTS_P:
+        print '  {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.DOUBTS_P[inf]).most_common()))
+        print '  {0}{1}'.format(''.ljust(25), dict(Counter(simulations.DOUBTS_A[inf]).most_common()))
+        print '  {0}{1}'.format(''.ljust(25), dict(Counter(simulations.DOUBTS_W[inf]).most_common()))
+        

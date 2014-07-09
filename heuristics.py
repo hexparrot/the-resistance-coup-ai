@@ -16,7 +16,7 @@ PERSONALITIES = {
             },
         'calculated_intervention': {},
         'callout': {
-            'threshold': -3,
+            'threshold': 0,
             'min_actions': 3,
             'min_inactions': 3
             }
@@ -24,18 +24,18 @@ PERSONALITIES = {
     'cautious': {
         'honest_intervention': {
             'foreign_aid': {
-                'performer': lambda p: random() > .8
+                'performer': lambda p: random() > .7
                 },
             'assassinate': {
                 'performer': lambda p: False
                 },
             'steal': {
-                'performer': lambda p: random() > .8
+                'performer': lambda p: random() > .7
                 }
             },
         'calculated_intervention': {},
         'callout': {
-            'threshold': -10,
+            'threshold': -3,
             'min_actions': 3,
             'min_inactions': 3
             }
