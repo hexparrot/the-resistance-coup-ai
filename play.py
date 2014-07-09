@@ -86,7 +86,7 @@ class simulations(object):
                             break
                     elif action == 'steal':
                         random_player = acting_player.select_opponent(testgame.players)
-                        if action in random_player.calculate('probable', 'blocks') and random() > .33:
+                        if action in random_player.calculate('probable', 'blocks'):
                             raise RethinkAction(action, acting_player, random_player)
                         elif action in random_player.valid_blocks:
                             raise BlockedAction(action, acting_player, random_player, None)
@@ -108,7 +108,7 @@ class simulations(object):
                             break
                     elif action == 'assassinate':
                         random_player = acting_player.select_opponent(testgame.players)
-                        if action in random_player.calculate('probable', 'blocks') and random() > .33:
+                        if action in random_player.calculate('probable', 'blocks'):
                             raise RethinkAction(action, acting_player, random_player)
                         elif action in random_player.valid_blocks:
                             raise BlockedAction(action, acting_player, random_player, None)
@@ -151,9 +151,9 @@ class simulations(object):
                     break
                 except RethinkAction as e:
                     if action in e.victim.valid_blocks:
-                        self.RET_ACT_GOOD[acting_player.alpha].append(action)
+                        self.RET_ACT_GOOD[e.victim.alpha].append(action)
                     else:
-                        self.RET_ACT_REGRET[acting_player.alpha].append(action)
+                        self.RET_ACT_REGRET[e.victim.alpha].append(action)
                 except QuestionInfluence as e:
                     if e.performer_is_honest:
                         #will need refinement for captain/ambassador on blocked steal
@@ -176,7 +176,7 @@ class simulations(object):
         
 if __name__ == "__main__":
     c = Counter()
-    for _ in range(100):
+    for _ in range(1000):
         c.update([simulations().sim_calculated_actions_calculated_targets_more_calculated_blocks_random_doubts(),])
         
     for i,v in c.most_common():
@@ -217,11 +217,11 @@ if __name__ == "__main__":
     print '  IllegalTarget'
     for inf in simulations.ILL_TAR:
         print '    {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.ILL_TAR[inf]).most_common()))
-    print '  RethinkAction'
-    print '    Good'
+    print '  RethinkAction (victim influences listed)'
+    print '    Good to rethink'
     for inf in simulations.RET_ACT_GOOD:
         print '      {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.RET_ACT_GOOD[inf]).most_common()))
-    print '    Regret'
+    print '    Regret following through'
     for inf in simulations.RET_ACT_REGRET:
         print '      {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.RET_ACT_REGRET[inf]).most_common()))
     
