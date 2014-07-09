@@ -24,6 +24,10 @@ class simulations(object):
     DOUBTS_A = defaultdict(list)
     DOUBTS_W = defaultdict(list)
     WINS = defaultdict(int)
+    ILL_ACT = defaultdict(list)
+    ILL_TAR = defaultdict(list)
+    RET_ACT_GOOD = defaultdict(list)
+    RET_ACT_REGRET = defaultdict(list)
     
     def sim_calculated_actions_calculated_targets_more_calculated_blocks_random_doubts(self):
         """
@@ -134,16 +138,21 @@ class simulations(object):
                                 raise QuestionInfluence(action, acting_player, doubter)
                         self.ACTIONS[acting_player.alpha].append(action)
                         break
-                except (IllegalAction, IllegalTarget):
-                    pass
+                except IllegalAction as e:
+                    self.ILL_ACT[acting_player.alpha].append(e.message)
+                except IllegalTarget as e:
+                    self.ILL_TAR[acting_player.alpha].append(e.message)
                 except BlockedAction as e:
                     if e.spectator:
                         self.BLOCKS_S[e.spectator.saved_personality].append(action)
                     else:
                         self.BLOCKS_V[e.victim.saved_personality].append(action)
                     break
-                except RethinkAction:
-                    pass
+                except RethinkAction as e:
+                    if action in e.victim.valid_blocks:
+                        self.RET_ACT_GOOD[acting_player.alpha].append(action)
+                    else:
+                        self.RET_ACT_REGRET[acting_player.alpha].append(action)
                 except QuestionInfluence as e:
                     if e.performer_is_honest:
                         #will need refinement for captain/ambassador on blocked steal
@@ -187,3 +196,17 @@ if __name__ == "__main__":
         print '  {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.DOUBTS_A[inf]).most_common()))
         print '  {0}{1}'.format(''.ljust(25), dict(Counter(simulations.DOUBTS_W[inf]).most_common()))
     
+    print 'EXCEPTIONS'
+    print '  IllegalAction'
+    for inf in simulations.ILL_ACT:
+        print '    {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.ILL_ACT[inf]).most_common()))
+    print '  IllegalTarget'
+    for inf in simulations.ILL_TAR:
+        print '    {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.ILL_TAR[inf]).most_common()))
+    print '  RethinkAction'
+    print '    Good'
+    for inf in simulations.RET_ACT_GOOD:
+        print '      {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.RET_ACT_GOOD[inf]).most_common()))
+    print '    Regret'
+    for inf in simulations.RET_ACT_REGRET:
+        print '      {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.RET_ACT_REGRET[inf]).most_common()))
