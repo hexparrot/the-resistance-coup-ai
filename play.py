@@ -4,16 +4,16 @@ The purpose of this project is to model human personalities and predict/score
 behaviors and bluffs in order to win the game.
 
 """
+from __future__ import print_function
+from itertools import cycle
+from collections import Counter, defaultdict
+from coup import *
+from heuristics import PERSONALITIES
 
 __author__ = "William Dizon"
 __license__ = "GNU GPL v3.0"
 __version__ = "0.0.1"
 __email__ = "wdchromium@gmail.com"
-
-from itertools import cycle
-from collections import Counter, defaultdict, OrderedDict
-from coup import *
-from heuristics import PERSONALITIES
 
 class simulations(object):
     PLAYERS = 5
@@ -182,46 +182,46 @@ if __name__ == "__main__":
     for i,v in c.most_common():
         print('{0}{1}'.format(i.ljust(25), v))
     
-    print
-    print 'ACTIONS'
+    print()
+    print('ACTIONS')
     for inf in simulations.ACTIONS:
-        print '  {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.ACTIONS[inf]).most_common()))
+        print('  {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.ACTIONS[inf]).most_common())))
         
-    print 'BLOCKS'
-    print '  Spectator'
+    print('BLOCKS')
+    print('  Spectator')
     for inf in simulations.BLOCKS_SAVIOR:
-        print '    {0}{1}'.format(inf.ljust(23), dict(Counter(simulations.BLOCKS_SAVIOR[inf]).most_common()))
+        print('    {0}{1}'.format(inf.ljust(23), dict(Counter(simulations.BLOCKS_SAVIOR[inf]).most_common())))
     
-    print '  Victim'      
+    print('  Victim')      
     for inf in simulations.BLOCKS_VICTIM:
-        print '    {0}{1}'.format(inf.ljust(23), dict(Counter(simulations.BLOCKS_VICTIM[inf]).most_common()))
+        print('    {0}{1}'.format(inf.ljust(23), dict(Counter(simulations.BLOCKS_VICTIM[inf]).most_common())))
     
-    print 'CALLOUTS'
-    print '  Actions'
+    print('CALLOUTS')
+    print('  Actions')
     for inf in simulations.DOUBTS_ACTIONS:
-        print '    {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.DOUBTS_ACTIONS[inf]).most_common()))
-        print '    {0}{1}'.format(''.ljust(25), dict(Counter(simulations.DOUBTS_WRONG[inf]).most_common()))
+        print('    {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.DOUBTS_ACTIONS[inf]).most_common())))
+        print('    {0}{1}'.format(''.ljust(25), dict(Counter(simulations.DOUBTS_WRONG[inf]).most_common())))
     
-    print '  DOUBTER WRONG- Threshold:Frequency'
+    print('  DOUBTER WRONG- Threshold:Frequency')
     for personality in simulations.DOUBTS_THRESHOLD_WRONG:
-        print '    {0}{1}'.format(personality.ljust(25), ''.join('{0}:{1}  '.format(str(k).rjust(3),str(v).ljust(3)) for k,v in sorted(Counter(simulations.DOUBTS_THRESHOLD_WRONG[personality]).most_common())))
+        print('    {0}{1}'.format(personality.ljust(25), ''.join('{0}:{1}  '.format(str(k).rjust(3),str(v).ljust(3)) for k,v in sorted(Counter(simulations.DOUBTS_THRESHOLD_WRONG[personality]).most_common()))))
 
-    print '  DOUBTER RIGHT- Threshold:Frequency'
+    print('  DOUBTER RIGHT- Threshold:Frequency')
     for personality in simulations.DOUBTS_THRESHOLD_RIGHT:
-        print '    {0}{1}'.format(personality.ljust(25), ''.join('{0}:{1}  '.format(str(k).rjust(3),str(v).ljust(3)) for k,v in sorted(Counter(simulations.DOUBTS_THRESHOLD_RIGHT[personality]).most_common())))
+        print('    {0}{1}'.format(personality.ljust(25), ''.join('{0}:{1}  '.format(str(k).rjust(3),str(v).ljust(3)) for k,v in sorted(Counter(simulations.DOUBTS_THRESHOLD_RIGHT[personality]).most_common()))))
 
-    print 'EXCEPTIONS'
-    print '  IllegalAction'
+    print('EXCEPTIONS')
+    print('  IllegalAction')
     for inf in simulations.ILL_ACT:
-        print '    {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.ILL_ACT[inf]).most_common()))
-    print '  IllegalTarget'
+        print('    {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.ILL_ACT[inf]).most_common())))
+    print('  IllegalTarget')
     for inf in simulations.ILL_TAR:
-        print '    {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.ILL_TAR[inf]).most_common()))
-    print '  RethinkAction (victim influences listed)'
-    print '    Good to rethink'
+        print('    {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.ILL_TAR[inf]).most_common())))
+    print('  RethinkAction (victim influences listed)')
+    print('    Good to rethink')
     for inf in simulations.RET_ACT_GOOD:
-        print '      {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.RET_ACT_GOOD[inf]).most_common()))
-    print '    Regret following through'
+        print('      {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.RET_ACT_GOOD[inf]).most_common())))
+    print('    Regret following through')
     for inf in simulations.RET_ACT_REGRET:
-        print '      {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.RET_ACT_REGRET[inf]).most_common()))
+        print('      {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.RET_ACT_REGRET[inf]).most_common())))
     

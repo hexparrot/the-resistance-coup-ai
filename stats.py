@@ -4,21 +4,20 @@ The purpose of this project is to model human personalities and predict/score
 behaviors and bluffs in order to win the game.
 
 """
+from __future__ import print_function
+import numpy
+from collections import defaultdict
+from coup import *
+from simulations import simulations
 
 __author__ = "William Dizon"
 __license__ = "GNU GPL v3.0"
 __version__ = "0.0.1"
 __email__ = "wdchromium@gmail.com"
 
-import numpy
-from collections import defaultdict
-from coup import *
-from simulations import simulations
-
 SAMPLE_COUNT = 5
 GAMES_PER_SAMPLE = 500
 
-    
 pairs = ['Ambassador Contessa',
      'Captain Duke',
      'Contessa Duke',
