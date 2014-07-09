@@ -18,8 +18,8 @@ from heuristics import PERSONALITIES
 class simulations(object):
     PLAYERS = 5
     ACTIONS = defaultdict(list)
-    BLOCKS_P = defaultdict(list)
-    BLOCKS_A = defaultdict(list)
+    BLOCKS_S = defaultdict(list)
+    BLOCKS_V = defaultdict(list)
     DOUBTS_P = defaultdict(list)
     DOUBTS_A = defaultdict(list)
     DOUBTS_W = defaultdict(list)
@@ -145,10 +145,9 @@ class simulations(object):
                     pass
                 except BlockedAction as e:
                     if e.spectator:
-                        self.BLOCKS_P[acting_player.alpha].append(e.spectator.saved_personality)
+                        self.BLOCKS_S[e.spectator.saved_personality].append(action)
                     else:
-                        self.BLOCKS_P[acting_player.alpha].append(e.victim.saved_personality)
-                    self.BLOCKS_A[acting_player.alpha].append(action)
+                        self.BLOCKS_V[e.victim.saved_personality].append(action)
                     break
                 except RethinkAction:
                     pass
@@ -161,9 +160,8 @@ class simulations(object):
                         else:
                             acting_player.remove_suspicion(str(acting_player.right))
                             acting_player.restore('right', testgame.court_deck)
-                    self.DOUBTS_P[acting_player.alpha].append(e.doubter.saved_personality)
-                    self.DOUBTS_A[acting_player.alpha].append(action)
-                    self.DOUBTS_W[acting_player.alpha].append(e.performer_is_honest)
+                    self.DOUBTS_A[e.doubter.saved_personality].append(action)
+                    self.DOUBTS_W[e.doubter.saved_personality].append(e.performer_is_honest)
                     break
 
                     
@@ -184,13 +182,17 @@ if __name__ == "__main__":
         print '  {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.ACTIONS[inf]).most_common()))
         
     print 'BLOCKS'
-    for inf in simulations.BLOCKS_P:
-        print '  {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.BLOCKS_P[inf]).most_common()))
-        print '  {0}{1}'.format(''.ljust(25), dict(Counter(simulations.BLOCKS_A[inf]).most_common()))
+    print '  Spectator'
+    for inf in simulations.BLOCKS_S:
+        print '    {0}{1}'.format(inf.ljust(23), dict(Counter(simulations.BLOCKS_S[inf]).most_common()))
     
-    print 'DOUBTS'
-    for inf in simulations.DOUBTS_P:
-        print '  {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.DOUBTS_P[inf]).most_common()))
-        print '  {0}{1}'.format(''.ljust(25), dict(Counter(simulations.DOUBTS_A[inf]).most_common()))
+    print '  Victim'      
+    for inf in simulations.BLOCKS_V:
+      
+        print '    {0}{1}'.format(inf.ljust(23), dict(Counter(simulations.BLOCKS_V[inf]).most_common()))
+    
+    print 'CALLOUTS'
+    for inf in simulations.DOUBTS_A:
+        print '  {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.DOUBTS_A[inf]).most_common()))
         print '  {0}{1}'.format(''.ljust(25), dict(Counter(simulations.DOUBTS_W[inf]).most_common()))
-        
+    

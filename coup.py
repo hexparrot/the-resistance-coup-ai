@@ -335,6 +335,8 @@ class AI_Persona(Player):
             return choice(['steal'] + ['foreign_aid'] * 3 + ['income'])
         elif action == 'assassinate':
             return choice(['assassinate'] * 5 + ['foreign_aid'] + ['income'])
+        elif action == 'tax':
+            return choice(['tax'] * 5 + ['assassinate'])
         else:
             return action        
 
