@@ -73,7 +73,7 @@ class simulations(object):
                         for savior in testgame.filter_out_players([acting_player]):
                             if savior.will_intervene(action, acting_player):
                                 for spectators in testgame.filter_out_players([acting_player, savior]):
-                                    spectators.not_acting_like['spectator'].extend([action])
+                                    spectators.didnt_block_as['spectator'].extend([action])
                                 raise BlockedAction(action, acting_player, None, savior)
                         else:
                             acting_player.perform(action)
@@ -99,7 +99,7 @@ class simulations(object):
                             acting_player.perform(action, random_player)
                             self.ACTIONS[acting_player.alpha].append(action)
                             for spectators in testgame.filter_out_players([acting_player, savior]):
-                                spectators.not_acting_like['spectator'].extend([action])
+                                spectators.didnt_block_as['spectator'].extend([action])
                             break
                     elif action == 'assassinate':
                         random_player = acting_player.select_opponent(testgame.players)
@@ -124,7 +124,7 @@ class simulations(object):
                             random_player.remove_suspicion(str(random_target))
                             self.ACTIONS[acting_player.alpha].append(action)
                             for spectators in testgame.filter_out_players([acting_player, random_player]):
-                                spectators.not_acting_like['spectator'].extend([action])
+                                spectators.didnt_block_as['spectator'].extend([action])
                             break
                     elif action == 'exchange':
                         for doubter in testgame.filter_out_players([acting_player]):

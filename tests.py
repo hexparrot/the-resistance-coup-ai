@@ -602,7 +602,7 @@ class TestCoup(unittest.TestCase):
         p = testgame.players[0]
         
         p.perform('foreign_aid')
-        testgame.players[1].not_acting_like['spectator'].extend(['foreign_aid'])
+        testgame.players[1].didnt_block_as['spectator'].extend(['foreign_aid'])
         
         self.assertIn('Duke', testgame.players[1].improbable_influences)
         self.assertEqual(testgame.players[1].improbable_influences, {
@@ -612,8 +612,8 @@ class TestCoup(unittest.TestCase):
         ppp = testgame.players[2]
         
         ppp.perform('steal', testgame.players[0])        
-        testgame.players[0].not_acting_like['victim'].extend(['steal'])
-        testgame.players[3].not_acting_like['spectator'].extend(['steal'])
+        testgame.players[0].didnt_block_as['victim'].extend(['steal'])
+        testgame.players[3].didnt_block_as['spectator'].extend(['steal'])
             
         self.assertEqual(testgame.players[0].improbable_influences, {
             'Duke': abs(WEIGHTS['suboptimal_move']) * 1,
@@ -756,7 +756,7 @@ class TestCoup(unittest.TestCase):
         
         self.assertEqual(p.judge_player, {'Captain': WEIGHTS['performed_action'] * 3})
         
-        p.not_acting_like['victim'].extend(['steal'])
+        p.didnt_block_as['victim'].extend(['steal'])
         
         self.assertEqual(p.judge_player, {
             'Captain': WEIGHTS['performed_action'] * 3 - abs(WEIGHTS['didnt_block_selfishly'] * 1), 
@@ -770,7 +770,7 @@ class TestCoup(unittest.TestCase):
         
         p.public_information['perform'].extend(['steal', 'steal', 'steal'])
         self.assertIn('steal', p.calculate('judge', 'actions'))
-        p.not_acting_like['victim'].extend(['steal'])
+        p.didnt_block_as['victim'].extend(['steal'])
         p.public_information['perform'].extend(['assassinate'])
         
         self.assertIn('assassinate', p.calculate('judge', 'actions')) 
@@ -853,7 +853,7 @@ class TestCoup(unittest.TestCase):
         self.assertEqual(p.calculate('improbable', 'actions'), [])
         self.assertEqual(p.calculate('judge', 'actions'), ['steal', 'tax'])
         
-        p.not_acting_like['spectator'].extend(['foreign_aid', 'foreign_aid', 'foreign_aid'])
+        p.didnt_block_as['spectator'].extend(['foreign_aid', 'foreign_aid', 'foreign_aid'])
         
         self.assertEqual(p.calculate('probable', 'blocks'), ['foreign_aid', 'steal'])
         self.assertEqual(p.calculate('improbable', 'blocks'), ['foreign_aid'])
@@ -901,7 +901,7 @@ class TestCoup(unittest.TestCase):
         
         p = testgame.players[0]
         
-        p.not_acting_like['spectator'].extend(['steal'])
+        p.didnt_block_as['spectator'].extend(['steal'])
         self.assertIn('steal', p.calculate('improbable', 'blocks')) 
         self.assertNotIn('assassinate', p.calculate('improbable', 'blocks'))
         self.assertNotIn('foreign_aid', p.calculate('improbable', 'blocks'))
@@ -911,8 +911,8 @@ class TestCoup(unittest.TestCase):
         self.assertNotIn('assassinate', p.calculate('improbable', 'blocks'))
         self.assertIn('foreign_aid', p.calculate('improbable', 'blocks'))
         
-        p.not_acting_like['spectator'].extend(['assassinate'])
-        p.not_acting_like['spectator'].extend(['assassinate'])
+        p.didnt_block_as['spectator'].extend(['assassinate'])
+        p.didnt_block_as['spectator'].extend(['assassinate'])
         
         self.assertNotIn('steal', p.calculate('improbable', 'blocks'))
         self.assertIn('assassinate', p.calculate('improbable', 'blocks'))
@@ -923,7 +923,7 @@ class TestCoup(unittest.TestCase):
         
         p = testgame.players[0]
         
-        p.not_acting_like['spectator'].extend(['steal'])
+        p.didnt_block_as['spectator'].extend(['steal'])
         self.assertIn('steal', p.calculate('improbable', 'actions'))
 
     def test_ai_profile_will_intervene_steal_victim(self):
@@ -983,7 +983,7 @@ class TestCoup(unittest.TestCase):
         self.assertFalse(pp.will_callout('tax', p))
         
         for _ in range(5):
-            p.not_acting_like['spectator'].extend(['foreign_aid'])
+            p.didnt_block_as['spectator'].extend(['foreign_aid'])
 
         self.assertTrue(pp.will_callout('tax', p))
         
@@ -1048,90 +1048,6 @@ class TestCoup(unittest.TestCase):
         self.assertEqual(p.naive_priority(), 'coup')
         p.coins = 12
         self.assertEqual(p.naive_priority(), 'coup')
-    
-    def test_random_targetable_player(self):
-        testgame = Play_Coup(5)
-
-        p = testgame.players[0]
-        self.assertIsNot(testgame.random_targetable_player(p), p)
-        self.assertIsInstance(testgame.random_targetable_player(p), Player)
-
-        for _ in range(50):
-            self.assertIsNot(testgame.random_targetable_player(p), p)
-
-        pp = testgame.players[1]
-
-        for _ in range(50):
-            self.assertIsNot(testgame.random_targetable_player(p), p)
-
-    def test_random_targetable_half_health_player(self):
-        testgame = Play_Coup(5)
-
-        p = testgame.players[0]
-        self.assertIsNot(testgame.random_targetable_player(p), p)
-        self.assertIsNone(testgame.random_targetable_player(p, [1]))
-
-        pp = testgame.players[1]
-        pp.left.reveal()
-        self.assertIs(testgame.random_targetable_player(p, [1]), pp)
-        self.assertIsNot(testgame.random_targetable_player(p, [1]), testgame.players[0])
-        self.assertIsNot(testgame.random_targetable_player(p, [1]), testgame.players[2])
-        self.assertIsNot(testgame.random_targetable_player(p, [1]), testgame.players[3])
-        self.assertIsNot(testgame.random_targetable_player(p, [1]), testgame.players[4])
-
-        ppp = testgame.players[2]
-        ppp.left.reveal()
-        self.assertIsNot(testgame.random_targetable_player(p, [1]), testgame.players[0])
-        self.assertIsNot(testgame.random_targetable_player(p, [1]), testgame.players[3])
-        self.assertIsNot(testgame.random_targetable_player(p, [1]), testgame.players[4])
-
-    def test_random_targetable_player_by_coins(self):
-        testgame = Play_Coup(5)
-
-        p = testgame.players[0]
-        self.assertIsNot(testgame.random_targetable_player_by_coins(p), p)
-        self.assertIsNone(testgame.random_targetable_player_by_coins(p, [0,0]))
-        self.assertIsNone(testgame.random_targetable_player_by_coins(p, [0,1]))
-        self.assertIsNone(testgame.random_targetable_player_by_coins(p, [1,1]))
-
-        pp = testgame.players[1]
-        pp.coins = 3
-        self.assertIsNot(testgame.random_targetable_player_by_coins(p, [3,12]), p)
-        self.assertIs(testgame.random_targetable_player_by_coins(p, [3,12]), pp)
-
-        ppp = testgame.players[2]
-        ppp.coins = 12
-        self.assertIsNot(testgame.random_targetable_player_by_coins(p, [4,12]), p)
-        self.assertIsNot(testgame.random_targetable_player_by_coins(p, [4,12]), pp)
-        self.assertIs(testgame.random_targetable_player_by_coins(p, [4,12]), ppp)
-
-        testgame.players[4].left.reveal()
-        testgame.players[4].right.reveal()
-        self.assertIsNot(testgame.random_targetable_player_by_coins(p, [4,12]), testgame.players[4])                           
-
-    def test_random_targetable_player_by_wealth(self):
-        testgame = Play_Coup(5)
-
-        p = testgame.players[0]
-        testgame.players[1].coins = 2
-        testgame.players[2].coins = 3
-        testgame.players[3].coins = 4
-        testgame.players[4].coins = 5
-
-        self.assertIs(testgame.random_richest_player(p), testgame.players[4])
-        testgame.players[4].left.reveal()
-        self.assertIs(testgame.random_richest_player(p), testgame.players[4])
-        testgame.players[4].right.reveal()
-        self.assertIs(testgame.random_richest_player(p), testgame.players[3])
-
-        testgame.players[2].coins = 4
-
-        self.assertIsNot(testgame.random_richest_player(p), testgame.players[0])
-        self.assertIsNot(testgame.random_richest_player(p), testgame.players[1])
-        self.assertIsNot(testgame.random_richest_player(p), testgame.players[4])
-
-        for _ in range(50):
-            self.assertEqual(testgame.random_richest_player(p).coins, 4)        
     
     def test_cannot_target_self(self):
         testgame = Play_Coup(5)

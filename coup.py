@@ -52,36 +52,6 @@ class Play_Coup(object):
         return set([p for p in self.players \
                 if p not in list_of_players and \
                 p.influence_remaining])
-
-    def random_targetable_player(self,
-                                 safe_player,
-                                 influence_amount=[1,2]):
-        from random import choice
-        try:
-            return choice([v for v in self.players \
-                           if v.influence_remaining in influence_amount \
-                           and v is not safe_player])
-        except IndexError:
-            return None
-
-    def random_targetable_player_by_coins(self,
-                                          safe_player,
-                                          coins=[2,12]):
-        from random import choice
-        try:
-            return choice([v for v in self.players \
-                           if v.influence_remaining and \
-                           coins[0] <= v.coins <= coins[1] and \
-                           v is not safe_player])
-        except IndexError:
-            return None
-
-    def random_richest_player(self,
-                              safe_player):
-        return sorted([v for v in self.players \
-                       if v is not safe_player and \
-                       v.influence_remaining], \
-                      key=lambda p: p.coins, reverse=True)[0]
     
     @property
     def playerstate_binary(self):
@@ -98,7 +68,7 @@ class Player(object):
             'victim': [], #player blocked somebody doing this to him
             'spectator': [] #player blocked action when not involved in action
             }
-        self.not_acting_like = { #decrease likelihood
+        self.didnt_block_as = { #decrease likelihood
             'victim': [], #player didnt block even while targetted
             'spectator': [] #didnt block an uninvolved action
             }
@@ -185,8 +155,8 @@ class Player(object):
         from itertools import chain
         
         performed = Counter(chain(*[IMPLIED_INFORMATION['suboptimal_move'][i] for i in self.public_information['perform'] if IMPLIED_INFORMATION['suboptimal_move'].get(i)]))
-        victim = Counter(chain(*[IMPLIED_INFORMATION['block'][i] for i in self.not_acting_like['victim'] if IMPLIED_INFORMATION['block'].get(i)]))
-        spectator = Counter(chain(*[IMPLIED_INFORMATION['block'][i] for i in self.not_acting_like['spectator'] if IMPLIED_INFORMATION['block'].get(i)]))
+        victim = Counter(chain(*[IMPLIED_INFORMATION['block'][i] for i in self.didnt_block_as['victim'] if IMPLIED_INFORMATION['block'].get(i)]))
+        spectator = Counter(chain(*[IMPLIED_INFORMATION['block'][i] for i in self.didnt_block_as['spectator'] if IMPLIED_INFORMATION['block'].get(i)]))
 
         result = Counter()
         for _ in range(abs(WEIGHTS['suboptimal_move'])):
@@ -370,7 +340,7 @@ class AI_Persona(Player):
     def will_callout(self, action, performer):
         try:
             if sum(len(a) for a in performer.public_information) >= self.rules['callout']['min_actions'] and \
-                sum(len(a) for a in performer.not_acting_like) >= self.rules['callout']['min_inactions'] and \
+                sum(len(a) for a in performer.didnt_block_as) >= self.rules['callout']['min_inactions'] and \
                 performer.judge_player[[a.__name__ for a in Influence.__subclasses__() if action in a.ACTIONS][0]] <= self.rules['callout']['threshold']:
                 return True
         except KeyError:
