@@ -1,26 +1,26 @@
 from pybrain.tools.shortcuts import buildNetwork
-from pybrain import LinearLayer, SigmoidLayer, FeedForwardNetwork, FullConnection, BiasUnit, SoftmaxLayer
+from pybrain import SigmoidLayer
 from pybrain.supervised.trainers.backprop import BackpropTrainer
-from pybrain.structure.modules.tanhlayer import TanhLayer
 from pybrain.datasets import SupervisedDataSet
 from time import time
 
 from coup import *
 from itertools import cycle
-from random import random
 from heuristics import PERSONALITIES
+from collections import Counter
 
 PLAYERS = 5
-GAMES = 500
+GAMES = 200
 INPUT_NEURONS_PER_PLAYER = 5
 OUTPUT_NEURONS = 5
-HIDDEN_NEURONS = 5
+HIDDEN_NEURONS = 10
+TRAINING_EPOCHS = 300
 
 ds = SupervisedDataSet(PLAYERS * INPUT_NEURONS_PER_PLAYER, OUTPUT_NEURONS)
-net = buildNetwork(PLAYERS * INPUT_NEURONS_PER_PLAYER, HIDDEN_NEURONS, OUTPUT_NEURONS, bias=True, outputbias= True, hiddenclass=SigmoidLayer)
+net = buildNetwork(PLAYERS * INPUT_NEURONS_PER_PLAYER, HIDDEN_NEURONS, OUTPUT_NEURONS, bias=True, outputbias=True, hiddenclass=SigmoidLayer)
 trainer = BackpropTrainer(net, ds, learningrate= 0.1)
 
-influences = ['Ambassador', 'Assassin', 'Captain', 'Contessa', 'Duke']
+TRAINING_SET = []
 
 for _ in range(GAMES):
 
@@ -30,7 +30,7 @@ for _ in range(GAMES):
         if not acting_player.influence_remaining:
             continue
         elif len(testgame) == 1:
-            ds.addSample(testgame.playerstate_binary, acting_player.influence_binary)
+            TRAINING_SET.append((testgame.playerstate_binary, acting_player.influence_binary))
             break
             
         action_plan = []
@@ -138,29 +138,32 @@ for _ in range(GAMES):
                         acting_player.restore('right', testgame.court_deck)
                 break
 
+for game_setup, winner in TRAINING_SET:
+    ds.addSample(game_setup, winner)
 
 t1 = time()
-trainer.trainEpochs(300)
+trainer.trainEpochs(TRAINING_EPOCHS)
 print "Time PyBrain {}".format(time()-t1)
 
 #PRINT RESULTS
 
-def highest_positions(lst):
-    highest = [i for i,v in enumerate(lst) if v == max(lst)][0]
-    second = -float('infinity')
-    for i in lst:
-        if i > second and i != lst[highest]:
-            second = i
-    return highest, [i for i,v in enumerate(lst) if v == second][0]
+def game_winner(binary_input):
+    influences = ['Ambassador', 'Assassin', 'Captain', 'Contessa', 'Duke']
+    
+    p = sorted(zip(binary_input, influences), reverse=True, key=lambda a: a[0])
+    return ' '.join(sorted(inf for i,inf in p[0:2]))
 
-made_up_game = {
-    3: (1,0,1,0,0, 0,1,1,0,0, 0,0,1,0,1),
-    4: (1,0,1,0,0, 0,1,1,0,0, 0,0,0,1,1, 0,0,1,0,1),
-    5: (1,1,0,0,0, 1,0,1,0,0, 0,1,1,0,0, 0,0,0,1,1, 0,0,1,0,1),
-    6: (1,1,0,0,0, 1,0,1,0,0, 0,1,1,0,0, 0,0,0,1,1, 0,0,1,0,1, 0,1,0,0,1)
-    }
+normal_ai = []
+nn_ai = []
 
-simulated_game = net.activate(made_up_game[PLAYERS])
-highest = highest_positions(simulated_game)
-print influences[highest[0]], influences[highest[1]] 
-print simulated_game
+for game_setup, winner in TRAINING_SET:
+    normal_ai.append(game_winner(winner))
+    nn_ai.append(game_winner(net.activate(game_setup)))
+
+norm = dict(Counter(normal_ai).most_common())
+nn = dict(Counter(nn_ai).most_common())
+
+print ''.ljust(25), 'normal', 'nn'
+for pair in set(norm.keys() + nn.keys()):
+    print pair.ljust(25), str(norm.get(pair,0)).ljust(6), str(nn.get(pair,0)).ljust(6)
+
