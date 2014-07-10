@@ -133,7 +133,7 @@ class Player(object):
     @property
     def best_guess(self):
         infs = sorted(self.judge_player.items(), reverse=True, key=lambda i: i[1])
-        return ' '.join(sorted([i for i,v in infs if v > 0][0:2]))
+        return ' '.join(sorted([i for i,v in infs if v > 0][0:self.influence_remaining]))
     
     @property
     def probable_influences(self):

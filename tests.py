@@ -795,6 +795,17 @@ class TestCoup(unittest.TestCase):
         finally:
             self.assertEqual(matches, 1)
             
+        pp = AI_Persona()
+        pp.left = Contessa()
+        pp.right = Duke()
+        
+        pp.public_information['perform'].extend(['tax', 'tax', 'steal', 'steal', 'assassinate'])
+        self.assertEqual(pp.best_guess, 'Captain Duke')
+        pp.right.reveal()
+        pp.remove_suspicion('Duke')
+        
+        self.assertEqual(pp.best_guess, 'Captain')
+            
     def test_judge_actions(self):
         testgame = Play_Coup(5)
         
