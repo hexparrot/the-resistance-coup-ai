@@ -30,7 +30,7 @@ class simulations(object):
     RET_ACT_GOOD = defaultdict(list)
     RET_ACT_REGRET = defaultdict(list)
     
-    def sim_calculated_actions_calculated_targets_more_calculated_blocks_random_doubts(self):
+    def sim_refined_actions_calculated_targets_more_calculated_blocks_systemic_doubts(self):
         """
         AI PROFILE:
         
@@ -46,7 +46,7 @@ class simulations(object):
         """
 
         testgame = Play_Coup(self.PLAYERS, PERSONALITIES.keys())
-        
+
         for acting_player in cycle(testgame.players):
             if not acting_player.influence_remaining:
                 continue
@@ -54,11 +54,21 @@ class simulations(object):
                 self.WINS[acting_player.saved_personality] += 1
                 return acting_player.alpha
                 
+            action_plan = []
+            remaining_opponent = None
+            
+            if len(testgame) == 2:
+                remaining_opponent = acting_player.select_opponent(testgame.players)
+                action_plan = acting_player.one_on_one_strategy(remaining_opponent.best_guess, True)
+            
             while 1:
                 try:
-                    action = acting_player.random_naive_priority()
+                    if action_plan:
+                        action = action_plan.pop(0)
+                    else:
+                        action = acting_player.random_naive_priority()
                     #print '{0} performing {1} (coins={2})'.format(acting_player.status, action, acting_player.coins)
-                    
+
                     if action == 'income':
                         acting_player.perform(action)
                         self.ACTIONS[acting_player.alpha].append(action)
@@ -68,7 +78,7 @@ class simulations(object):
                         self.ACTIONS[acting_player.alpha].append(action)
                         break
                     elif action == 'coup':
-                        random_player = acting_player.select_opponent(testgame.players)
+                        random_player = acting_player.select_opponent(testgame.players) if not remaining_opponent else remaining_opponent
                         position, random_target = random_player.random_remaining_influence
                         acting_player.perform(action, random_target)
                         random_player.remove_suspicion(str(random_target))
@@ -85,7 +95,7 @@ class simulations(object):
                             self.ACTIONS[acting_player.alpha].append(action)
                             break
                     elif action == 'steal':
-                        random_player = acting_player.select_opponent(testgame.players)
+                        random_player = acting_player.select_opponent(testgame.players) if not remaining_opponent else remaining_opponent
                         if action in random_player.calculate('probable', 'blocks'):
                             raise RethinkAction(action, acting_player, random_player)
                         elif action in random_player.valid_blocks:
@@ -107,7 +117,7 @@ class simulations(object):
                                 spectators.didnt_block_as['spectator'].extend([action])
                             break
                     elif action == 'assassinate':
-                        random_player = acting_player.select_opponent(testgame.players)
+                        random_player = acting_player.select_opponent(testgame.players) if not remaining_opponent else remaining_opponent
                         if action in random_player.calculate('probable', 'blocks'):
                             raise RethinkAction(action, acting_player, random_player)
                         elif action in random_player.valid_blocks:
@@ -177,7 +187,7 @@ class simulations(object):
 if __name__ == "__main__":
     c = Counter()
     for _ in range(1000):
-        c.update([simulations().sim_calculated_actions_calculated_targets_more_calculated_blocks_random_doubts(),])
+        c.update([simulations().sim_refined_actions_calculated_targets_more_calculated_blocks_systemic_doubts(),])
         
     for i,v in c.most_common():
         print('{0}{1}'.format(i.ljust(25), v))

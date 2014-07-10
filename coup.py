@@ -131,6 +131,11 @@ class Player(object):
         return {k:self.probable_influences.get(k, 0) - self.improbable_influences.get(k, 0) for k in set(self.probable_influences).union(set(self.improbable_influences))}
     
     @property
+    def best_guess(self):
+        infs = sorted(self.judge_player.items(), reverse=True, key=lambda i: i[1])
+        return ' '.join(sorted([i for i,v in infs if v > 0][0:self.influence_remaining]))
+    
+    @property
     def probable_influences(self):
         from collections import Counter
         from itertools import chain
@@ -234,9 +239,7 @@ class Player(object):
                 infs = [inf for inf, score in infs[0:2]]
                 return self.actions_for_influences(infs)
             elif likelihood == 'judge':
-                infs = sorted(self.judge_player.items(), reverse=True, key=lambda i: i[1])
-                infs = [i for i,v in infs if v > 0][0:2]
-                return self.actions_for_influences(infs)
+                return self.actions_for_influences(self.best_guess)
         elif type_of_action == 'blocks':
             if likelihood == 'probable':
                 infs = sorted(self.probable_influences.items(), reverse=True, key=lambda i: i[1])
@@ -247,9 +250,7 @@ class Player(object):
                 infs = [inf for inf, score in infs[0:2]]
                 return self.blocks_for_influences(infs)
             elif likelihood == 'judge':
-                infs = sorted(self.judge_player.items(), reverse=True, key=lambda i: i[1])
-                infs = [i for i,v in infs if v > 0][0:2]
-                return self.blocks_for_influences(infs)
+                return self.blocks_for_influences(self.best_guess)
 
 class AI_Persona(Player):        
     def __init__(self, personality='passive'):
@@ -310,7 +311,23 @@ class AI_Persona(Player):
         elif action == 'tax':
             return choice(['tax'] * 5 + ['assassinate'])
         else:
-            return action        
+            return action
+            
+    def one_on_one_strategy(self, influences, honest=True):
+        action_plan = []
+        if self.coins >= 10:
+            action_plan = ['coup']
+        else:
+            try:
+                action_plan.extend(AI_Persona.offensive_priority(influences))
+                action_plan.extend(AI_Persona.buildup_priority(influences))
+            except KeyError:
+                pass
+        
+        if honest:
+            return [a for a in action_plan if a in self.valid_actions + Play_Coup.ACTIONS['free']]
+        else:
+            return action_plan
 
     def will_intervene(self, action, performer, victim=None):
         try:
@@ -361,6 +378,56 @@ class AI_Persona(Player):
             return ('left', self.left)
         else:
             raise IllegalTarget("player already has no remaining influence")    
+
+    @classmethod
+    def offensive_priority(cls, influences):
+        return {
+            'Ambassador': ['assassinate', 'coup'],
+            'Assassin': ['steal', 'assassinate', 'coup'],
+            'Captain': ['assassinate', 'coup'],
+            'Contessa': ['steal', 'coup'],
+            'Duke': ['steal', 'assassinate', 'coup'],
+            'Ambassador Ambassador': ['assassinate', 'coup'],
+            'Assassin Assassin': ['steal', 'assassinate', 'coup'],
+            'Captain Captain': ['assassinate', 'coup'],
+            'Contessa Contessa': ['steal', 'coup'],
+            'Duke Duke': ['steal', 'assassinate', 'coup'],
+            'Ambassador Assassin': ['assassinate', 'coup'],
+            'Ambassador Captain': ['assassinate', 'coup'],
+            'Ambassador Contessa': ['coup'],
+            'Ambassador Duke': ['assassinate', 'coup'],
+            'Assassin Captain': ['assassinate', 'coup'],
+            'Assassin Contessa': ['steal', 'coup'],
+            'Assassin Duke': ['steal', 'assassinate', 'coup'],
+            'Captain Contessa': ['coup'],
+            'Captain Duke': ['assassinate', 'coup'],
+            'Contessa Duke': ['steal', 'coup']
+            }[influences]
+
+    @classmethod
+    def buildup_priority(cls, influences):
+        return {
+            'Ambassador': ['tax', 'foreign_aid', 'income'],
+            'Assassin': ['tax', 'foreign_aid', 'income'],  
+            'Captain': ['tax', 'foreign_aid', 'income'],
+            'Contessa': ['tax', 'foreign_aid', 'income'],
+            'Duke': ['tax', 'income'],
+            'Ambassador Ambassador': ['tax', 'foreign_aid', 'income'],
+            'Assassin Assassin': ['tax', 'foreign_aid', 'income'],
+            'Captain Captain': ['tax', 'foreign_aid', 'income'],
+            'Contessa Contessa': ['tax', 'foreign_aid', 'income'],
+            'Duke Duke': ['tax', 'income'],
+            'Ambassador Assassin': ['tax', 'foreign_aid', 'income'],
+            'Ambassador Captain': ['tax', 'foreign_aid', 'income'],
+            'Ambassador Contessa': ['tax', 'foreign_aid', 'income'],
+            'Ambassador Duke': ['tax', 'income'],
+            'Assassin Captain': ['tax', 'foreign_aid', 'income'],
+            'Assassin Contessa': ['tax', 'foreign_aid', 'income'],
+            'Assassin Duke': ['tax', 'income'],
+            'Captain Contessa': ['tax', 'foreign_aid', 'income'],
+            'Captain Duke': ['tax', 'income'],
+            'Contessa Duke': ['tax', 'income']
+            }[influences]
 
     @staticmethod
     def clone(player):
