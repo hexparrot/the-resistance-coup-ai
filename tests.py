@@ -1062,6 +1062,59 @@ class TestCoup(unittest.TestCase):
         self.assertEqual(p.naive_priority(), 'coup')
         p.coins = 12
         self.assertEqual(p.naive_priority(), 'coup')
+        
+    def test_personalized_priorities(self):
+        self.assertEqual(AI_Persona.offensive_priorities(['Ambassador','Ambassador'], ['assassinate', 'coup']))
+        self.assertEqual(AI_Persona.buildup_priorities(['Ambassador','Ambassador'], ['tax', 'foreign_aid', 'exchange', 'income']))
+        
+        self.assertEqual(AI_Persona.offensive_priorities(['Assassin','Assassin'], ['steal', 'assassinate', 'coup']))
+        self.assertEqual(AI_Persona.buildup_priorities(['Assassin','Assassin'], ['tax', 'foreign_aid', 'exchange', 'income']))
+        
+        self.assertEqual(AI_Persona.offensive_priorities(['Captain','Captain'], ['assassinate', 'coup']))
+        self.assertEqual(AI_Persona.buildup_priorities(['Captain','Captain'], ['tax', 'foreign_aid', 'exchange', 'income']))
+        
+        self.assertEqual(AI_Persona.offensive_priorities(['Contessa','Contessa'], ['steal', 'coup']))
+        self.assertEqual(AI_Persona.buildup_priorities(['Contessa','Contessa'], ['tax', 'foreign_aid', 'exchange', 'income']))
+        
+        self.assertEqual(AI_Persona.offensive_priorities(['Duke','Duke'], ['steal', 'assassinate', 'coup']))
+        self.assertEqual(AI_Persona.buildup_priorities(['Duke','Duke'], ['tax', 'exchange', 'income']))
+        
+        
+        #not yet fixed
+        self.assertEqual(AI_Persona.offensive_priorities(['Ambassador','Assassin'], ['assassinate', 'coup']))
+        self.assertEqual(AI_Persona.buildup_priorities(['Ambassador','Assassin'], ['tax', 'foreign_aid', 'exchange', 'income']))
+        
+        self.assertEqual(AI_Persona.offensive_priorities(['Ambassador','Captain'], ['assassinate', 'coup']))
+        self.assertEqual(AI_Persona.buildup_priorities(['Ambassador','Captain'], ['tax', 'foreign_aid', 'exchange', 'income']))
+        
+        self.assertEqual(AI_Persona.offensive_priorities(['Ambassador','Contessa'], ['steal', 'coup']))
+        self.assertEqual(AI_Persona.buildup_priorities(['Ambassador','Contessa'], ['tax', 'foreign_aid', 'exchange', 'income']))
+        
+        self.assertEqual(AI_Persona.offensive_priorities(['Ambassador','Duke'], ['steal', 'assassinate', 'coup']))
+        self.assertEqual(AI_Persona.buildup_priorities(['Ambassador','Duke'], ['tax', 'foreign_aid', 'exchange', 'income']))
+        
+        self.assertEqual(AI_Persona.offensive_priorities(['Assassin','Captain'], ['steal', 'assassinate', 'coup']))
+        self.assertEqual(AI_Persona.buildup_priorities(['Assassin','Captain'], ['tax', 'exchange', 'income']))
+
+        self.assertEqual(AI_Persona.offensive_priorities(['Assassin','Contessa'], ['assassinate', 'coup']))
+        self.assertEqual(AI_Persona.buildup_priorities(['Assassin','Contessa'], ['tax', 'foreign_aid', 'exchange', 'income']))
+        
+        self.assertEqual(AI_Persona.offensive_priorities(['Assassin','Duke'], ['steal', 'assassinate', 'coup']))
+        self.assertEqual(AI_Persona.buildup_priorities(['Assassin','Duke'], ['tax', 'foreign_aid', 'exchange', 'income']))
+        
+        self.assertEqual(AI_Persona.offensive_priorities(['Captain','Contessa'], ['steal', 'assassinate', 'coup']))
+        self.assertEqual(AI_Persona.buildup_priorities(['Captain','Contessa'], ['tax', 'exchange', 'income']))    
+        
+        self.assertEqual(AI_Persona.offensive_priorities(['Captain','Duke'], ['assassinate', 'coup']))
+        self.assertEqual(AI_Persona.buildup_priorities(['Captain','Duke'], ['tax', 'foreign_aid', 'exchange', 'income']))
+        
+        self.assertEqual(AI_Persona.offensive_priorities(['Contessa','Duke'], ['steal', 'coup']))
+        self.assertEqual(AI_Persona.buildup_priorities(['Contessa','Duke'], ['tax', 'foreign_aid', 'exchange', 'income']))
+        
+            
+        
+        
+        
     
     def test_cannot_target_self(self):
         testgame = Play_Coup(5)
