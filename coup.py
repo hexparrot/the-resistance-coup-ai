@@ -131,6 +131,11 @@ class Player(object):
         return {k:self.probable_influences.get(k, 0) - self.improbable_influences.get(k, 0) for k in set(self.probable_influences).union(set(self.improbable_influences))}
     
     @property
+    def best_guess(self):
+        infs = sorted(self.judge_player.items(), reverse=True, key=lambda i: i[1])
+        return ' '.join(sorted([i for i,v in infs if v > 0][0:2]))
+    
+    @property
     def probable_influences(self):
         from collections import Counter
         from itertools import chain
@@ -234,9 +239,7 @@ class Player(object):
                 infs = [inf for inf, score in infs[0:2]]
                 return self.actions_for_influences(infs)
             elif likelihood == 'judge':
-                infs = sorted(self.judge_player.items(), reverse=True, key=lambda i: i[1])
-                infs = [i for i,v in infs if v > 0][0:2]
-                return self.actions_for_influences(infs)
+                return self.actions_for_influences(self.best_guess)
         elif type_of_action == 'blocks':
             if likelihood == 'probable':
                 infs = sorted(self.probable_influences.items(), reverse=True, key=lambda i: i[1])
@@ -247,9 +250,7 @@ class Player(object):
                 infs = [inf for inf, score in infs[0:2]]
                 return self.blocks_for_influences(infs)
             elif likelihood == 'judge':
-                infs = sorted(self.judge_player.items(), reverse=True, key=lambda i: i[1])
-                infs = [i for i,v in infs if v > 0][0:2]
-                return self.blocks_for_influences(infs)
+                return self.blocks_for_influences(self.best_guess)
 
 class AI_Persona(Player):        
     def __init__(self, personality='passive'):

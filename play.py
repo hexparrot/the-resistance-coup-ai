@@ -30,7 +30,7 @@ class simulations(object):
     RET_ACT_GOOD = defaultdict(list)
     RET_ACT_REGRET = defaultdict(list)
     
-    def sim_calculated_actions_calculated_targets_more_calculated_blocks_random_doubts(self):
+    def sim_calculated_actions_calculated_targets_more_calculated_blocks_systemic_doubts(self):
         """
         AI PROFILE:
         

@@ -752,8 +752,9 @@ class TestCoup(unittest.TestCase):
     def test_judge_player(self):
         from heuristics import WEIGHTS
         testgame = Play_Coup(5)
-        
         p = testgame.players[0]
+        
+        self.assertEqual(p.judge_player, {})
         
         p.public_information['perform'].extend(['steal', 'steal', 'steal'])
         
@@ -765,6 +766,34 @@ class TestCoup(unittest.TestCase):
             'Captain': WEIGHTS['performed_action'] * 3 - abs(WEIGHTS['didnt_block_selfishly'] * 1), 
             'Ambassador': -abs(WEIGHTS['didnt_block_selfishly'] * 1)
             })
+            
+    def test_best_guess(self):
+        p = AI_Persona()
+        p.left = Contessa()
+        p.right = Duke()
+        
+        self.assertEqual(p.best_guess, '')
+            
+        p.public_information['perform'].extend(['tax'])
+        self.assertEqual(p.best_guess, 'Duke')
+        
+        p.public_information['perform'].extend(['assassinate'])
+        self.assertEqual(p.best_guess, 'Assassin Duke')
+        
+        p.public_information['perform'].extend(['assassinate'])
+        self.assertEqual(p.best_guess, 'Assassin Duke')
+        
+        p.public_information['perform'].extend(['steal'])
+        
+        matches = 0
+        try:
+            self.assertEqual(p.best_guess, 'Assassin Duke')
+            matches += 1
+        except AssertionError:
+            self.assertEqual(p.best_guess, 'Assassin Captain')
+            matches += 1
+        finally:
+            self.assertEqual(matches, 1)
             
     def test_judge_actions(self):
         testgame = Play_Coup(5)

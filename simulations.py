@@ -342,7 +342,7 @@ class simulations(object):
                 else:
                     break
 
-    def sim_calculated_actions_calculated_targets_more_calculated_blocks_random_doubts(self):
+    def sim_calculated_actions_calculated_targets_more_calculated_blocks_systemic_doubts(self):
         """
         AI PROFILE:
         
