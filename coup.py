@@ -312,6 +312,22 @@ class AI_Persona(Player):
             return choice(['tax'] * 5 + ['assassinate'])
         else:
             return action
+            
+    def one_on_one_strategy(self, influences, honest=True):
+        action_plan = []
+        if self.coins >= 10:
+            action_plan = ['coup']
+        else:
+            try:
+                action_plan.extend(AI_Persona.offensive_priority(influences))
+                action_plan.extend(AI_Persona.buildup_priority(influences))
+            except KeyError:
+                pass
+        
+        if honest:
+            return [a for a in action_plan if a in self.valid_actions + Play_Coup.ACTIONS['free']]
+        else:
+            return action_plan
 
     def will_intervene(self, action, performer, victim=None):
         try:
@@ -391,26 +407,26 @@ class AI_Persona(Player):
     @classmethod
     def buildup_priority(cls, influences):
         return {
-            'Ambassador': ['tax', 'foreign_aid', 'exchange', 'income'],
-            'Assassin': ['tax', 'foreign_aid', 'exchange', 'income'],  
-            'Captain': ['tax', 'foreign_aid', 'exchange', 'income'],
-            'Contessa': ['tax', 'foreign_aid', 'exchange', 'income'],
-            'Duke': ['tax', 'exchange', 'income'],
-            'Ambassador Ambassador': ['tax', 'foreign_aid', 'exchange', 'income'],
-            'Assassin Assassin': ['tax', 'foreign_aid', 'exchange', 'income'],
-            'Captain Captain': ['tax', 'foreign_aid', 'exchange', 'income'],
-            'Contessa Contessa': ['tax', 'foreign_aid', 'exchange', 'income'],
-            'Duke Duke': ['tax', 'exchange', 'income'],
-            'Ambassador Assassin': ['tax', 'foreign_aid', 'exchange', 'income'],
-            'Ambassador Captain': ['tax', 'foreign_aid', 'exchange', 'income'],
-            'Ambassador Contessa': ['tax', 'foreign_aid', 'exchange', 'income'],
-            'Ambassador Duke': ['tax', 'exchange', 'income'],
-            'Assassin Captain': ['tax', 'foreign_aid', 'exchange', 'income'],
-            'Assassin Contessa': ['tax', 'foreign_aid', 'exchange', 'income'],
-            'Assassin Duke': ['tax', 'exchange', 'income'],
-            'Captain Contessa': ['tax', 'foreign_aid', 'exchange', 'income'],
-            'Captain Duke': ['tax', 'exchange', 'income'],
-            'Contessa Duke': ['tax', 'exchange', 'income']
+            'Ambassador': ['tax', 'foreign_aid', 'income'],
+            'Assassin': ['tax', 'foreign_aid', 'income'],  
+            'Captain': ['tax', 'foreign_aid', 'income'],
+            'Contessa': ['tax', 'foreign_aid', 'income'],
+            'Duke': ['tax', 'income'],
+            'Ambassador Ambassador': ['tax', 'foreign_aid', 'income'],
+            'Assassin Assassin': ['tax', 'foreign_aid', 'income'],
+            'Captain Captain': ['tax', 'foreign_aid', 'income'],
+            'Contessa Contessa': ['tax', 'foreign_aid', 'income'],
+            'Duke Duke': ['tax', 'income'],
+            'Ambassador Assassin': ['tax', 'foreign_aid', 'income'],
+            'Ambassador Captain': ['tax', 'foreign_aid', 'income'],
+            'Ambassador Contessa': ['tax', 'foreign_aid', 'income'],
+            'Ambassador Duke': ['tax', 'income'],
+            'Assassin Captain': ['tax', 'foreign_aid', 'income'],
+            'Assassin Contessa': ['tax', 'foreign_aid', 'income'],
+            'Assassin Duke': ['tax', 'income'],
+            'Captain Contessa': ['tax', 'foreign_aid', 'income'],
+            'Captain Duke': ['tax', 'income'],
+            'Contessa Duke': ['tax', 'income']
             }[influences]
 
     @staticmethod
