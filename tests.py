@@ -349,21 +349,41 @@ class TestCoup(unittest.TestCase):
         p = testgame.players[0]
         pp = testgame.players[1]
         
-        self.assertEqual(testgame.filter_out_players([p,pp]), {
-            testgame.players[2],    
-            testgame.players[3],
-            testgame.players[4],        
-            })
+        filtered = testgame.filter_out_players([p,pp])
+        self.assertNotIn(p, filtered)
+        self.assertNotIn(pp, filtered)
+        self.assertIn(testgame.players[2], filtered)
+        self.assertIn(testgame.players[3], filtered)
+        self.assertIn(testgame.players[4], filtered)
             
         testgame.players[3].left.reveal()
         testgame.players[3].right.reveal()
+        
+        filtered = testgame.filter_out_players([testgame.players[0], testgame.players[1]])
+        self.assertNotIn(p, filtered)
+        self.assertNotIn(pp, filtered)
+        self.assertIn(testgame.players[2], filtered)
+        self.assertNotIn(testgame.players[3], filtered)
+        self.assertIn(testgame.players[4], filtered)
             
-        self.assertEqual(testgame.filter_out_players([testgame.players[0], testgame.players[1]]), {
-            testgame.players[2],    
-            testgame.players[4],        
-            })
+    def test_len_remaining_players(self):
+        testgame = Play_Coup(3)
+        
+        self.assertEqual(len(testgame), 3)
+        testgame.players[0].left.reveal()
+        self.assertEqual(len(testgame), 3)
+        testgame.players[0].right.reveal()
+        self.assertEqual(len(testgame), 2)
+        testgame.players[1].left.reveal()
+        self.assertEqual(len(testgame), 2)
+        testgame.players[1].right.reveal()
+        self.assertEqual(len(testgame), 1)
+        testgame.players[2].left.reveal()
+        self.assertEqual(len(testgame), 1)
+        testgame.players[2].right.reveal()
+        self.assertEqual(len(testgame), 0)
     
-    def test_gamestate(self):
+    def test_playerstate(self):
         testgame = Play_Coup(5)
         testgame.players[0].left = Ambassador()
         testgame.players[0].right = Ambassador()
@@ -424,10 +444,6 @@ class TestCoup(unittest.TestCase):
         self.assertIs(a.left, p.left)
         self.assertIs(a.right, p.right)
 
-    def test_ai_persona_replace_player(self):
-        testgame = Play_Coup(5)
-
-        a = AI_Persona.clone(testgame.players[0])
         testgame.players[0] = a
 
         self.assertIs(a, testgame.players[0])
@@ -477,7 +493,70 @@ class TestCoup(unittest.TestCase):
         self.assertEqual(z.coins, 5)
         BlockedAction('assassinate', z, testgame.players[2], None)
         self.assertEqual(z.coins, 2)
+     
+    def test_actions_for_influences(self):
+        self.assertEqual(Player.actions_for_influences('Assassin'), ['assassinate'])
+        self.assertEqual(Player.actions_for_influences('Contessa'), [])
+        self.assertEqual(Player.actions_for_influences('Duke'), ['tax'])
+        self.assertEqual(Player.actions_for_influences('Ambassador'), ['exchange'])
+        self.assertEqual(Player.actions_for_influences('Captain'), ['steal'])
         
+        self.assertEqual(Player.actions_for_influences(['Assassin', 'Duke']), ['assassinate', 'tax'])
+        self.assertEqual(Player.actions_for_influences(['Contessa', 'Assassin']), ['assassinate'])
+        self.assertEqual(Player.actions_for_influences(['Duke', 'Captain']), ['steal', 'tax'])
+        self.assertEqual(Player.actions_for_influences(['Ambassador', 'Ambassador']), ['exchange'])
+        self.assertEqual(Player.actions_for_influences(['Captain', 'Assassin']), ['assassinate', 'steal'])
+        
+        self.assertEqual(Player.actions_for_influences('Assassin Duke'), ['assassinate', 'tax'])
+        self.assertEqual(Player.actions_for_influences('Assassin Contessa'), ['assassinate'])
+        self.assertEqual(Player.actions_for_influences('Duke Captain'), ['steal', 'tax'])
+        self.assertEqual(Player.actions_for_influences('Ambassador Ambassador'), ['exchange'])
+        self.assertEqual(Player.actions_for_influences('Captain Assassin'), ['assassinate', 'steal'])
+
+    def test_blocks_for_influences(self):
+        self.assertEqual(Player.blocks_for_influences('Assassin'), [])
+        self.assertEqual(Player.blocks_for_influences('Contessa'), ['assassinate'])
+        self.assertEqual(Player.blocks_for_influences('Duke'), ['foreign_aid'])
+        self.assertEqual(Player.blocks_for_influences('Ambassador'), ['steal'])
+        self.assertEqual(Player.blocks_for_influences('Captain'), ['steal'])
+        
+        self.assertEqual(Player.blocks_for_influences(['Assassin', 'Duke']), ['foreign_aid'])
+        self.assertEqual(Player.blocks_for_influences(['Contessa', 'Assassin']), ['assassinate'])
+        self.assertEqual(Player.blocks_for_influences(['Duke', 'Captain']), ['foreign_aid', 'steal'])
+        self.assertEqual(Player.blocks_for_influences(['Ambassador', 'Ambassador']), ['steal'])
+        self.assertEqual(Player.blocks_for_influences(['Captain', 'Assassin']), ['steal'])
+        
+        self.assertEqual(Player.blocks_for_influences('Assassin Duke'), ['foreign_aid'])
+        self.assertEqual(Player.blocks_for_influences('Assassin Contessa'), ['assassinate'])
+        self.assertEqual(Player.blocks_for_influences('Duke Captain'), ['foreign_aid', 'steal'])
+        self.assertEqual(Player.blocks_for_influences('Ambassador Ambassador'), ['steal'])
+        self.assertEqual(Player.blocks_for_influences('Captain Assassin'), ['steal'])
+
+    def test_actions_for_probable_influences(self):
+        p = AI_Persona()
+        
+        p.left = Assassin()
+        p.right = Duke()
+        
+        self.assertEqual(Player.actions_for_influences(p), ['assassinate', 'tax'])
+        
+        p.left = Contessa()
+        p.right = Contessa()
+        
+        self.assertEqual(Player.actions_for_influences(p), [])
+        
+    def test_blocks_for_probable_influences(self):
+        p = AI_Persona()
+        
+        p.left = Assassin()
+        p.right = Duke()
+        
+        self.assertEqual(Player.blocks_for_influences(p), ['foreign_aid'])
+        
+        p.left = Contessa()
+        p.right = Contessa()
+        
+        self.assertEqual(Player.blocks_for_influences(p), ['assassinate'])
 
     def test_deduce(self):
         testgame = Play_Coup(5)
@@ -526,7 +605,7 @@ class TestCoup(unittest.TestCase):
         p = testgame.players[0]
         
         p.perform('foreign_aid')
-        testgame.players[1].not_acting_like['spectator'].extend(['foreign_aid'])
+        testgame.players[1].didnt_block_as['spectator'].extend(['foreign_aid'])
         
         self.assertIn('Duke', testgame.players[1].improbable_influences)
         self.assertEqual(testgame.players[1].improbable_influences, {
@@ -536,8 +615,8 @@ class TestCoup(unittest.TestCase):
         ppp = testgame.players[2]
         
         ppp.perform('steal', testgame.players[0])        
-        testgame.players[0].not_acting_like['victim'].extend(['steal'])
-        testgame.players[3].not_acting_like['spectator'].extend(['steal'])
+        testgame.players[0].didnt_block_as['victim'].extend(['steal'])
+        testgame.players[3].didnt_block_as['spectator'].extend(['steal'])
             
         self.assertEqual(testgame.players[0].improbable_influences, {
             'Duke': abs(WEIGHTS['suboptimal_move']) * 1,
@@ -670,6 +749,84 @@ class TestCoup(unittest.TestCase):
             }
         self.assertTrue(ppp.will_intervene('steal', p, pp))
         
+    def test_judge_player(self):
+        from heuristics import WEIGHTS
+        testgame = Play_Coup(5)
+        p = testgame.players[0]
+        
+        self.assertEqual(p.judge_player, {})
+        
+        p.public_information['perform'].extend(['steal', 'steal', 'steal'])
+        
+        self.assertEqual(p.judge_player, {'Captain': WEIGHTS['performed_action'] * 3})
+        
+        p.didnt_block_as['victim'].extend(['steal'])
+        
+        self.assertEqual(p.judge_player, {
+            'Captain': WEIGHTS['performed_action'] * 3 - abs(WEIGHTS['didnt_block_selfishly'] * 1), 
+            'Ambassador': -abs(WEIGHTS['didnt_block_selfishly'] * 1)
+            })
+            
+    def test_best_guess(self):
+        p = AI_Persona()
+        p.left = Contessa()
+        p.right = Duke()
+        
+        self.assertEqual(p.best_guess, '')
+            
+        p.public_information['perform'].extend(['tax'])
+        self.assertEqual(p.best_guess, 'Duke')
+        
+        p.public_information['perform'].extend(['assassinate'])
+        self.assertEqual(p.best_guess, 'Assassin Duke')
+        
+        p.public_information['perform'].extend(['assassinate'])
+        self.assertEqual(p.best_guess, 'Assassin Duke')
+        
+        p.public_information['perform'].extend(['steal'])
+        
+        matches = 0
+        try:
+            self.assertEqual(p.best_guess, 'Assassin Duke')
+            matches += 1
+        except AssertionError:
+            self.assertEqual(p.best_guess, 'Assassin Captain')
+            matches += 1
+        finally:
+            self.assertEqual(matches, 1)
+            
+        pp = AI_Persona()
+        pp.left = Contessa()
+        pp.right = Duke()
+        
+        pp.public_information['perform'].extend(['tax', 'tax', 'steal', 'steal', 'assassinate'])
+        self.assertEqual(pp.best_guess, 'Captain Duke')
+        pp.right.reveal()
+        pp.remove_suspicion('Duke')
+        
+        self.assertEqual(pp.best_guess, 'Captain')
+            
+    def test_judge_actions(self):
+        testgame = Play_Coup(5)
+        
+        p = testgame.players[0]
+        
+        p.public_information['perform'].extend(['steal', 'steal', 'steal'])
+        self.assertIn('steal', p.calculate('judge', 'actions'))
+        p.didnt_block_as['victim'].extend(['steal'])
+        p.public_information['perform'].extend(['assassinate'])
+        
+        self.assertIn('assassinate', p.calculate('judge', 'actions')) 
+        self.assertNotIn('steal', p.calculate('judge', 'actions'))
+    
+    def test_judge_blocks(self):
+        testgame = Play_Coup(5)
+        
+        p = testgame.players[0]
+        
+        p.public_information['perform'].extend(['steal', 'steal', 'steal']) 
+        self.assertIn('steal', p.calculate('judge', 'blocks'))        
+        
     def test_best_probable_actions(self):
         testgame = Play_Coup(5)
         
@@ -677,33 +834,99 @@ class TestCoup(unittest.TestCase):
         p.left = Duke()
         p.right = Captain()
         
-        self.assertNotIn('assassinate', p.probable_actions)
-        self.assertNotIn('tax', p.probable_actions)
-        self.assertNotIn('steal', p.probable_actions)
+        self.assertNotIn('assassinate', p.calculate('probable', 'actions'))
+        self.assertNotIn('tax', p.calculate('probable', 'actions'))
+        self.assertNotIn('steal', p.calculate('probable', 'actions'))
         
         p.public_information['perform'].extend(['steal', 'steal', 'steal'])
         
-        self.assertNotIn('assassinate', p.probable_actions)
-        self.assertNotIn('tax', p.probable_actions)
-        self.assertIn('steal', p.probable_actions)
+        self.assertNotIn('assassinate', p.calculate('probable', 'actions'))
+        self.assertNotIn('tax', p.calculate('probable', 'actions'))
+        self.assertIn('steal', p.calculate('probable', 'actions'))
         
         p.public_information['perform'].extend(['tax','tax','tax'])
         
-        self.assertNotIn('assassinate', p.probable_actions)
-        self.assertIn('tax', p.probable_actions)
-        self.assertIn('steal', p.probable_actions)
+        self.assertNotIn('assassinate', p.calculate('probable', 'actions'))
+        self.assertIn('tax', p.calculate('probable', 'actions'))
+        self.assertIn('steal', p.calculate('probable', 'actions'))
         
         p.public_information['perform'].extend(['assassinate'])
         
-        self.assertNotIn('assassinate', p.probable_actions)
-        self.assertIn('tax', p.probable_actions)
-        self.assertIn('steal', p.probable_actions)
+        self.assertNotIn('assassinate', p.calculate('probable', 'actions'))
+        self.assertIn('tax', p.calculate('probable', 'actions'))
+        self.assertIn('steal', p.calculate('probable', 'actions'))
         
         p.public_information['perform'].extend(['tax', 'assassinate','assassinate','assassinate'])
 
-        self.assertIn('assassinate', p.probable_actions)
-        self.assertIn('tax', p.probable_actions)
-        self.assertNotIn('steal', p.probable_actions)
+        self.assertIn('assassinate', p.calculate('probable', 'actions'))
+        self.assertIn('tax', p.calculate('probable', 'actions'))
+        self.assertNotIn('steal', p.calculate('probable', 'actions'))
+    
+    def test_calculate(self):
+        p = AI_Persona()
+        
+        p.left = Contessa()
+        p.right = Assassin()
+        
+        self.assertEqual(p.calculate('probable', 'blocks'), [])
+        self.assertEqual(p.calculate('improbable', 'blocks'), [])
+        self.assertEqual(p.calculate('judge', 'blocks'), [])
+        
+        self.assertEqual(p.calculate('probable', 'actions'), [])
+        self.assertEqual(p.calculate('improbable', 'actions'), [])
+        self.assertEqual(p.calculate('judge', 'actions'), [])
+        
+        p.public_information['perform'].extend(['tax'])
+        
+        self.assertEqual(p.calculate('probable', 'blocks'), ['foreign_aid'])
+        self.assertEqual(p.calculate('improbable', 'blocks'), [])
+        self.assertEqual(p.calculate('judge', 'blocks'), ['foreign_aid'])
+        
+        self.assertEqual(p.calculate('probable', 'actions'), ['tax'])
+        self.assertEqual(p.calculate('improbable', 'actions'), [])
+        self.assertEqual(p.calculate('judge', 'actions'), ['tax'])
+        
+        p.public_information['perform'].extend(['steal'])
+        
+        self.assertEqual(p.calculate('probable', 'blocks'), ['foreign_aid', 'steal'])
+        self.assertEqual(p.calculate('improbable', 'blocks'), [])
+        self.assertEqual(p.calculate('judge', 'blocks'), ['foreign_aid', 'steal'])
+        
+        self.assertEqual(p.calculate('probable', 'actions'), ['steal', 'tax'])
+        self.assertEqual(p.calculate('improbable', 'actions'), [])
+        self.assertEqual(p.calculate('judge', 'actions'), ['steal', 'tax'])
+        
+        p.didnt_block_as['spectator'].extend(['foreign_aid', 'foreign_aid', 'foreign_aid'])
+        
+        self.assertEqual(p.calculate('probable', 'blocks'), ['foreign_aid', 'steal'])
+        self.assertEqual(p.calculate('improbable', 'blocks'), ['foreign_aid'])
+        self.assertEqual(p.calculate('judge', 'blocks'), ['steal'])
+        
+        self.assertEqual(p.calculate('probable', 'actions'), ['steal', 'tax'])
+        self.assertEqual(p.calculate('improbable', 'actions'), ['tax'])
+        self.assertEqual(p.calculate('judge', 'actions'), ['steal'])
+        
+        p.public_information['perform'].extend(['assassinate', 'assassinate', 'steal'])
+        
+        self.assertEqual(p.calculate('probable', 'blocks'), ['steal'])
+        self.assertEqual(p.calculate('improbable', 'blocks'), ['foreign_aid'])
+        self.assertEqual(p.calculate('judge', 'blocks'), ['steal'])
+        
+        self.assertEqual(p.calculate('probable', 'actions'), ['assassinate', 'steal'])
+        self.assertEqual(p.calculate('improbable', 'actions'), ['tax'])
+        self.assertEqual(p.calculate('judge', 'actions'), ['assassinate', 'steal'])
+        
+        p.public_information['perform'].extend(['income', 'income', 'income'])
+        p.public_information['spectator'].extend(['assassinate'])
+        p.public_information['perform'].extend(['assassinate'])
+        
+        self.assertEqual(p.calculate('probable', 'blocks'), ['assassinate'])
+        self.assertEqual(p.calculate('improbable', 'blocks'), ['foreign_aid'])
+        self.assertEqual(p.calculate('judge', 'blocks'), ['assassinate'])
+        
+        self.assertEqual(p.calculate('probable', 'actions'), ['assassinate'])
+        self.assertEqual(p.calculate('improbable', 'actions'), ['tax'])
+        self.assertEqual(p.calculate('judge', 'actions'), ['assassinate'])
 
     def test_probable_blocks(self):
         testgame = Play_Coup(5)
@@ -711,32 +934,40 @@ class TestCoup(unittest.TestCase):
         p = testgame.players[0]
         
         p.public_information['perform'].extend(['tax'])
-        self.assertIn('foreign_aid', p.probable_blocks)
+        self.assertIn('foreign_aid', p.calculate('probable', 'blocks'))
         
         p.perform('steal', testgame.players[1])
-        self.assertIn('steal', p.probable_blocks)
+        self.assertIn('steal', p.calculate('probable', 'blocks'))
         
     def test_improbable_blocks(self):
         testgame = Play_Coup(5)
         
         p = testgame.players[0]
         
-        p.not_acting_like['spectator'].extend(['steal'])
-        self.assertIn('steal', p.improbable_blocks)
-        self.assertNotIn('assassinate', p.improbable_blocks)
-        self.assertNotIn('foreign_aid', p.improbable_blocks)
+        p.didnt_block_as['spectator'].extend(['steal'])
+        self.assertIn('steal', p.calculate('improbable', 'blocks')) 
+        self.assertNotIn('assassinate', p.calculate('improbable', 'blocks'))
+        self.assertNotIn('foreign_aid', p.calculate('improbable', 'blocks'))
         
         p.perform('income')
-        self.assertIn('steal', p.improbable_blocks)
-        self.assertNotIn('assassinate', p.improbable_blocks)
-        self.assertIn('foreign_aid', p.improbable_blocks)
+        self.assertIn('steal', p.calculate('improbable', 'blocks'))
+        self.assertNotIn('assassinate', p.calculate('improbable', 'blocks'))
+        self.assertIn('foreign_aid', p.calculate('improbable', 'blocks'))
         
-        p.not_acting_like['spectator'].extend(['assassinate'])
-        p.not_acting_like['spectator'].extend(['assassinate'])
+        p.didnt_block_as['spectator'].extend(['assassinate'])
+        p.didnt_block_as['spectator'].extend(['assassinate'])
         
-        self.assertNotIn('steal', p.improbable_blocks)
-        self.assertIn('assassinate', p.improbable_blocks)
-        self.assertIn('foreign_aid', p.improbable_blocks)   
+        self.assertNotIn('steal', p.calculate('improbable', 'blocks'))
+        self.assertIn('assassinate', p.calculate('improbable', 'blocks'))
+        self.assertIn('foreign_aid', p.calculate('improbable', 'blocks'))   
+
+    def test_improbable_actions(self):
+        testgame = Play_Coup(5)
+        
+        p = testgame.players[0]
+        
+        p.didnt_block_as['spectator'].extend(['steal'])
+        self.assertIn('steal', p.calculate('improbable', 'actions'))
 
     def test_ai_profile_will_intervene_steal_victim(self):
         p = AI_Persona() #not captain
@@ -772,6 +1003,59 @@ class TestCoup(unittest.TestCase):
         self.assertFalse(ppp.will_intervene('steal', p, pp))
         pp.coins = 5
         self.assertTrue(ppp.will_intervene('steal', p, pp))
+
+    def test_will_callout(self):
+        testgame = Play_Coup(5)
+        
+        p = testgame.players[0]
+        pp = testgame.players[1]
+        
+        self.assertFalse(pp.will_callout('tax', p)) #no rule
+        
+        pp.rules['callout'] = {
+            'threshold': -3,
+            'min_actions': 3,
+            'min_inactions': 3
+            }
+        
+        self.assertFalse(pp.will_callout('tax', p))
+
+        p.perform('tax')
+        self.assertFalse(pp.will_callout('tax', p))
+
+        p.perform('tax')
+        self.assertFalse(pp.will_callout('tax', p))
+        
+        for _ in range(6):
+            p.didnt_block_as['spectator'].extend(['foreign_aid'])
+        self.assertFalse(pp.will_callout('tax', p))
+        
+        p.perform('tax')
+        self.assertTrue(pp.will_callout('tax', p))
+        
+        pp.rules['callout'] = {
+            'threshold': -30,
+            'min_actions': 3,
+            'min_inactions': 3
+            }
+            
+        self.assertFalse(pp.will_callout('tax', p))
+        
+        pp.rules['callout'] = {
+            'threshold': -3,
+            'min_actions': 3,
+            'min_inactions': 3
+            }
+        
+        self.assertTrue(pp.will_callout('tax', p))
+        
+        pp.rules['callout'] = {
+            'threshold': -3,
+            'min_actions': 12,
+            'min_inactions': 12
+            }
+        
+        self.assertFalse(pp.will_callout('tax', p))
 
     def test_naive_priorities(self):
         p = AI_Persona()
@@ -819,89 +1103,18 @@ class TestCoup(unittest.TestCase):
         p.coins = 12
         self.assertEqual(p.naive_priority(), 'coup')
     
-    def test_random_targetable_player(self):
-        testgame = Play_Coup(5)
-
-        p = testgame.players[0]
-        self.assertIsNot(testgame.random_targetable_player(p), p)
-        self.assertIsInstance(testgame.random_targetable_player(p), Player)
-
-        for _ in range(50):
-            self.assertIsNot(testgame.random_targetable_player(p), p)
-
-        pp = testgame.players[1]
-
-        for _ in range(50):
-            self.assertIsNot(testgame.random_targetable_player(p), p)
-
-    def test_random_targetable_half_health_player(self):
-        testgame = Play_Coup(5)
-
-        p = testgame.players[0]
-        self.assertIsNot(testgame.random_targetable_player(p), p)
-        self.assertIsNone(testgame.random_targetable_player(p, [1]))
-
-        pp = testgame.players[1]
-        pp.left.reveal()
-        self.assertIs(testgame.random_targetable_player(p, [1]), pp)
-        self.assertIsNot(testgame.random_targetable_player(p, [1]), testgame.players[0])
-        self.assertIsNot(testgame.random_targetable_player(p, [1]), testgame.players[2])
-        self.assertIsNot(testgame.random_targetable_player(p, [1]), testgame.players[3])
-        self.assertIsNot(testgame.random_targetable_player(p, [1]), testgame.players[4])
-
-        ppp = testgame.players[2]
-        ppp.left.reveal()
-        self.assertIsNot(testgame.random_targetable_player(p, [1]), testgame.players[0])
-        self.assertIsNot(testgame.random_targetable_player(p, [1]), testgame.players[3])
-        self.assertIsNot(testgame.random_targetable_player(p, [1]), testgame.players[4])
-
-    def test_random_targetable_player_by_coins(self):
-        testgame = Play_Coup(5)
-
-        p = testgame.players[0]
-        self.assertIsNot(testgame.random_targetable_player_by_coins(p), p)
-        self.assertIsNone(testgame.random_targetable_player_by_coins(p, [0,0]))
-        self.assertIsNone(testgame.random_targetable_player_by_coins(p, [0,1]))
-        self.assertIsNone(testgame.random_targetable_player_by_coins(p, [1,1]))
-
-        pp = testgame.players[1]
-        pp.coins = 3
-        self.assertIsNot(testgame.random_targetable_player_by_coins(p, [3,12]), p)
-        self.assertIs(testgame.random_targetable_player_by_coins(p, [3,12]), pp)
-
-        ppp = testgame.players[2]
-        ppp.coins = 12
-        self.assertIsNot(testgame.random_targetable_player_by_coins(p, [4,12]), p)
-        self.assertIsNot(testgame.random_targetable_player_by_coins(p, [4,12]), pp)
-        self.assertIs(testgame.random_targetable_player_by_coins(p, [4,12]), ppp)
-
-        testgame.players[4].left.reveal()
-        testgame.players[4].right.reveal()
-        self.assertIsNot(testgame.random_targetable_player_by_coins(p, [4,12]), testgame.players[4])                           
-
-    def test_random_targetable_player_by_wealth(self):
-        testgame = Play_Coup(5)
-
-        p = testgame.players[0]
-        testgame.players[1].coins = 2
-        testgame.players[2].coins = 3
-        testgame.players[3].coins = 4
-        testgame.players[4].coins = 5
-
-        self.assertIs(testgame.random_richest_player(p), testgame.players[4])
-        testgame.players[4].left.reveal()
-        self.assertIs(testgame.random_richest_player(p), testgame.players[4])
-        testgame.players[4].right.reveal()
-        self.assertIs(testgame.random_richest_player(p), testgame.players[3])
-
-        testgame.players[2].coins = 4
-
-        self.assertIsNot(testgame.random_richest_player(p), testgame.players[0])
-        self.assertIsNot(testgame.random_richest_player(p), testgame.players[1])
-        self.assertIsNot(testgame.random_richest_player(p), testgame.players[4])
-
-        for _ in range(50):
-            self.assertEqual(testgame.random_richest_player(p).coins, 4)        
+    def test_one_on_one_strategy(self):
+        p = AI_Persona()
+        p.left = Contessa()
+        p.right = Duke()
+        
+        p.coins = 0
+        self.assertEqual(p.one_on_one_strategy('Assassin Contessa', False), ['steal', 'coup', 'tax', 'foreign_aid', 'income'])
+        self.assertEqual(p.one_on_one_strategy('Assassin Contessa', True), ['coup', 'tax', 'foreign_aid', 'income'])
+        
+        p.coins = 10
+        self.assertEqual(p.one_on_one_strategy('Assassin Contessa', True), ['coup'])
+        self.assertEqual(p.one_on_one_strategy('Assassin Contessa', False), ['coup'])
     
     def test_cannot_target_self(self):
         testgame = Play_Coup(5)
@@ -965,486 +1178,50 @@ class TestCoup(unittest.TestCase):
             self.assertEqual(e.message, "{0} blocks {1}'s {2}".format(victim,
                                                                       performer,
                                                                       action))
-
-    def test_gameplay_random_actions_random_targets_no_blocks(self):
-        """
-        AI PROFILE:
+                                                                      
+    def test_question_influence(self):
+        testgame = Play_Coup(5)
         
-        Action          Used        Targets     Blocked     
-        income          yes
-        foreign_aid     yes                     no
-        coup            yes
-        steal           yes         random      no
-        tax             yes
-        assassinate     yes         random      no
-        exchange        yes         random      no
-
-        """
-        from itertools import cycle
-        from random import choice, randint
-
-        PLAYERS = 5
-        testgame = Play_Coup(PLAYERS)
-
-        for i in cycle(range(PLAYERS)):
-            acting_player = testgame.players[i]
-            
-            if not acting_player.influence_remaining:
-                continue
-            elif sum(1 for p in range(PLAYERS) if testgame.players[p].influence_remaining) == 1:
-                return testgame.players[i].alpha
-            
-            while 1:
-                try:
-                    action = choice(Play_Coup.ACTIONS['all'])
-                    if action in Play_Coup.ACTIONS['targets_influence']:
-                        random_player = testgame.random_targetable_player(acting_player)
-                        position, random_target = random_player.random_remaining_influence
-                        testgame.players[i].perform(action, random_target)
-                    elif action in Play_Coup.ACTIONS['targets_player']:
-                        random_player = testgame.random_targetable_player(acting_player)
-                        testgame.players[i].perform(action, random_player)
-                    elif action == 'exchange':
-                        testgame.players[i].perform(action, testgame.court_deck)
-                    else:
-                        testgame.players[i].perform(action)
-                except (IllegalTarget, IllegalAction):
-                    pass
-                else:
-                    break
-
-    def test_gameplay_random_actions_random_targets_honest_blocks_no_doubts(self):
-        """
-        AI PROFILE:
+        p = testgame.players[0]
+        pp = testgame.players[1]
         
-        Action          Used        Targets     Blocked     
-        income          yes
-        foreign_aid     yes                     if random char is duke
-        coup            yes
-        steal           yes         random      victim/honest
-        tax             yes
-        assassinate     yes         random      victim/honest
-        exchange        yes         random      no
-
-        """
-        from itertools import cycle
-        from random import choice, randint
-
-        PLAYERS = 5
-        testgame = Play_Coup(PLAYERS)
-
-        for i in cycle(range(PLAYERS)):
-            acting_player = testgame.players[i]
-            
-            if not acting_player.influence_remaining:
-                continue
-            elif sum(1 for p in range(PLAYERS) if testgame.players[p].influence_remaining) == 1:
-                return testgame.players[i].alpha
-            
-            while 1:
-                try:
-                    action = choice(Play_Coup.ACTIONS['all'])
-                    if action in Play_Coup.ACTIONS['blockable']:
-                        random_player = testgame.random_targetable_player(acting_player)
-                        if action not in random_player.valid_blocks:
-                            if action in Play_Coup.ACTIONS['targets_influence']:
-                                position, random_target = random_player.random_remaining_influence
-                                testgame.players[i].perform(action, random_target)
-                            elif action in Play_Coup.ACTIONS['targets_player']:
-                                testgame.players[i].perform(action, random_player)
-                    else:
-                        if action in Play_Coup.ACTIONS['targets_influence']:
-                            random_player = testgame.random_targetable_player(acting_player)
-                            position, random_target = random_player.random_remaining_influence
-                            testgame.players[i].perform(action, random_target)
-                        elif action == 'exchange':
-                            testgame.players[i].perform(action, testgame.court_deck)
-                        else:
-                            testgame.players[i].perform(action)
-                except (IllegalTarget, IllegalAction):
-                    pass
-                else:
-                    break
-
-    def test_gameplay_random_actions_calculated_targets_selfish_blocks_no_doubts(self):
-        """
-        AI PROFILE:
+        p.left = Duke()
+        p.right = Duke()
+        pp.left = Assassin()
+        pp.right = Duke()
         
-        Action          Used        Targets     Blocked     
-        income          yes
-        foreign_aid     yes                     any available duke
-        coup            yes
-        steal           yes         richest     victim only
-        tax             yes
-        assassinate     yes         weakest     victim only
-        exchange        yes         random      no
-
-        """
-        from itertools import cycle
-        from random import choice, randint
-
-        PLAYERS = 5
-        testgame = Play_Coup(PLAYERS)
-
-        for i in cycle(range(PLAYERS)):
-            acting_player = testgame.players[i]
+        try:
+            raise QuestionInfluence('assassinate', p, pp)
+        except QuestionInfluence as e:
+            self.assertEqual(e.message, "{0} doubts {1} can {2}: performer loses one influence!".format(pp,
+                                                                                                        p,
+                                                                                                        'assassinate'))
+            self.assertFalse(e.performer_is_honest)
+            self.assertEqual(p.influence_remaining, 1)
+            self.assertEqual(pp.influence_remaining, 2)
             
-            if not acting_player.influence_remaining:
-                continue
-            elif sum(1 for p in range(PLAYERS) if testgame.players[p].influence_remaining) == 1:
-                return testgame.players[i].alpha
-            
-            while 1:
-                try:
-                    action = choice(Play_Coup.ACTIONS['all'])
-                    if action == 'steal':
-                        random_player = testgame.random_richest_player(acting_player)
-                        if 'steal' in random_player.valid_blocks:
-                            raise BlockedAction(action, acting_player, random_player, None)
-                        else:
-                            testgame.players[i].perform(action, random_player)
-                    elif action == 'assassinate':
-                        random_player = testgame.random_targetable_player(acting_player, [1])or \
-                                        testgame.random_richest_player(acting_player)
-                        if 'assassinate' in random_player.valid_blocks:
-                            raise BlockedAction(action, acting_player, random_player, None)
-                        else:
-                            position, random_target = random_player.random_remaining_influence
-                            testgame.players[i].perform(action, random_target)
-                    elif action == 'foreign_aid':
-                        for savior in range(PLAYERS):
-                            if savior != i and action in testgame.players[savior].valid_blocks:
-                                raise BlockedAction(action, acting_player, None, testgame.players[savior])
-                            else:
-                                testgame.players[i].perform(action)
-                    elif action == 'exchange':
-                        testgame.players[i].perform(action, testgame.court_deck)
-                    elif action == 'coup':
-                        random_player = testgame.random_targetable_player(acting_player, [1]) or \
-                                        testgame.random_richest_player(acting_player)
-                        position, random_target = random_player.random_remaining_influence
-                        testgame.players[i].perform(action, random_target)
-                    else:
-                        testgame.players[i].perform(action)
-                except (IllegalTarget, IllegalAction):
-                    pass
-                except BlockedAction as e:
-                    break
-                else:
-                    break
-
-    def test_gameplay_naive_actions_calculated_targets_selfish_blocks_no_doubts(self):
-        """
-        AI PROFILE:
+        try:
+            raise QuestionInfluence('assassinate', pp, p)
+        except QuestionInfluence as e:
+            self.assertEqual(e.message, "{0} doubts {1} can {2}: doubter loses one influence!".format(p,
+                                                                                                      pp,
+                                                                                                      'assassinate'))
+            self.assertTrue(e.performer_is_honest)
+            self.assertEqual(p.influence_remaining, 0)
+            self.assertEqual(pp.influence_remaining, 2)
+    
+    def test_exchange_revealed_influence(self):
+        testgame = Play_Coup(5)
         
-        Action          Used        Targets     Blocked     
-        income          yes
-        foreign_aid     yes                     any available duke
-        coup            yes
-        steal           yes         anybody     victim only
-        tax             yes
-        assassinate     yes         weakest     victim only
-        exchange        yes         random      no
-
-        """
-        from itertools import cycle
-        from random import choice, randint
-
-        PLAYERS = 5
-        testgame = Play_Coup(PLAYERS)
-
-        for i in cycle(range(PLAYERS)):
-            acting_player = testgame.players[i]
-            
-            if not acting_player.influence_remaining:
-                continue
-            elif sum(1 for p in range(PLAYERS) if testgame.players[p].influence_remaining) == 1:
-                return testgame.players[i].alpha
-            
-            while 1:
-                try:
-                    action = acting_player.random_naive_priority()
-                    if action == 'steal':
-                        random_player = acting_player.select_opponent(testgame.players)
-                        if 'steal' in random_player.valid_blocks:
-                            raise BlockedAction(action, acting_player, random_player, None)
-                        else:
-                            testgame.players[i].perform(action, random_player)
-                    elif action == 'assassinate':
-                        random_player = acting_player.select_opponent(testgame.players)
-                        if 'assassinate' in random_player.valid_blocks:
-                            raise BlockedAction(action, acting_player, random_player, None)
-                        else:
-                            position, random_target = random_player.random_remaining_influence
-                            testgame.players[i].perform(action, random_target)
-                    elif action == 'foreign_aid':
-                        for savior in range(PLAYERS):
-                            if savior != i and action in testgame.players[savior].valid_blocks:
-                                raise BlockedAction(action, acting_player, None, testgame.players[savior])
-                            else:
-                                testgame.players[i].perform(action)
-                    elif action == 'exchange':
-                        testgame.players[i].perform(action, testgame.court_deck)
-                    elif action == 'coup':
-                        random_player = acting_player.select_opponent(testgame.players)
-                        position, random_target = random_player.random_remaining_influence
-                        testgame.players[i].perform(action, random_target)
-                    else:
-                        testgame.players[i].perform(action)
-                except (IllegalTarget, IllegalAction):
-                    pass
-                except BlockedAction as e:
-                    break
-                else:
-                    break
-
-    def test_gameplay_naive_actions_calculated_targets_calculated_blocks_no_doubts(self):
-        """
-        AI PROFILE:
+        p = testgame.players[0]
         
-        Action          Used        Targets     Blocked     
-        income          yes
-        foreign_aid     yes                     victim/by ai profile
-        coup            yes
-        steal           yes         anybody     victim/by ai profile
-        tax             yes
-        assassinate     yes         weakest     victim/by ai profile
-        exchange        yes         random      no
-
-        """
-        from itertools import cycle
-        from random import choice, randint
-
-        PLAYERS = 5
-        testgame = Play_Coup(PLAYERS)
-
-        for i in cycle(range(PLAYERS)):
-            acting_player = testgame.players[i]
-            
-            if not acting_player.influence_remaining:
-                continue
-            elif sum(1 for p in range(PLAYERS) if testgame.players[p].influence_remaining) == 1:
-                return testgame.players[i].alpha
-            
-            while 1:
-                try:
-                    action = acting_player.random_naive_priority()
-
-                    if action in Play_Coup.ACTIONS['blockable']:
-                        if action == 'steal':
-                            random_player = acting_player.select_opponent(testgame.players)
-                            if 'steal' in random_player.valid_blocks:
-                                raise BlockedAction(action, acting_player, random_player, None)
-                            else:
-                                for savior in range(PLAYERS):
-                                    if savior != i and \
-                                       random_player is not testgame.players[savior] and \
-                                       testgame.players[savior].will_intervene(action, acting_player, random_player):
-                                        raise BlockedAction(action, acting_player, random_player, testgame.players[savior])
-                                else:
-                                    testgame.players[i].perform(action, random_player)
-                        elif action == 'assassinate':
-                            random_player = acting_player.select_opponent(testgame.players)
-                            if 'assassinate' in random_player.valid_blocks:
-                                raise BlockedAction(action, acting_player, random_player, None)
-                            else:
-                                for savior in range(PLAYERS):
-                                    if savior != i and \
-                                       random_player is not testgame.players[savior] and \
-                                       testgame.players[savior].will_intervene(action, acting_player, random_player):
-                                        raise BlockedAction(action, acting_player, random_player, testgame.players[savior])
-                                else:
-                                    position, random_target = random_player.random_remaining_influence
-                                    testgame.players[i].perform(action, random_target)
-                        elif action == 'foreign_aid':
-                            for savior in range(PLAYERS):
-                                if savior != i and testgame.players[savior].will_intervene(action, acting_player):
-                                    raise BlockedAction(action, acting_player, None, testgame.players[savior])
-                            else:
-                                testgame.players[i].perform(action)
-                    else:
-                        if action == 'exchange':
-                            testgame.players[i].perform(action, testgame.court_deck)
-                        elif action == 'coup':
-                            random_player = acting_player.select_opponent(testgame.players)
-                            position, random_target = random_player.random_remaining_influence
-                            testgame.players[i].perform(action, random_target)
-                        else:
-                            testgame.players[i].perform(action)
-                except (IllegalTarget, IllegalAction):
-                    pass
-                except BlockedAction as e:
-                    break
-                else:
-                    break
-
-    def test_gameplay_calculated_actions_calculated_targets_calculated_blocks_no_doubts(self):
-        """
-        AI PROFILE:
-        
-        Action          Used        Targets     Blocked     
-        income          yes
-        foreign_aid     yes                     victim/by ai profile
-        coup            yes
-        steal           yes         best_guess  victim/by ai profile
-        tax             yes
-        assassinate     yes         best_guess  victim/by ai profile
-        exchange        yes         random      no
-
-        """
-        from itertools import cycle
-        from random import choice, randint
-
-        PLAYERS = 5
-        testgame = Play_Coup(PLAYERS)
-
-        for i in cycle(range(PLAYERS)):
-            acting_player = testgame.players[i]
-            
-            if not acting_player.influence_remaining:
-                continue
-            elif sum(1 for p in range(PLAYERS) if testgame.players[p].influence_remaining) == 1:
-                return testgame.players[i].alpha
-            
-            while 1:
-                try:
-                    action = acting_player.random_naive_priority()
-
-                    if action == 'steal':
-                        random_player = acting_player.select_opponent(testgame.players)
-                        if set(random_player.probable_influences).intersection(set([str(a()) for a in Influence.__subclasses__() if action in a.BLOCKS])):
-                            raise RethinkAction(action, acting_player, random_player)
-                        if 'steal' in random_player.valid_blocks:
-                            raise BlockedAction(action, acting_player, random_player, None)
-                        else:
-                            for savior in range(PLAYERS):
-                                if savior != i and \
-                                   random_player is not testgame.players[savior] and \
-                                   testgame.players[savior].will_intervene(action, acting_player, random_player):
-                                    raise BlockedAction(action, acting_player, random_player, testgame.players[savior])
-                            else:
-                                testgame.players[i].perform(action, random_player)
-                    elif action == 'assassinate':
-                        random_player = acting_player.select_opponent(testgame.players)
-                        if set(random_player.probable_influences).intersection(set([str(a()) for a in Influence.__subclasses__() if action in a.BLOCKS])):
-                            raise RethinkAction(action, acting_player, random_player)
-                        if 'assassinate' in random_player.valid_blocks:
-                            raise BlockedAction(action, acting_player, random_player, None)
-                        else:
-                            for savior in range(PLAYERS):
-                                if savior != i and \
-                                   random_player is not testgame.players[savior] and \
-                                   testgame.players[savior].will_intervene(action, acting_player, random_player):
-                                    raise BlockedAction(action, acting_player, random_player, testgame.players[savior])
-                            else:
-                                position, random_target = random_player.random_remaining_influence
-                                testgame.players[i].perform(action, random_target)
-                                random_player.remove_suspicion(str(random_target))
-                    elif action == 'foreign_aid':
-                        for savior in range(PLAYERS):
-                            if savior != i and testgame.players[savior].will_intervene(action, acting_player):
-                                raise BlockedAction(action, acting_player, None, testgame.players[savior])
-                        else:
-                            testgame.players[i].perform(action)
-                    elif action == 'exchange':
-                        testgame.players[i].perform(action, testgame.court_deck)
-                    elif action == 'coup':
-                        random_player = acting_player.select_opponent(testgame.players)
-                        position, random_target = random_player.random_remaining_influence
-                        testgame.players[i].perform(action, random_target)
-                        random_player.remove_suspicion(str(random_target))
-                    else:
-                        testgame.players[i].perform(action)
-                except (IllegalTarget, IllegalAction):
-                    pass
-                except BlockedAction:
-                    break
-                except RethinkAction as e:
-                    pass
-                else:
-                    break
-
-    def test_gameplay_calculated_actions_calculated_targets_more_calculated_blocks_no_doubts(self):
-        """
-        AI PROFILE:
-        
-        Action          Used        Targets     Blocked     
-        income          yes
-        foreign_aid     yes                     victim/by ai profile
-        coup            yes
-        steal           yes         best_guess  victim/by ai profile
-        tax             yes
-        assassinate     yes         best_guess  victim/by ai profile
-        exchange        yes         random      no
-
-        """
-        from itertools import cycle
-        from random import random
-
-        PLAYERS = 5
-        testgame = Play_Coup(PLAYERS)
-
-        for acting_player in cycle(testgame.players):
-            if not acting_player.influence_remaining:
-                continue
-
-            while 1:
-                try:
-                    random_player = acting_player.select_opponent(testgame.players)
-                except IndexError:
-                    #IndexError indicates no valid opponents found. if so, game won!
-                    #lots of the time, this will simply set random_player and be thrown away
-                    return acting_player.alpha
-                
-                try:
-                    action = acting_player.random_naive_priority()
-
-                    if action == 'steal':
-                        if (action in random_player.probable_blocks and random() > .24):
-                            raise RethinkAction(action, acting_player, random_player)
-                        if action in random_player.valid_blocks:
-                            raise BlockedAction(action, acting_player, random_player, None)
-
-                        for savior in testgame.filter_out_players([acting_player, random_player]):
-                            if savior.will_intervene(action, acting_player, random_player):
-                                raise BlockedAction(action, acting_player, random_player, savior)
-                        else:
-                            acting_player.perform(action, random_player)
-                    elif action == 'assassinate':
-                        if (action in random_player.probable_blocks and random() > .24):
-                            raise RethinkAction(action, acting_player, random_player)
-                        if action in random_player.valid_blocks:
-                            raise BlockedAction(action, acting_player, random_player, None)
-
-                        for savior in testgame.filter_out_players([acting_player, random_player]):
-                            if savior.will_intervene(action, acting_player, random_player):
-                                raise BlockedAction(action, acting_player, random_player, savior)
-                        else:
-                            position, random_target = random_player.random_remaining_influence
-                            acting_player.perform(action, random_target)
-                            random_player.remove_suspicion(str(random_target))
-                    elif action == 'foreign_aid':
-                        for savior in testgame.filter_out_players([acting_player]):
-                            if savior.will_intervene(action, acting_player):
-                                raise BlockedAction(action, acting_player, None, savior)
-                        else:
-                            acting_player.perform(action)
-                    elif action == 'exchange':
-                        acting_player.perform(action, testgame.court_deck)
-                    elif action == 'coup':
-                        position, random_target = random_player.random_remaining_influence
-                        acting_player.perform(action, random_target)
-                        random_player.remove_suspicion(str(random_target))
-                    else:
-                        acting_player.perform(action)
-                except (IllegalTarget, IllegalAction):
-                    pass
-                except BlockedAction:
-                    continue
-                except RethinkAction:
-                    pass
-                else:
-                    continue
+        self.assertEqual(len(testgame.court_deck), 5)
+        self.assertFalse(p.left.revealed)
+        p.left.reveal()
+        self.assertTrue(p.left.revealed)
+        p.restore('left', testgame.court_deck)
+        self.assertFalse(p.left.revealed)
+        self.assertEqual(len(testgame.court_deck), 5)
 
 def gameplay_suite():
     suite = unittest.TestSuite()
