@@ -310,7 +310,7 @@ class AI_Persona(Player):
         elif action == 'tax':
             return choice(['tax'] * 5 + ['assassinate'])
         else:
-            return action        
+            return action
 
     def will_intervene(self, action, performer, victim=None):
         try:
@@ -361,6 +361,56 @@ class AI_Persona(Player):
             return ('left', self.left)
         else:
             raise IllegalTarget("player already has no remaining influence")    
+
+    @classmethod
+    def offensive_priority(cls, influences):
+        return {
+            'Ambassador': ['assassinate', 'coup'],
+            'Assassin': ['steal', 'assassinate', 'coup'],
+            'Captain': ['assassinate', 'coup'],
+            'Contessa': ['steal', 'coup'],
+            'Duke': ['steal', 'assassinate', 'coup'],
+            'Ambassador Ambassador': ['assassinate', 'coup'],
+            'Assassin Assassin': ['steal', 'assassinate', 'coup'],
+            'Captain Captain': ['assassinate', 'coup'],
+            'Contessa Contessa': ['steal', 'coup'],
+            'Duke Duke': ['steal', 'assassinate', 'coup'],
+            'Ambassador Assassin': ['assassinate', 'coup'],
+            'Ambassador Captain': ['assassinate', 'coup'],
+            'Ambassador Contessa': ['coup'],
+            'Ambassador Duke': ['assassinate', 'coup'],
+            'Assassin Captain': ['assassinate', 'coup'],
+            'Assassin Contessa': ['steal', 'coup'],
+            'Assassin Duke': ['steal', 'assassinate', 'coup'],
+            'Captain Contessa': ['coup'],
+            'Captain Duke': ['assassinate', 'coup'],
+            'Contessa Duke': ['steal', 'coup']
+            }[influences]
+
+    @classmethod
+    def buildup_priority(cls, influences):
+        return {
+            'Ambassador': ['tax', 'foreign_aid', 'exchange', 'income'],
+            'Assassin': ['tax', 'foreign_aid', 'exchange', 'income'],  
+            'Captain': ['tax', 'foreign_aid', 'exchange', 'income'],
+            'Contessa': ['tax', 'foreign_aid', 'exchange', 'income'],
+            'Duke': ['tax', 'exchange', 'income'],
+            'Ambassador Ambassador': ['tax', 'foreign_aid', 'exchange', 'income'],
+            'Assassin Assassin': ['tax', 'foreign_aid', 'exchange', 'income'],
+            'Captain Captain': ['tax', 'foreign_aid', 'exchange', 'income'],
+            'Contessa Contessa': ['tax', 'foreign_aid', 'exchange', 'income'],
+            'Duke Duke': ['tax', 'exchange', 'income'],
+            'Ambassador Assassin': ['tax', 'foreign_aid', 'exchange', 'income'],
+            'Ambassador Captain': ['tax', 'foreign_aid', 'exchange', 'income'],
+            'Ambassador Contessa': ['tax', 'foreign_aid', 'exchange', 'income'],
+            'Ambassador Duke': ['tax', 'exchange', 'income'],
+            'Assassin Captain': ['tax', 'foreign_aid', 'exchange', 'income'],
+            'Assassin Contessa': ['tax', 'foreign_aid', 'exchange', 'income'],
+            'Assassin Duke': ['tax', 'exchange', 'income'],
+            'Captain Contessa': ['tax', 'foreign_aid', 'exchange', 'income'],
+            'Captain Duke': ['tax', 'exchange', 'income'],
+            'Contessa Duke': ['tax', 'exchange', 'income']
+            }[influences]
 
     @staticmethod
     def clone(player):
