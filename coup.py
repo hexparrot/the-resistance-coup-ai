@@ -212,45 +212,29 @@ class Player(object):
         influences = ['Ambassador', 'Assassin', 'Captain', 'Contessa', 'Duke']
         return tuple(1 if inf in self else 0 for inf in influences)
         
-    @classmethod
-    def actions_for_influences(cls, influences):
-        actions = []
-        for inf in Influence.__subclasses__():
-            if inf.__name__ in influences:
-                actions.extend(inf.ACTIONS)
-        return sorted(actions)
-        
-    @classmethod
-    def blocks_for_influences(cls, influences):
-        blocks = []
-        for inf in Influence.__subclasses__():
-            if inf.__name__ in influences:
-                blocks.extend(inf.BLOCKS)
-        return sorted(blocks)
-        
     def calculate(self, likelihood, type_of_action):
         if type_of_action == 'actions':
             if likelihood == 'probable':
                 infs = sorted(self.probable_influences.items(), reverse=True, key=lambda i: i[1])
                 infs = [inf for inf, score in infs[0:2]]
-                return self.actions_for_influences(infs)
+                return Influence.actions_for_influences(infs)
             elif likelihood == 'improbable':
                 infs = sorted(self.improbable_influences.items(), reverse=True, key=lambda i: i[1])
                 infs = [inf for inf, score in infs[0:2]]
-                return self.actions_for_influences(infs)
+                return Influence.actions_for_influences(infs)
             elif likelihood == 'judge':
-                return self.actions_for_influences(self.best_guess)
+                return Influence.actions_for_influences(self.best_guess)
         elif type_of_action == 'blocks':
             if likelihood == 'probable':
                 infs = sorted(self.probable_influences.items(), reverse=True, key=lambda i: i[1])
                 infs = [inf for inf, score in infs[0:2]]
-                return self.blocks_for_influences(infs)
+                return Influence.blocks_for_influences(infs)
             elif likelihood == 'improbable':
                 infs = sorted(self.improbable_influences.items(), reverse=True, key=lambda i: i[1])
                 infs = [inf for inf, score in infs[0:2]]
-                return self.blocks_for_influences(infs)
+                return Influence.blocks_for_influences(infs)
             elif likelihood == 'judge':
-                return self.blocks_for_influences(self.best_guess)
+                return Influence.blocks_for_influences(self.best_guess)
 
 class AI_Persona(Player):
     OFFENSIVE_PRIORITY = {
@@ -460,6 +444,22 @@ class Influence(object):
             inf_target.reveal()
         else:
             raise IllegalAction("insufficient currency to coup")
+
+    @classmethod
+    def actions_for_influences(cls, influences):
+        actions = []
+        for inf in cls.__subclasses__():
+            if inf.__name__ in influences:
+                actions.extend(inf.ACTIONS)
+        return sorted(actions)
+        
+    @classmethod
+    def blocks_for_influences(cls, influences):
+        blocks = []
+        for inf in cls.__subclasses__():
+            if inf.__name__ in influences:
+                blocks.extend(inf.BLOCKS)
+        return sorted(blocks)
 
 class Captain(Influence):
     ACTIONS = ['steal']
