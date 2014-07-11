@@ -530,7 +530,7 @@ class simulations(object):
                                     
                             for doubter in testgame.filter_out_players([acting_player]):
                                 if doubter.will_callout(action, acting_player):
-                                    if action in acting_player.valid_blocks:
+                                    if action in acting_player.valid_actions:
                                         acting_player.perform(action, random_player)
                                     raise QuestionInfluence(action, acting_player, doubter, testgame.court_deck)
                         
