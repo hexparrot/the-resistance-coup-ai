@@ -67,7 +67,6 @@ class simulations(object):
                         action = action_plan.pop(0)
                     else:
                         action = acting_player.random_naive_priority()
-                    #print '{0} performing {1} (coins={2})'.format(acting_player.status, action, acting_player.coins)
 
                     if action == 'income':
                         acting_player.perform(action)
@@ -196,21 +195,25 @@ if __name__ == "__main__":
     print('ACTIONS')
     for inf in simulations.ACTIONS:
         print('  {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.ACTIONS[inf]).most_common())))
-        
+
+    print('WINS')
+    for pers in simulations.WINS:
+        print('    {0}{1}'.format(pers.ljust(23), simulations.WINS[pers]))
+
     print('BLOCKS')
     print('  Spectator')
-    for inf in simulations.BLOCKS_SAVIOR:
-        print('    {0}{1}'.format(inf.ljust(23), dict(Counter(simulations.BLOCKS_SAVIOR[inf]).most_common())))
-    
+    for pers in simulations.BLOCKS_SAVIOR:
+        print('    {0}{1}'.format(pers.ljust(23), dict(Counter(simulations.BLOCKS_SAVIOR[pers]).most_common())))
+
     print('  Victim')      
-    for inf in simulations.BLOCKS_VICTIM:
-        print('    {0}{1}'.format(inf.ljust(23), dict(Counter(simulations.BLOCKS_VICTIM[inf]).most_common())))
+    for pers in simulations.BLOCKS_VICTIM:
+        print('    {0}{1}'.format(pers.ljust(23), dict(Counter(simulations.BLOCKS_VICTIM[pers]).most_common())))
     
     print('CALLOUTS')
     print('  Actions')
-    for inf in simulations.DOUBTS_ACTIONS:
-        print('    {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.DOUBTS_ACTIONS[inf]).most_common())))
-        print('    {0}{1}'.format(''.ljust(25), dict(Counter(simulations.DOUBTS_WRONG[inf]).most_common())))
+    for pers in simulations.DOUBTS_ACTIONS:
+        print('    {0}{1}'.format(pers.ljust(25), dict(Counter(simulations.DOUBTS_ACTIONS[pers]).most_common())))
+        print('    {0}{1}'.format(''.ljust(25), dict(Counter(simulations.DOUBTS_WRONG[pers]).most_common())))
     
     print('  DOUBTER WRONG- Threshold:Frequency')
     for personality in simulations.DOUBTS_THRESHOLD_WRONG:
