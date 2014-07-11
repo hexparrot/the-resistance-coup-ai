@@ -576,10 +576,11 @@ class QuestionInfluence(Exception):
         self.action = action
         self.performer = performer
         self.doubter = doubter
+        self.original_pair = str(performer)
         
         if action in self.performer.valid_actions:
             self.message = "{0} doubts {1} can {2}: doubter loses one influence!".format(self.doubter,
-                                                                                         self.performer,
+                                                                                         self.original_pair,
                                                                                          self.action)
             self.performer_is_honest = True
             influence = self.doubter.random_remaining_influence[1]
@@ -593,7 +594,7 @@ class QuestionInfluence(Exception):
                 self.performer.restore('right', court_deck)
         else:
             self.message = "{0} doubts {1} can {2}: performer loses one influence!".format(self.doubter,
-                                                                                           self.performer,
+                                                                                           self.original_pair,
                                                                                            self.action)
             self.performer_is_honest = False
             influence = self.performer.random_remaining_influence[1]

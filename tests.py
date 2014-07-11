@@ -493,44 +493,44 @@ class TestCoup(unittest.TestCase):
         self.assertEqual(z.coins, 5)
         BlockedAction('assassinate', z, testgame.players[2], None)
         self.assertEqual(z.coins, 2)
-     
+
     def test_actions_for_influences(self):
-        self.assertEqual(Player.actions_for_influences('Assassin'), ['assassinate'])
-        self.assertEqual(Player.actions_for_influences('Contessa'), [])
-        self.assertEqual(Player.actions_for_influences('Duke'), ['tax'])
-        self.assertEqual(Player.actions_for_influences('Ambassador'), ['exchange'])
-        self.assertEqual(Player.actions_for_influences('Captain'), ['steal'])
+        self.assertEqual(Influence.actions_for_influences('Assassin'), ['assassinate'])
+        self.assertEqual(Influence.actions_for_influences('Contessa'), [])
+        self.assertEqual(Influence.actions_for_influences('Duke'), ['tax'])
+        self.assertEqual(Influence.actions_for_influences('Ambassador'), ['exchange'])
+        self.assertEqual(Influence.actions_for_influences('Captain'), ['steal'])
         
-        self.assertEqual(Player.actions_for_influences(['Assassin', 'Duke']), ['assassinate', 'tax'])
-        self.assertEqual(Player.actions_for_influences(['Contessa', 'Assassin']), ['assassinate'])
-        self.assertEqual(Player.actions_for_influences(['Duke', 'Captain']), ['steal', 'tax'])
-        self.assertEqual(Player.actions_for_influences(['Ambassador', 'Ambassador']), ['exchange'])
-        self.assertEqual(Player.actions_for_influences(['Captain', 'Assassin']), ['assassinate', 'steal'])
+        self.assertEqual(Influence.actions_for_influences(['Assassin', 'Duke']), ['assassinate', 'tax'])
+        self.assertEqual(Influence.actions_for_influences(['Contessa', 'Assassin']), ['assassinate'])
+        self.assertEqual(Influence.actions_for_influences(['Duke', 'Captain']), ['steal', 'tax'])
+        self.assertEqual(Influence.actions_for_influences(['Ambassador', 'Ambassador']), ['exchange'])
+        self.assertEqual(Influence.actions_for_influences(['Captain', 'Assassin']), ['assassinate', 'steal'])
         
-        self.assertEqual(Player.actions_for_influences('Assassin Duke'), ['assassinate', 'tax'])
-        self.assertEqual(Player.actions_for_influences('Assassin Contessa'), ['assassinate'])
-        self.assertEqual(Player.actions_for_influences('Duke Captain'), ['steal', 'tax'])
-        self.assertEqual(Player.actions_for_influences('Ambassador Ambassador'), ['exchange'])
-        self.assertEqual(Player.actions_for_influences('Captain Assassin'), ['assassinate', 'steal'])
+        self.assertEqual(Influence.actions_for_influences('Assassin Duke'), ['assassinate', 'tax'])
+        self.assertEqual(Influence.actions_for_influences('Assassin Contessa'), ['assassinate'])
+        self.assertEqual(Influence.actions_for_influences('Duke Captain'), ['steal', 'tax'])
+        self.assertEqual(Influence.actions_for_influences('Ambassador Ambassador'), ['exchange'])
+        self.assertEqual(Influence.actions_for_influences('Captain Assassin'), ['assassinate', 'steal'])
 
     def test_blocks_for_influences(self):
-        self.assertEqual(Player.blocks_for_influences('Assassin'), [])
-        self.assertEqual(Player.blocks_for_influences('Contessa'), ['assassinate'])
-        self.assertEqual(Player.blocks_for_influences('Duke'), ['foreign_aid'])
-        self.assertEqual(Player.blocks_for_influences('Ambassador'), ['steal'])
-        self.assertEqual(Player.blocks_for_influences('Captain'), ['steal'])
+        self.assertEqual(Influence.blocks_for_influences('Assassin'), [])
+        self.assertEqual(Influence.blocks_for_influences('Contessa'), ['assassinate'])
+        self.assertEqual(Influence.blocks_for_influences('Duke'), ['foreign_aid'])
+        self.assertEqual(Influence.blocks_for_influences('Ambassador'), ['steal'])
+        self.assertEqual(Influence.blocks_for_influences('Captain'), ['steal'])
         
-        self.assertEqual(Player.blocks_for_influences(['Assassin', 'Duke']), ['foreign_aid'])
-        self.assertEqual(Player.blocks_for_influences(['Contessa', 'Assassin']), ['assassinate'])
-        self.assertEqual(Player.blocks_for_influences(['Duke', 'Captain']), ['foreign_aid', 'steal'])
-        self.assertEqual(Player.blocks_for_influences(['Ambassador', 'Ambassador']), ['steal'])
-        self.assertEqual(Player.blocks_for_influences(['Captain', 'Assassin']), ['steal'])
+        self.assertEqual(Influence.blocks_for_influences(['Assassin', 'Duke']), ['foreign_aid'])
+        self.assertEqual(Influence.blocks_for_influences(['Contessa', 'Assassin']), ['assassinate'])
+        self.assertEqual(Influence.blocks_for_influences(['Duke', 'Captain']), ['foreign_aid', 'steal'])
+        self.assertEqual(Influence.blocks_for_influences(['Ambassador', 'Ambassador']), ['steal'])
+        self.assertEqual(Influence.blocks_for_influences(['Captain', 'Assassin']), ['steal'])
         
-        self.assertEqual(Player.blocks_for_influences('Assassin Duke'), ['foreign_aid'])
-        self.assertEqual(Player.blocks_for_influences('Assassin Contessa'), ['assassinate'])
-        self.assertEqual(Player.blocks_for_influences('Duke Captain'), ['foreign_aid', 'steal'])
-        self.assertEqual(Player.blocks_for_influences('Ambassador Ambassador'), ['steal'])
-        self.assertEqual(Player.blocks_for_influences('Captain Assassin'), ['steal'])
+        self.assertEqual(Influence.blocks_for_influences('Assassin Duke'), ['foreign_aid'])
+        self.assertEqual(Influence.blocks_for_influences('Assassin Contessa'), ['assassinate'])
+        self.assertEqual(Influence.blocks_for_influences('Duke Captain'), ['foreign_aid', 'steal'])
+        self.assertEqual(Influence.blocks_for_influences('Ambassador Ambassador'), ['steal'])
+        self.assertEqual(Influence.blocks_for_influences('Captain Assassin'), ['steal'])
 
     def test_actions_for_probable_influences(self):
         p = AI_Persona()
@@ -538,12 +538,12 @@ class TestCoup(unittest.TestCase):
         p.left = Assassin()
         p.right = Duke()
         
-        self.assertEqual(Player.actions_for_influences(p), ['assassinate', 'tax'])
+        self.assertEqual(Influence.actions_for_influences(p), ['assassinate', 'tax'])
         
         p.left = Contessa()
         p.right = Contessa()
         
-        self.assertEqual(Player.actions_for_influences(p), [])
+        self.assertEqual(Influence.actions_for_influences(p), [])
         
     def test_blocks_for_probable_influences(self):
         p = AI_Persona()
@@ -551,12 +551,12 @@ class TestCoup(unittest.TestCase):
         p.left = Assassin()
         p.right = Duke()
         
-        self.assertEqual(Player.blocks_for_influences(p), ['foreign_aid'])
+        self.assertEqual(Influence.blocks_for_influences(p), ['foreign_aid'])
         
         p.left = Contessa()
         p.right = Contessa()
         
-        self.assertEqual(Player.blocks_for_influences(p), ['assassinate'])
+        self.assertEqual(Influence.blocks_for_influences(p), ['assassinate'])
 
     def test_deduce(self):
         testgame = Play_Coup(5)
@@ -1204,20 +1204,20 @@ class TestCoup(unittest.TestCase):
         pp.right = Duke()
         
         try:
-            raise QuestionInfluence('assassinate', p, pp)
+            raise QuestionInfluence('assassinate', p, pp, testgame.court_deck)
         except QuestionInfluence as e:
-            self.assertEqual(e.message, "{0} doubts {1} can {2}: performer loses one influence!".format(pp,
-                                                                                                        p,
+            self.assertEqual(e.message, "{0} doubts {1} can {2}: performer loses one influence!".format(e.doubter,
+                                                                                                        e.original_pair,
                                                                                                         'assassinate'))
             self.assertFalse(e.performer_is_honest)
             self.assertEqual(p.influence_remaining, 1)
             self.assertEqual(pp.influence_remaining, 2)
             
         try:
-            raise QuestionInfluence('assassinate', pp, p)
+            raise QuestionInfluence('assassinate', pp, p, testgame.court_deck)
         except QuestionInfluence as e:
-            self.assertEqual(e.message, "{0} doubts {1} can {2}: doubter loses one influence!".format(p,
-                                                                                                      pp,
+            self.assertEqual(e.message, "{0} doubts {1} can {2}: doubter loses one influence!".format(e.doubter,
+                                                                                                      e.original_pair,
                                                                                                       'assassinate'))
             self.assertTrue(e.performer_is_honest)
             self.assertEqual(p.influence_remaining, 0)
