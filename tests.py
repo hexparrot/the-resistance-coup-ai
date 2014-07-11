@@ -1108,13 +1108,26 @@ class TestCoup(unittest.TestCase):
         p.left = Contessa()
         p.right = Duke()
         
+        p.coins = 2
+        self.assertEqual(p.one_on_one_strategy('', False), [])
+        self.assertEqual(p.one_on_one_strategy('', True), [])
+        
         p.coins = 0
-        self.assertEqual(p.one_on_one_strategy('Assassin Contessa', False), ['steal', 'coup', 'tax', 'foreign_aid', 'income'])
-        self.assertEqual(p.one_on_one_strategy('Assassin Contessa', True), ['coup', 'tax', 'foreign_aid', 'income'])
+        self.assertEqual(p.one_on_one_strategy('Assassin Contessa', False), ['steal', 'tax', 'foreign_aid', 'income'])
+        self.assertEqual(p.one_on_one_strategy('Assassin Contessa', True), ['tax', 'foreign_aid', 'income'])
         
         p.coins = 10
         self.assertEqual(p.one_on_one_strategy('Assassin Contessa', True), ['coup'])
         self.assertEqual(p.one_on_one_strategy('Assassin Contessa', False), ['coup'])
+        
+        p.coins = 2
+        self.assertNotIn(p.one_on_one_strategy('Duke Duke', True), ['coup'])
+        self.assertNotIn(p.one_on_one_strategy('Duke Duke', True), ['assassinate'])
+        
+        p.coins = 6
+        self.assertNotIn(p.one_on_one_strategy('Duke Duke', True), ['coup'])
+        self.assertNotIn(p.one_on_one_strategy('Duke Duke', True), ['assassinate'])
+        self.assertNotIn(p.one_on_one_strategy('Duke Duke', False), ['assassinate'])
     
     def test_cannot_target_self(self):
         testgame = Play_Coup(5)

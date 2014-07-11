@@ -363,11 +363,14 @@ class AI_Persona(Player):
         if self.coins >= 10:
             action_plan = ['coup']
         else:
-            try:
-                action_plan.extend(self.OFFENSIVE_PRIORITY[influences])
-                action_plan.extend(self.BUILDUP_PRIORITY[influences])
-            except KeyError:
-                pass
+            action_plan.extend(self.OFFENSIVE_PRIORITY.get(influences,['coup']))
+            action_plan.extend(self.BUILDUP_PRIORITY.get(influences,[]))
+            
+        if self.coins < 7:
+            action_plan.remove('coup')
+        if self.coins < 3:
+            if 'assassinate' in action_plan:
+                action_plan.remove('assassinate')
         
         if honest:
             return [a for a in action_plan if a in self.valid_actions + Play_Coup.ACTIONS['free']]
