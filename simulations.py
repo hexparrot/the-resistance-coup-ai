@@ -404,9 +404,9 @@ class simulations(object):
                                     
                             for doubter in testgame.filter_out_players([acting_player]):
                                 if doubter.will_callout(action, acting_player):
-                                    if action in acting_player.valid_blocks:
+                                    if action in acting_player.valid_actions:
                                         acting_player.perform(action, random_player)
-                                    raise QuestionInfluence(action, acting_player, doubter)
+                                    raise QuestionInfluence(action, acting_player, doubter, testgame.court_deck)
                         
                             acting_player.perform(action, random_player)
                             for spectators in testgame.filter_out_players([acting_player, savior]):
@@ -429,7 +429,7 @@ class simulations(object):
                                         position, random_target = random_player.random_remaining_influence
                                         acting_player.perform(action, random_target)
                                         random_player.remove_suspicion(str(random_target))
-                                    raise QuestionInfluence(action, acting_player, doubter)
+                                    raise QuestionInfluence(action, acting_player, doubter, testgame.court_deck)
                             position, random_target = random_player.random_remaining_influence
                             acting_player.perform(action, random_target)
                             random_player.remove_suspicion(str(random_target))
@@ -441,7 +441,7 @@ class simulations(object):
                             if doubter.will_callout(action, acting_player):
                                 if action in acting_player.valid_actions:
                                     acting_player.perform(action, testgame.court_deck)
-                                raise QuestionInfluence(action, acting_player, doubter)
+                                raise QuestionInfluence(action, acting_player, doubter, testgame.court_deck)
                         break
                     elif action == 'coup':
                         random_player = acting_player.select_opponent(testgame.players)
@@ -455,15 +455,7 @@ class simulations(object):
                     break
                 except RethinkAction:
                     pass
-                except QuestionInfluence as e:
-                    if e.performer_is_honest:
-                        #will need refinement for captain/ambassador on blocked steal
-                        if action in acting_player.left.ACTIONS:
-                            acting_player.remove_suspicion(str(acting_player.left))
-                            acting_player.restore('left', testgame.court_deck)
-                        else:
-                            acting_player.remove_suspicion(str(acting_player.right))
-                            acting_player.restore('right', testgame.court_deck)
+                except QuestionInfluence:
                     break
 
     def sim_refined_actions_calculated_targets_more_calculated_blocks_systemic_doubts(self):
@@ -540,7 +532,7 @@ class simulations(object):
                                 if doubter.will_callout(action, acting_player):
                                     if action in acting_player.valid_blocks:
                                         acting_player.perform(action, random_player)
-                                    raise QuestionInfluence(action, acting_player, doubter)
+                                    raise QuestionInfluence(action, acting_player, doubter, testgame.court_deck)
                         
                             acting_player.perform(action, random_player)
                             for spectators in testgame.filter_out_players([acting_player, savior]):
@@ -563,7 +555,7 @@ class simulations(object):
                                         position, random_target = random_player.random_remaining_influence
                                         acting_player.perform(action, random_target)
                                         random_player.remove_suspicion(str(random_target))
-                                    raise QuestionInfluence(action, acting_player, doubter)
+                                    raise QuestionInfluence(action, acting_player, doubter, testgame.court_deck)
                             position, random_target = random_player.random_remaining_influence
                             acting_player.perform(action, random_target)
                             random_player.remove_suspicion(str(random_target))
@@ -575,21 +567,15 @@ class simulations(object):
                             if doubter.will_callout(action, acting_player):
                                 if action in acting_player.valid_actions:
                                     acting_player.perform(action, testgame.court_deck)
-                                raise QuestionInfluence(action, acting_player, doubter)
+                                raise QuestionInfluence(action, acting_player, doubter, testgame.court_deck)
                         break
-                except IllegalAction as e:
+                except IllegalAction:
                     pass
-                except IllegalTarget as e:
+                except IllegalTarget:
                     pass
-                except BlockedAction as e:
+                except BlockedAction:
                     break
-                except RethinkAction as e:
+                except RethinkAction:
                     pass
-                except QuestionInfluence as e:
-                    if e.performer_is_honest:
-                        #will need refinement for captain/ambassador on blocked steal
-                        if action in acting_player.left.ACTIONS and not acting_player.left.revealed:
-                            acting_player.restore('left', testgame.court_deck)
-                        elif action in acting_player.right.ACTIONS and not acting_player.right.revealed:
-                            acting_player.restore('right', testgame.court_deck)
+                except QuestionInfluence:
                     break

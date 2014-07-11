@@ -572,7 +572,7 @@ class BlockedAction(Exception):
             self.spectator.public_information['spectator'].append(action)
 
 class QuestionInfluence(Exception):
-    def __init__(self, action, performer, doubter):
+    def __init__(self, action, performer, doubter, court_deck):
         self.action = action
         self.performer = performer
         self.doubter = doubter
@@ -585,6 +585,12 @@ class QuestionInfluence(Exception):
             influence = self.doubter.random_remaining_influence[1]
             influence.reveal()
             self.doubter.remove_suspicion(str(influence))
+            
+            #will need refinement for captain/ambassador on blocked steal
+            if action in self.performer.left.ACTIONS and not self.performer.left.revealed:
+                self.performer.restore('left', court_deck)
+            elif action in self.performer.right.ACTIONS and not self.performer.right.revealed:
+                self.performer.restore('right', court_deck)
         else:
             self.message = "{0} doubts {1} can {2}: performer loses one influence!".format(self.doubter,
                                                                                            self.performer,
@@ -593,3 +599,4 @@ class QuestionInfluence(Exception):
             influence = self.performer.random_remaining_influence[1]
             influence.reveal()
             self.performer.remove_suspicion(str(influence))
+        
