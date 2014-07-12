@@ -572,32 +572,31 @@ class BlockedAction(Exception):
             self.spectator.public_information['spectator'].append(action)
 
 class QuestionInfluence(Exception):
-    def __init__(self, action, performer, doubter, court_deck):
-        self.action = action
-        self.performer = performer
+    def __init__(self, doubter, alleged_bluffer, alleged_influence, court_deck):
         self.doubter = doubter
-        self.original_pair = str(performer)
+        self.alleged_bluffer = alleged_bluffer
+        self.alleged_influence = alleged_influence
         
-        if action in self.performer.valid_actions:
-            self.message = "{0} doubts {1} can {2}: doubter loses one influence!".format(self.doubter,
-                                                                                         self.original_pair,
-                                                                                         self.action)
-            self.performer_is_honest = True
+        if alleged_influence in alleged_bluffer:
+            self.message = "{0} doubts {1} influences a {2}: former loses one influence!".format(self.doubter,
+                                                                                                 self.alleged_bluffer,
+                                                                                                 self.alleged_influence)
+            self.doubter_is_correct = False
             influence = self.doubter.random_remaining_influence[1]
             influence.reveal()
             self.doubter.remove_suspicion(str(influence))
             
             #will need refinement for captain/ambassador on blocked steal
-            if action in self.performer.left.ACTIONS and not self.performer.left.revealed:
+            if str(self.doubter.left) == alleged_influence and not self.doubter.left.revealed: 
                 self.performer.restore('left', court_deck)
-            elif action in self.performer.right.ACTIONS and not self.performer.right.revealed:
+            elif str(self.doubter.right) == alleged_influence and not self.doubter.right.revealed: 
                 self.performer.restore('right', court_deck)
         else:
-            self.message = "{0} doubts {1} can {2}: performer loses one influence!".format(self.doubter,
-                                                                                           self.original_pair,
-                                                                                           self.action)
-            self.performer_is_honest = False
-            influence = self.performer.random_remaining_influence[1]
+            self.message = "{0} doubts {1} influences a {2}: latter loses one influence!".format(self.doubter,
+                                                                                                 self.alleged_bluffer,
+                                                                                                 self.alleged_influence)
+            self.doubter_is_correct = True
+            influence = self.alleged_bluffer.random_remaining_influence[1]
             influence.reveal()
-            self.performer.remove_suspicion(str(influence))
+            self.alleged_bluffer.remove_suspicion(str(influence))
         

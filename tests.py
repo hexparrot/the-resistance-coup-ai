@@ -1204,22 +1204,22 @@ class TestCoup(unittest.TestCase):
         pp.right = Duke()
         
         try:
-            raise QuestionInfluence('assassinate', p, pp, testgame.court_deck)
+            raise QuestionInfluence(p, pp, 'Assassin', testgame.court_deck)
         except QuestionInfluence as e:
-            self.assertEqual(e.message, "{0} doubts {1} can {2}: performer loses one influence!".format(e.doubter,
-                                                                                                        e.original_pair,
-                                                                                                        'assassinate'))
-            self.assertFalse(e.performer_is_honest)
+            self.assertEqual(e.message, "{0} doubts {1} influences a {2}: former loses one influence!".format(e.doubter,
+                                                                                                              e.alleged_bluffer,
+                                                                                                              'Assassin'))
+            self.assertFalse(e.doubter_is_correct)
             self.assertEqual(p.influence_remaining, 1)
             self.assertEqual(pp.influence_remaining, 2)
             
         try:
-            raise QuestionInfluence('assassinate', pp, p, testgame.court_deck)
+            raise QuestionInfluence(pp, p, 'Contessa', testgame.court_deck)
         except QuestionInfluence as e:
-            self.assertEqual(e.message, "{0} doubts {1} can {2}: doubter loses one influence!".format(e.doubter,
-                                                                                                      e.original_pair,
-                                                                                                      'assassinate'))
-            self.assertTrue(e.performer_is_honest)
+            self.assertEqual(e.message, "{0} doubts {1} influences a {2}: latter loses one influence!".format(e.doubter,
+                                                                                                              e.alleged_bluffer,
+                                                                                                              'Contessa'))
+            self.assertTrue(e.doubter_is_correct)
             self.assertEqual(p.influence_remaining, 0)
             self.assertEqual(pp.influence_remaining, 2)
     
