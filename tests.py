@@ -676,38 +676,38 @@ class TestCoup(unittest.TestCase):
         pp.left = Captain()
         pp.right = Captain()
         
-        self.assertFalse(pp.will_intervene('foreign_aid', p))
-        self.assertFalse(p.will_intervene('foreign_aid', pp))
+        self.assertIsNone(pp.will_intervene('foreign_aid', p))
+        self.assertIsNone(p.will_intervene('foreign_aid', pp))
 
         p.left = Duke()
         
         p.rules['honest_intervention']['foreign_aid'] = {
             'performer': lambda q: True
             }
-        self.assertTrue(p.will_intervene('foreign_aid', pp))
+        self.assertEqual(p.will_intervene('foreign_aid', pp), 'Duke')
 
         p.rules['honest_intervention']['foreign_aid'] = {
             'performer': lambda q: q.coins > 5
             }
-        self.assertFalse(p.will_intervene('foreign_aid', pp))
+        self.assertIsNone(p.will_intervene('foreign_aid', pp))
         
         p.rules['honest_intervention']['foreign_aid'] = {}
-        self.assertFalse(p.will_intervene('foreign_aid', pp))
+        self.assertIsNone(p.will_intervene('foreign_aid', pp))
         
         p.rules['calculated_intervention']['foreign_aid'] = {}
-        self.assertFalse(p.will_intervene('foreign_aid', pp))
+        self.assertIsNone(p.will_intervene('foreign_aid', pp))
         
         p.rules['calculated_intervention']['foreign_aid'] = {
             'performer': lambda q: q.influence_remaining == 2
             }
-        self.assertTrue(p.will_intervene('foreign_aid', pp))
+        self.assertEqual(p.will_intervene('foreign_aid', pp), 'Duke')
 
         p.left.reveal()
         p.rules['honest_intervention']['foreign_aid'] = {
             'performer': lambda q: True
             }
         p.rules['calculated_intervention']['foreign_aid'] = {}
-        self.assertFalse(p.will_intervene('foreign_aid', pp))
+        self.assertIsNone(p.will_intervene('foreign_aid', pp))
         
         p.rules['honest_intervention']['foreign_aid'] = {}
         p.rules['calculated_intervention']['foreign_aid'] = {}
@@ -715,7 +715,7 @@ class TestCoup(unittest.TestCase):
         p.rules['calculated_intervention']['foreign_aid'] = {
             'performer': lambda q: q.influence_remaining == 2
             }
-        self.assertTrue(p.will_intervene('foreign_aid', pp))
+        self.assertEqual(p.will_intervene('foreign_aid', pp), 'Duke')
 
     def test_ai_profile_will_intervene_steal_performer(self):
         p = AI_Persona() #not captain
@@ -730,24 +730,24 @@ class TestCoup(unittest.TestCase):
         ppp.left = Captain()
         ppp.right = Captain()
 
-        self.assertFalse(ppp.will_intervene('steal', p, pp))
+        self.assertIsNone(ppp.will_intervene('steal', p, pp))
 
         p.coins = 2
         ppp.rules['honest_intervention']['steal'] = {
             'performer': lambda q: True
             }
-        self.assertTrue(ppp.will_intervene('steal', p, pp))
+        self.assertEqual(ppp.will_intervene('steal', p, pp), 'Captain')
 
         ppp.rules['honest_intervention']['steal'] = {
             'performer': lambda q: False
             }
-        self.assertFalse(ppp.will_intervene('steal', p, pp))
+        self.assertIsNone(ppp.will_intervene('steal', p, pp))
 
         p.coins = 2
         ppp.rules['calculated_intervention']['steal'] = {
             'performer': lambda q: q.coins + 2 >= 3
             }
-        self.assertTrue(ppp.will_intervene('steal', p, pp))
+        self.assertEqual(ppp.will_intervene('steal', p, pp), 'Captain')
         
     def test_judge_player(self):
         from heuristics import WEIGHTS
@@ -1204,22 +1204,22 @@ class TestCoup(unittest.TestCase):
         pp.right = Duke()
         
         try:
-            raise QuestionInfluence('assassinate', p, pp, testgame.court_deck)
+            raise QuestionInfluence(p, pp, 'Assassin', testgame.court_deck)
         except QuestionInfluence as e:
-            self.assertEqual(e.message, "{0} doubts {1} can {2}: performer loses one influence!".format(e.doubter,
-                                                                                                        e.original_pair,
-                                                                                                        'assassinate'))
-            self.assertFalse(e.performer_is_honest)
+            self.assertEqual(e.message, "{0} doubts {1} influences a {2}: former loses one influence!".format(e.doubter,
+                                                                                                              e.alleged_bluffer,
+                                                                                                              'Assassin'))
+            self.assertFalse(e.doubter_is_correct)
             self.assertEqual(p.influence_remaining, 1)
             self.assertEqual(pp.influence_remaining, 2)
             
         try:
-            raise QuestionInfluence('assassinate', pp, p, testgame.court_deck)
+            raise QuestionInfluence(pp, p, 'Contessa', testgame.court_deck)
         except QuestionInfluence as e:
-            self.assertEqual(e.message, "{0} doubts {1} can {2}: doubter loses one influence!".format(e.doubter,
-                                                                                                      e.original_pair,
-                                                                                                      'assassinate'))
-            self.assertTrue(e.performer_is_honest)
+            self.assertEqual(e.message, "{0} doubts {1} influences a {2}: latter loses one influence!".format(e.doubter,
+                                                                                                              e.alleged_bluffer,
+                                                                                                              'Contessa'))
+            self.assertTrue(e.doubter_is_correct)
             self.assertEqual(p.influence_remaining, 0)
             self.assertEqual(pp.influence_remaining, 2)
     
