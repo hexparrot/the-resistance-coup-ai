@@ -21,7 +21,7 @@ class simulations(object):
     BLOCKS_SAVIOR = defaultdict(list)
     BLOCKS_VICTIM = defaultdict(list)
     DOUBTS_ACTIONS = defaultdict(list)
-    DOUBTS_WRONG = defaultdict(list)
+    DOUBTS_RIGHT = defaultdict(list)
     DOUBTS_THRESHOLD_RIGHT = defaultdict(list)
     DOUBTS_THRESHOLD_WRONG = defaultdict(list)
     WINS = defaultdict(int)
@@ -111,21 +111,22 @@ class simulations(object):
                             raise BlockedAction(action, acting_player, random_player, None)
                         else:
                             for savior in testgame.filter_out_players([acting_player, random_player]):
-                                if savior.will_intervene(action, acting_player, random_player):
+                                representing = savior.will_intervene(action, acting_player, random_player)
+                                if representing:
                                     for spectators in testgame.filter_out_players([acting_player, savior]):
                                         spectators.didnt_block_as['spectator'].extend([action])
                                     raise BlockedAction(action, acting_player, random_player, savior)
                                     
-                                    '''if action not in savior.calculate('judge', 'blocks'):
+                                    if action not in savior.calculate('judge', 'blocks'):
                                         try:
-                                            raise QuestionInfluence(acting_player, savior, 'Duke', testgame.court_deck)
+                                            raise QuestionInfluence(acting_player, savior, representing, testgame.court_deck)
                                         except QuestionInfluence as e:
                                             if e.doubter_is_correct:
                                                 acting_player.perform(action)
                                                 self.ACTIONS[acting_player.alpha].append(action)
                                                 break
                                             else:
-                                                raise BlockedAction(action, acting_player, None, savior)'''
+                                                raise BlockedAction(action, acting_player, None, savior)
                                     
                             for doubter in testgame.filter_out_players([acting_player]):
                                 if doubter.will_callout(action, acting_player):
@@ -194,7 +195,7 @@ class simulations(object):
                         self.RET_ACT_REGRET[e.victim.alpha].append(action)
                 except QuestionInfluence as e:
                     self.DOUBTS_ACTIONS[e.doubter.saved_personality].append(action)
-                    self.DOUBTS_WRONG[e.doubter.saved_personality].append(e.doubter_is_correct)
+                    self.DOUBTS_RIGHT[e.doubter.saved_personality].append(e.doubter_is_correct)
                     
                     if e.doubter_is_correct:
                         self.DOUBTS_THRESHOLD_RIGHT[e.doubter.saved_personality].append(e.alleged_bluffer.judge_player[[a.__name__ for a in Influence.__subclasses__() if action in a.ACTIONS][0]])
@@ -234,7 +235,7 @@ if __name__ == "__main__":
     print('  Actions')
     for pers in simulations.DOUBTS_ACTIONS:
         print('    {0}{1}'.format(pers.ljust(25), dict(Counter(simulations.DOUBTS_ACTIONS[pers]).most_common())))
-        print('    {0}{1}'.format(''.ljust(25), dict(Counter(simulations.DOUBTS_WRONG[pers]).most_common())))
+        print('    {0}{1}'.format(''.ljust(25), dict(Counter(simulations.DOUBTS_RIGHT[pers]).most_common())))
     
     print('  DOUBTER WRONG- Threshold:Frequency')
     for personality in simulations.DOUBTS_THRESHOLD_WRONG:

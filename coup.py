@@ -370,7 +370,16 @@ class AI_Persona(Player):
                     if lambda_func and not lambda_func(locals()[participant]):
                         break
                 else:
-                    return True  
+                    if action == 'foreign_aid':
+                        return 'Duke'
+                    elif action == 'assassinate':
+                        return 'Contessa'
+                    elif action == 'steal':
+                        #artificial weighting toward representing amba
+                        if 'Ambassador' in self:
+                            return 'Ambassador'
+                        elif 'Captain' in self:
+                            return 'Captain'
         except KeyError:
             pass
 
@@ -382,11 +391,17 @@ class AI_Persona(Player):
                     if lambda_func and not lambda_func(locals()[participant]):
                         break
                 else:
-                    return True  
+                    if action == 'foreign_aid':
+                        return 'Duke'
+                    elif action == 'assassinate':
+                        return 'Contessa'
+                    elif action == 'steal':
+                        from random import choice
+                        return choice(['Ambassador', 'Captain'])
         except KeyError:
             pass
         
-        return False
+        return None
         
     def will_callout(self, action, performer):
         try:
