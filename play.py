@@ -88,7 +88,17 @@ class simulations(object):
                             if savior.will_intervene(action, acting_player):
                                 for spectators in testgame.filter_out_players([acting_player, savior]):
                                     spectators.didnt_block_as['spectator'].extend([action])
-                                raise BlockedAction(action, acting_player, None, savior)
+                                    
+                                if action not in savior.calculate('judge', 'blocks'):
+                                    try:
+                                        raise QuestionInfluence(acting_player, savior, 'Duke', testgame.court_deck)
+                                    except QuestionInfluence as e:
+                                        if e.doubter_is_correct:
+                                            acting_player.perform(action)
+                                            self.ACTIONS[acting_player.alpha].append(action)
+                                            break
+                                        else:
+                                            raise BlockedAction(action, acting_player, None, savior)
                         else:
                             acting_player.perform(action)
                             self.ACTIONS[acting_player.alpha].append(action)
@@ -102,13 +112,27 @@ class simulations(object):
                         else:
                             for savior in testgame.filter_out_players([acting_player, random_player]):
                                 if savior.will_intervene(action, acting_player, random_player):
+                                    for spectators in testgame.filter_out_players([acting_player, savior]):
+                                        spectators.didnt_block_as['spectator'].extend([action])
                                     raise BlockedAction(action, acting_player, random_player, savior)
+                                    
+                                    '''if action not in savior.calculate('judge', 'blocks'):
+                                        try:
+                                            raise QuestionInfluence(acting_player, savior, 'Duke', testgame.court_deck)
+                                        except QuestionInfluence as e:
+                                            if e.doubter_is_correct:
+                                                acting_player.perform(action)
+                                                self.ACTIONS[acting_player.alpha].append(action)
+                                                break
+                                            else:
+                                                raise BlockedAction(action, acting_player, None, savior)'''
                                     
                             for doubter in testgame.filter_out_players([acting_player]):
                                 if doubter.will_callout(action, acting_player):
                                     if action in acting_player.valid_actions:
                                         acting_player.perform(action, random_player)
-                                    raise QuestionInfluence(action, acting_player, doubter, testgame.court_deck)
+                                        self.ACTIONS[acting_player.alpha].append(action)
+                                    raise QuestionInfluence(doubter, acting_player, 'Captain', testgame.court_deck)
                         
                             acting_player.perform(action, random_player)
                             self.ACTIONS[acting_player.alpha].append(action)
@@ -124,6 +148,9 @@ class simulations(object):
                         else:
                             for savior in testgame.filter_out_players([acting_player, random_player]):
                                 if savior.will_intervene(action, acting_player, random_player):
+                                    for spectators in testgame.filter_out_players([acting_player, savior]):
+                                        spectators.didnt_block_as['spectator'].extend([action])
+                                    #contessa logic goes here, but is still partially flawed since contessa has no hard tells
                                     raise BlockedAction(action, acting_player, random_player, savior)
                                     
                             for doubter in testgame.filter_out_players([acting_player]):
@@ -131,8 +158,9 @@ class simulations(object):
                                     if action in acting_player.valid_actions:
                                         position, random_target = random_player.random_remaining_influence
                                         acting_player.perform(action, random_target)
+                                        self.ACTIONS[acting_player.alpha].append(action)
                                         random_player.remove_suspicion(str(random_target))
-                                    raise QuestionInfluence(action, acting_player, doubter, testgame.court_deck)
+                                    raise QuestionInfluence(doubter, acting_player, 'Assassin', testgame.court_deck)
                             position, random_target = random_player.random_remaining_influence
                             acting_player.perform(action, random_target)
                             random_player.remove_suspicion(str(random_target))
@@ -145,7 +173,8 @@ class simulations(object):
                             if doubter.will_callout(action, acting_player):
                                 if action in acting_player.valid_actions:
                                     acting_player.perform(action, testgame.court_deck)
-                                raise QuestionInfluence(action, acting_player, doubter, testgame.court_deck)
+                                    self.ACTIONS[acting_player.alpha].append(action)
+                                raise QuestionInfluence(doubter, acting_player, 'Ambassador', testgame.court_deck)
                         self.ACTIONS[acting_player.alpha].append(action)
                         break
                 except IllegalAction as e:
@@ -165,16 +194,14 @@ class simulations(object):
                         self.RET_ACT_REGRET[e.victim.alpha].append(action)
                 except QuestionInfluence as e:
                     self.DOUBTS_ACTIONS[e.doubter.saved_personality].append(action)
-                    self.DOUBTS_WRONG[e.doubter.saved_personality].append(e.performer_is_honest)
+                    self.DOUBTS_WRONG[e.doubter.saved_personality].append(e.doubter_is_correct)
                     
-                    if e.performer_is_honest:
-                        self.DOUBTS_THRESHOLD_WRONG[e.doubter.saved_personality].append(e.performer.judge_player[[a.__name__ for a in Influence.__subclasses__() if action in a.ACTIONS][0]])
+                    if e.doubter_is_correct:
+                        self.DOUBTS_THRESHOLD_RIGHT[e.doubter.saved_personality].append(e.alleged_bluffer.judge_player[[a.__name__ for a in Influence.__subclasses__() if action in a.ACTIONS][0]])
                     else:
-                        self.DOUBTS_THRESHOLD_RIGHT[e.doubter.saved_personality].append(e.performer.judge_player[[a.__name__ for a in Influence.__subclasses__() if action in a.ACTIONS][0]])
+                        self.DOUBTS_THRESHOLD_WRONG[e.doubter.saved_personality].append(e.alleged_bluffer.judge_player[[a.__name__ for a in Influence.__subclasses__() if action in a.ACTIONS][0]])
                     break
-
-                    
-                    
+             
                 
         
 if __name__ == "__main__":

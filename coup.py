@@ -576,10 +576,11 @@ class QuestionInfluence(Exception):
         self.doubter = doubter
         self.alleged_bluffer = alleged_bluffer
         self.alleged_influence = alleged_influence
+        self.alleged_bluffer_original = str(alleged_bluffer)
         
         if alleged_influence in alleged_bluffer:
             self.message = "{0} doubts {1} influences a {2}: former loses one influence!".format(self.doubter,
-                                                                                                 self.alleged_bluffer,
+                                                                                                 self.alleged_bluffer_original,
                                                                                                  self.alleged_influence)
             self.doubter_is_correct = False
             influence = self.doubter.random_remaining_influence[1]
@@ -588,12 +589,12 @@ class QuestionInfluence(Exception):
             
             #will need refinement for captain/ambassador on blocked steal
             if str(self.doubter.left) == alleged_influence and not self.doubter.left.revealed: 
-                self.performer.restore('left', court_deck)
+                self.doubter.restore('left', court_deck)
             elif str(self.doubter.right) == alleged_influence and not self.doubter.right.revealed: 
-                self.performer.restore('right', court_deck)
+                self.doubter.restore('right', court_deck)
         else:
             self.message = "{0} doubts {1} influences a {2}: latter loses one influence!".format(self.doubter,
-                                                                                                 self.alleged_bluffer,
+                                                                                                 self.alleged_bluffer_original,
                                                                                                  self.alleged_influence)
             self.doubter_is_correct = True
             influence = self.alleged_bluffer.random_remaining_influence[1]
