@@ -464,6 +464,28 @@ class TestCoup(unittest.TestCase):
         for i in range(50):
             self.assertIsNot(p, p.select_opponent(testgame.players))
             self.assertIsNot(pppp, p.select_opponent(testgame.players))
+            
+    def test_probability_player_influences(self):
+        testgame = Play_Coup(5)
+        
+        p = testgame.players[0]
+        p.left = Assassin()
+        p.right = Assassin()
+        pp = testgame.players[1]
+        pp.left = Contessa()
+        pp.right = Contessa()
+        ppp = testgame.players[2]
+        ppp.left = Duke()
+        ppp.right = Contessa()
+        
+        self.assertAlmostEqual(testgame.probability_player_influences(pp, 'Contessa', None), 0.37142857142857144)
+        self.assertAlmostEqual(testgame.probability_player_influences(pp, 'Contessa', p), 0.423076923076923)
+        self.assertAlmostEqual(testgame.probability_player_influences(pp, 'Contessa', ppp), 0.2948717948717948) 
+        
+        pp.right.reveal()
+        self.assertAlmostEqual(testgame.probability_player_influences(pp, 'Contessa', None), 0.27472527472527475) 
+        self.assertAlmostEqual(testgame.probability_player_influences(pp, 'Contessa', p), 0.3181818181818181) 
+        self.assertAlmostEqual(testgame.probability_player_influences(pp, 'Contessa', ppp), 0.16666666666666674) 
 
     def test_record_actions(self):
         testgame = Play_Coup(5)

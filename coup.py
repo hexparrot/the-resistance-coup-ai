@@ -53,6 +53,27 @@ class Play_Coup(object):
         hits = [p for p in self.players if p not in list_of_players and p.influence_remaining]
         shuffle(hits)
         return hits
+        
+    def probability_player_influences(self, target, influence, knowledge):
+        NUMBER_OF_CARDS = 15.0
+        NUMBER_IN_SET = 3.0
+        known = []
+        for player in self.players:
+            if knowledge is player:
+                known.extend([str(p) for p in (player.left, player.right)])
+            else:
+                if str(player.left) == influence and player.left.revealed:
+                    known.append(influence)
+                elif str(player.right) == influence and player.right.revealed:
+                    known.append(influence)
+
+        number_can_draw_from = NUMBER_OF_CARDS - len(known)
+        number_non_influence_1 = (number_can_draw_from - NUMBER_IN_SET + known.count(influence)) / number_can_draw_from
+        number_non_influence_2 = (number_can_draw_from - 1 - NUMBER_IN_SET + known.count(influence)) / (number_can_draw_from - 1)
+        
+        probability_negation = number_non_influence_1 * number_non_influence_2 
+        return 1- probability_negation
+            
     
     @property
     def playerstate_binary(self):
