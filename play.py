@@ -29,22 +29,9 @@ class simulations(object):
     ILL_TAR = defaultdict(list)
     RET_ACT_GOOD = defaultdict(list)
     RET_ACT_REGRET = defaultdict(list)
+    GUESSED_CONTESSA = defaultdict(int)
     
-    def sim_refined_actions_calculated_targets_more_calculated_blocks_systemic_doubts(self):
-        """
-        AI PROFILE:
-        
-        Action          Used        Targets     Blocked     
-        income          yes
-        foreign_aid     yes                     victim/by ai profile
-        coup            yes
-        steal           yes         best_guess  victim/by ai profile
-        tax             yes
-        assassinate     yes         best_guess  victim/by ai profile
-        exchange        yes         random      no
-
-        """
-
+    def sim_full_on_yomi(self):
         testgame = Play_Coup(self.PLAYERS, PERSONALITIES.keys())
 
         for acting_player in cycle(testgame.players):
@@ -141,8 +128,11 @@ class simulations(object):
                                 spectators.didnt_block_as['spectator'].extend([action])
                             break
                     elif action == 'assassinate':
+                        from random import random
                         random_player = acting_player.select_opponent(testgame.players) if not remaining_opponent else remaining_opponent
                         if action in random_player.calculate('probable', 'blocks'):
+                            raise RethinkAction(action, acting_player, random_player)
+                        elif random() < AI_Persona.probability_player_influences(testgame.players, random_player, 'Contessa', acting_player):
                             raise RethinkAction(action, acting_player, random_player)
                         elif action in random_player.valid_blocks:
                             raise BlockedAction(action, acting_player, random_player, None)
@@ -151,7 +141,8 @@ class simulations(object):
                                 if savior.will_intervene(action, acting_player, random_player):
                                     for spectators in testgame.filter_out_players([acting_player, savior]):
                                         spectators.didnt_block_as['spectator'].extend([action])
-                                    #contessa logic goes here, but is still partially flawed since contessa has no hard tells
+                                    if random() > AI_Persona.probability_player_influences(testgame.players, savior, 'Contessa', acting_player):
+                                        raise QuestionInfluence(acting_player, savior, 'Contessa', testgame.court_deck)
                                     raise BlockedAction(action, acting_player, random_player, savior)
                                     
                             for doubter in testgame.filter_out_players([acting_player]):
@@ -190,17 +181,17 @@ class simulations(object):
                     break
                 except RethinkAction as e:
                     if action in e.victim.valid_blocks:
-                        self.RET_ACT_GOOD[e.victim.alpha].append(action)
+                        self.RET_ACT_GOOD[e.victim.status].append(action)
                     else:
-                        self.RET_ACT_REGRET[e.victim.alpha].append(action)
+                        self.RET_ACT_REGRET[e.victim.status].append(action)
                 except QuestionInfluence as e:
                     self.DOUBTS_ACTIONS[e.doubter.saved_personality].append(action)
                     self.DOUBTS_RIGHT[e.doubter.saved_personality].append(e.doubter_is_correct)
                     
                     if e.doubter_is_correct:
-                        self.DOUBTS_THRESHOLD_RIGHT[e.doubter.saved_personality].append(e.alleged_bluffer.judge_player[[a.__name__ for a in Influence.__subclasses__() if action in a.ACTIONS][0]])
+                        self.DOUBTS_THRESHOLD_RIGHT[e.doubter.saved_personality].append(e.alleged_bluffer.judge_player.get(e.alleged_influence, 0))
                     else:
-                        self.DOUBTS_THRESHOLD_WRONG[e.doubter.saved_personality].append(e.alleged_bluffer.judge_player[[a.__name__ for a in Influence.__subclasses__() if action in a.ACTIONS][0]])
+                        self.DOUBTS_THRESHOLD_WRONG[e.doubter.saved_personality].append(e.alleged_bluffer.judge_player.get(e.alleged_influence, 0))
                     break
              
                 
@@ -208,7 +199,7 @@ class simulations(object):
 if __name__ == "__main__":
     c = Counter()
     for _ in range(1000):
-        c.update([simulations().sim_refined_actions_calculated_targets_more_calculated_blocks_systemic_doubts(),])
+        c.update([simulations().sim_full_on_yomi(),])
         
     for i,v in c.most_common():
         print('{0}{1}'.format(i.ljust(25), v))
@@ -256,7 +247,7 @@ if __name__ == "__main__":
     print('    Good to rethink')
     for inf in simulations.RET_ACT_GOOD:
         print('      {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.RET_ACT_GOOD[inf]).most_common())))
-    print('    Regret following through')
+    print('    Should have followed through')
     for inf in simulations.RET_ACT_REGRET:
         print('      {0}{1}'.format(inf.ljust(25), dict(Counter(simulations.RET_ACT_REGRET[inf]).most_common())))
     
