@@ -478,14 +478,14 @@ class TestCoup(unittest.TestCase):
         ppp.left = Duke()
         ppp.right = Contessa()
         
-        self.assertAlmostEqual(testgame.probability_player_influences(pp, 'Contessa', None), 0.37142857142857144)
-        self.assertAlmostEqual(testgame.probability_player_influences(pp, 'Contessa', p), 0.423076923076923)
-        self.assertAlmostEqual(testgame.probability_player_influences(pp, 'Contessa', ppp), 0.2948717948717948) 
+        self.assertAlmostEqual(AI_Persona.probability_player_influences(testgame.players, pp, 'Contessa', None), 0.37142857142857144)
+        self.assertAlmostEqual(AI_Persona.probability_player_influences(testgame.players, pp, 'Contessa', p), 0.423076923076923)
+        self.assertAlmostEqual(AI_Persona.probability_player_influences(testgame.players, pp, 'Contessa', ppp), 0.2948717948717948) 
         
         pp.right.reveal()
-        self.assertAlmostEqual(testgame.probability_player_influences(pp, 'Contessa', None), 0.27472527472527475) 
-        self.assertAlmostEqual(testgame.probability_player_influences(pp, 'Contessa', p), 0.3181818181818181) 
-        self.assertAlmostEqual(testgame.probability_player_influences(pp, 'Contessa', ppp), 0.16666666666666674) 
+        self.assertAlmostEqual(AI_Persona.probability_player_influences(testgame.players, pp, 'Contessa', None), 0.27472527472527475) 
+        self.assertAlmostEqual(AI_Persona.probability_player_influences(testgame.players, pp, 'Contessa', p), 0.3181818181818181) 
+        self.assertAlmostEqual(AI_Persona.probability_player_influences(testgame.players, pp, 'Contessa', ppp), 0.16666666666666674) 
 
     def test_record_actions(self):
         testgame = Play_Coup(5)
@@ -769,7 +769,16 @@ class TestCoup(unittest.TestCase):
         ppp.rules['calculated_intervention']['steal'] = {
             'performer': lambda q: q.coins + 2 >= 3
             }
-        self.assertEqual(ppp.will_intervene('steal', p, pp), 'Captain')
+            
+        hits = 0
+        try:
+            self.assertEqual(ppp.will_intervene('steal', p, pp), 'Captain')
+            hits += 1
+        except AssertionError:
+            self.assertEqual(ppp.will_intervene('steal', p, pp), 'Ambassador')
+            hits += 1
+        finally:
+            self.assertEqual(hits, 1)
         
     def test_judge_player(self):
         from heuristics import WEIGHTS
