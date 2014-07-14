@@ -412,6 +412,13 @@ class AI_Persona(Player):
         except KeyError:
             pass
         return False
+        
+    @property
+    def plays_numbers(self):
+        try:
+            return self.rules['callout']['plays_numbers']
+        except KeyError:
+            return False
 
     @property
     def random_remaining_influence(self):
@@ -608,11 +615,12 @@ class BlockedAction(Exception):
             self.spectator.public_information['spectator'].append(action)
 
 class QuestionInfluence(Exception):
-    def __init__(self, doubter, alleged_bluffer, alleged_influence, court_deck):
+    def __init__(self, doubter, alleged_bluffer, alleged_influence, court_deck, action):
         self.doubter = doubter
         self.alleged_bluffer = alleged_bluffer
         self.alleged_influence = alleged_influence
         self.alleged_bluffer_original = str(alleged_bluffer)
+        self.action = action
         
         if alleged_influence in alleged_bluffer:
             self.message = "{0} doubts {1} influences a {2}: former loses one influence!".format(self.doubter,

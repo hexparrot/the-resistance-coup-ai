@@ -780,6 +780,17 @@ class TestCoup(unittest.TestCase):
         finally:
             self.assertEqual(hits, 1)
         
+    def test_plays_numbers(self):
+        p = AI_Persona()
+        
+        self.assertFalse(p.plays_numbers)
+        
+        p.rules['callout']['plays_numbers'] = False
+        self.assertFalse(p.plays_numbers)
+        
+        p.rules['callout']['plays_numbers'] = True
+        self.assertTrue(p.plays_numbers)
+        
     def test_judge_player(self):
         from heuristics import WEIGHTS
         testgame = Play_Coup(5)
@@ -1235,21 +1246,23 @@ class TestCoup(unittest.TestCase):
         pp.right = Duke()
         
         try:
-            raise QuestionInfluence(p, pp, 'Assassin', testgame.court_deck)
+            raise QuestionInfluence(p, pp, 'Assassin', testgame.court_deck, 'assassinate')
         except QuestionInfluence as e:
             self.assertEqual(e.message, "{0} doubts {1} influences a {2}: former loses one influence!".format(e.doubter,
                                                                                                               e.alleged_bluffer,
                                                                                                               'Assassin'))
+            self.assertEqual(e.action, 'assassinate')
             self.assertFalse(e.doubter_is_correct)
             self.assertEqual(p.influence_remaining, 1)
             self.assertEqual(pp.influence_remaining, 2)
             
         try:
-            raise QuestionInfluence(pp, p, 'Contessa', testgame.court_deck)
+            raise QuestionInfluence(pp, p, 'Contessa', testgame.court_deck, 'block_assassinate')
         except QuestionInfluence as e:
             self.assertEqual(e.message, "{0} doubts {1} influences a {2}: latter loses one influence!".format(e.doubter,
                                                                                                               e.alleged_bluffer,
                                                                                                               'Contessa'))
+            self.assertEqual(e.action, 'block_assassinate')
             self.assertTrue(e.doubter_is_correct)
             self.assertEqual(p.influence_remaining, 0)
             self.assertEqual(pp.influence_remaining, 2)

@@ -18,7 +18,8 @@ PERSONALITIES = {
         'callout': {
             'threshold': 0,
             'min_actions': 3,
-            'min_inactions': 3
+            'min_inactions': 3,
+            'plays_numbers': True
             }
         },
     'cautious': {
@@ -37,12 +38,14 @@ PERSONALITIES = {
         'callout': {
             'threshold': -3,
             'min_actions': 3,
-            'min_inactions': 3
+            'min_inactions': 3,
+            'plays_numbers': False
             }
         },
     'passive': {
         'honest_intervention': {},
-        'calculated_intervention': {}
+        'calculated_intervention': {},
+        'callout': {}
         }
     }
 
