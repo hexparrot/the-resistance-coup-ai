@@ -375,8 +375,10 @@ class AI_Persona(Player):
                     elif action == 'assassinate':
                         return 'Contessa'
                     elif action == 'steal':
-                        #artificial weighting toward representing amba
-                        if 'Ambassador' in self:
+                        if 'Ambassador' in self and 'Captain' in self:
+                            from random import choice
+                            return choice(['Ambassador', 'Captain'])
+                        elif 'Ambassador' in self:
                             return 'Ambassador'
                         elif 'Captain' in self:
                             return 'Captain'
@@ -631,7 +633,6 @@ class QuestionInfluence(Exception):
             influence.reveal()
             self.doubter.remove_suspicion(str(influence))
             
-            #will need refinement for captain/ambassador on blocked steal
             if str(self.doubter.left) == alleged_influence and not self.doubter.left.revealed: 
                 self.doubter.restore('left', court_deck)
             elif str(self.doubter.right) == alleged_influence and not self.doubter.right.revealed: 
