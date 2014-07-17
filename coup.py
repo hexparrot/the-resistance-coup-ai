@@ -577,9 +577,6 @@ class IllegalAction(Exception):
 class IllegalTarget(Exception):
     pass
 
-class EndTurn(Exception):
-    pass
-
 class RethinkAction(Exception):
     def __init__(self, action, performer, victim):
         self.action = action

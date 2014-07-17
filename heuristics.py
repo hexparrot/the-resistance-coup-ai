@@ -81,9 +81,9 @@ The following dictionaries weigh in how much a given action should suggest
 a player controls an influence.
 
 For example:
-BEST_GUESS['perform'] = 1, if a captain steals, +1 to "is a captain"
-BEST_GUESS['victim'] = 1, if a captain blocks a steal on himself, +1 to 'is a captain/ambassador'
-BEST_GUESS['spectator'] = if a captain blocks a steal he is not the target of, +2 to "must really be a captain"
+performed_action = 1, if a captain steals, +1 to "is a captain"
+blocked_selfishly = 1, if a captain blocks a steal on himself, +1 to 'is a captain/ambassador'
+blocked_selflessly = if a captain blocks a steal he is not the target of, +2 to "must really be a captain"
 
 These must be integers
 """
