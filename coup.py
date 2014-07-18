@@ -406,14 +406,25 @@ class AI_Persona(Player):
         return None
         
     def will_callout(self, action, performer):
-        try:
-            if sum(len(v) for k,v in performer.public_information.items()) >= self.rules['callout']['min_actions'] and \
-                sum(len(v) for k,v in performer.didnt_block_as.items()) >= self.rules['callout']['min_inactions'] and \
-                performer.judge_player[[a.__name__ for a in Influence.__subclasses__() if action in a.ACTIONS][0]] <= self.rules['callout']['threshold']:
-                return True
-        except KeyError:
-            pass
-        return False
+        if action.startswith('block_'):
+            action = action[6:]
+            try:
+                if sum(len(v) for k,v in performer.public_information.items()) >= self.rules['callout']['min_actions'] and \
+                    sum(len(v) for k,v in performer.didnt_block_as.items()) >= self.rules['callout']['min_inactions'] and \
+                    performer.judge_player[[a.__name__ for a in Influence.__subclasses__() if action in a.BLOCKS][0]] <= self.rules['callout']['threshold']:
+                    return True
+            except KeyError:
+                pass
+            return False
+        else:
+            try:
+                if sum(len(v) for k,v in performer.public_information.items()) >= self.rules['callout']['min_actions'] and \
+                    sum(len(v) for k,v in performer.didnt_block_as.items()) >= self.rules['callout']['min_inactions'] and \
+                    performer.judge_player[[a.__name__ for a in Influence.__subclasses__() if action in a.ACTIONS][0]] <= self.rules['callout']['threshold']:
+                    return True
+            except KeyError:
+                pass
+            return False
         
     @property
     def plays_numbers(self):
