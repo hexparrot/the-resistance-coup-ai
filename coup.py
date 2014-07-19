@@ -486,10 +486,12 @@ class AI_Persona(Player):
 
     @staticmethod
     def clone(player):
+        from copy import deepcopy
+        
         n = AI_Persona()
         n.coins = player.coins
-        n.left = player.left
-        n.right = player.right
+        n.left = deepcopy(player.left)
+        n.right = deepcopy(player.right)
         return n 
 
     @staticmethod

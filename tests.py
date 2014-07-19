@@ -441,12 +441,15 @@ class TestCoup(unittest.TestCase):
         a = AI_Persona.clone(p)
         
         self.assertEqual(a.coins, p.coins)
-        self.assertIs(a.left, p.left)
-        self.assertIs(a.right, p.right)
+        self.assertIsNot(a.left, p.left)
+        self.assertIsNot(a.right, p.right)
+        
+        self.assertEqual(type(a.left), type(p.left))
+        self.assertEqual(type(a.right), type(p.right))
 
         testgame.players[0] = a
 
-        self.assertIs(a, testgame.players[0])
+        self.assertEqual(str(a), str(testgame.players[0]))
         self.assertIsInstance(a, AI_Persona)
 
     def test_ai_persona_select_opponent(self):
