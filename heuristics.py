@@ -14,7 +14,11 @@ PERSONALITIES = {
                 'performer': lambda p: random() > .5
                 }
             },
-        'calculated_intervention': {},
+        'calculated_intervention': {
+            'foreign_aid': {
+                'performer': lambda p: random() > .8
+                },
+            },
         'callout': {
             'threshold': 0,
             'min_actions': 3,

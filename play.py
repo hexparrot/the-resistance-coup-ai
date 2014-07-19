@@ -119,7 +119,6 @@ class simulations(object):
                                 spectators.didnt_block_as['spectator'].extend([action])
                             break
                     elif action == 'assassinate':
-                        from random import random
                         random_player = acting_player.select_opponent(testgame.players) if not remaining_opponent else remaining_opponent
                         if action in random_player.calculate('probable', 'blocks'):
                             raise RethinkAction(action, acting_player, random_player)
@@ -150,7 +149,6 @@ class simulations(object):
                                 spectators.didnt_block_as['spectator'].extend([action])
                             break
                     elif action == 'exchange':
-                        from random import random
                         for doubter in testgame.filter_out_players([acting_player]):
                             probability = AI_Persona.probability_player_influences(testgame.players, acting_player, 'Ambassador', doubter)
                             if doubter.will_callout(action, acting_player) and \
@@ -182,13 +180,13 @@ class simulations(object):
                     self.DOUBTS_RIGHT[e.doubter.saved_personality].append(e.doubter_is_correct)
                     self.DOUBTS_ACTIONS_RIGHT[e.action].append(e.doubter_is_correct)
                     
+                    threshold = e.alleged_bluffer.judge_player.get(e.alleged_influence, 0)
                     if e.doubter_is_correct:
-                        self.DOUBTS_THRESHOLD_RIGHT[e.doubter.saved_personality].append(e.alleged_bluffer.judge_player.get(e.alleged_influence, 0))
+                        self.DOUBTS_THRESHOLD_RIGHT[e.doubter.saved_personality].append(threshold)
                     else:
-                        self.DOUBTS_THRESHOLD_WRONG[e.doubter.saved_personality].append(e.alleged_bluffer.judge_player.get(e.alleged_influence, 0))
+                        self.DOUBTS_THRESHOLD_WRONG[e.doubter.saved_personality].append(threshold)
                     break
-             
-                
+                         
         
 if __name__ == "__main__":
     c = Counter()
