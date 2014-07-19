@@ -782,6 +782,8 @@ class TestCoup(unittest.TestCase):
 
             
     def test_wins_duel(self):
+        '''this function may be unreliable because it is random which influence is eliminated.
+        pp starting vs p has variable winners because of random coup/assassinate flip'''
         p = AI_Persona()
         p.left = Duke()
         p.right = Assassin()
@@ -790,16 +792,19 @@ class TestCoup(unittest.TestCase):
         pp.left = Captain()
         pp.right = Captain()
         
-        self.assertTrue(p.wins_duel(pp))
+        self.assertTrue(p.wins_duel(pp)) 
+        self.assertTrue(pp.wins_duel(p)) #see above note
         
-        p.left.revealed = False
-        p.right.revealed = False
-        pp.left.revealed = False
-        pp.right.revealed = False   
+        p = AI_Persona()
+        p.left = Duke()
+        p.right = Duke()
         
-        self.assertTrue(pp.wins_duel(p))
-        '''this function is unreliable because it is random which influence is eliminated.
-        pp starting vs p has variable winners because of random coup/assassinate flip'''
+        pp = AI_Persona()
+        pp.left = Contessa()
+        pp.right = Contessa()
+        
+        self.assertTrue(p.wins_duel(pp)) 
+        self.assertFalse(pp.wins_duel(p))
 
     def test_plays_numbers(self):
         p = AI_Persona()
