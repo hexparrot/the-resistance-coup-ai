@@ -454,16 +454,21 @@ class TestCoup(unittest.TestCase):
 
         p = testgame.players[0]
         
-        for i in range(50):
+        for i in range(150):
             self.assertIsNot(p, p.select_opponent(testgame.players))
 
         pppp = testgame.players[4]
         pppp.left.reveal()
         pppp.right.reveal()
         
-        for i in range(50):
+        for i in range(150):
             self.assertIsNot(p, p.select_opponent(testgame.players))
             self.assertIsNot(pppp, p.select_opponent(testgame.players))
+            
+        testgame = Play_Coup(2)
+        p = testgame.players[0]
+        for i in range(150):
+            self.assertIsNot(p, p.select_opponent(testgame.players))
             
     def test_probability_player_influences(self):
         testgame = Play_Coup(5)
@@ -779,7 +784,27 @@ class TestCoup(unittest.TestCase):
             hits += 1
         finally:
             self.assertEqual(hits, 1)
+            
+    def test_wins_duel(self):
+        p = AI_Persona()
+        p.left = Duke()
+        p.right = Assassin()
         
+        pp = AI_Persona()
+        pp.left = Captain()
+        pp.right = Captain()
+        
+        self.assertTrue(p.wins_duel(pp))
+        
+        p.left.revealed = False
+        p.right.revealed = False
+        pp.left.revealed = False
+        pp.right.revealed = False   
+        
+        self.assertTrue(pp.wins_duel(p))
+        '''this function is unreliable because it is random which influence is eliminated.
+        pp starting vs p has variable winners because of random coup/assassinate flip'''
+
     def test_plays_numbers(self):
         p = AI_Persona()
         
@@ -1158,7 +1183,7 @@ class TestCoup(unittest.TestCase):
         self.assertEqual(p.one_on_one_strategy('Assassin Contessa', False), ['steal', 'tax', 'foreign_aid', 'income'])
         self.assertEqual(p.one_on_one_strategy('Assassin Contessa', True), ['tax', 'foreign_aid', 'income'])
         
-        p.coins = 10
+        p.coins = 7
         self.assertEqual(p.one_on_one_strategy('Assassin Contessa', True), ['coup'])
         self.assertEqual(p.one_on_one_strategy('Assassin Contessa', False), ['coup'])
         
