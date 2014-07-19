@@ -774,16 +774,9 @@ class TestCoup(unittest.TestCase):
         ppp.rules['calculated_intervention']['steal'] = {
             'performer': lambda q: q.coins + 2 >= 3
             }
-            
-        hits = 0
-        try:
-            self.assertEqual(ppp.will_intervene('steal', p, pp), 'Captain')
-            hits += 1
-        except AssertionError:
-            self.assertEqual(ppp.will_intervene('steal', p, pp), 'Ambassador')
-            hits += 1
-        finally:
-            self.assertEqual(hits, 1)
+
+        self.assertIn(ppp.will_intervene('steal', p, pp), ['Captain', 'Ambassador'])
+
             
     def test_wins_duel(self):
         p = AI_Persona()
