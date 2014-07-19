@@ -20,7 +20,7 @@ PERSONALITIES = {
                 },
             },
         'callout': {
-            'threshold': 0,
+            'threshold': -1,
             'min_actions': 3,
             'min_inactions': 3,
             'plays_numbers': True

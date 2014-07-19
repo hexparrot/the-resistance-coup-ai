@@ -66,98 +66,137 @@ class simulations(object):
                         self.ACTIONS[acting_player.alpha].append(action)
                         break
                     elif action == 'coup':
-                        random_player = acting_player.select_opponent(testgame.players) if not remaining_opponent else remaining_opponent
-                        position, random_target = random_player.random_remaining_influence
+                        if remaining_opponent:
+                            victim = remaining_opponent
+                        else:
+                            for random_opponent in testgame.filter_out_players([acting_player]):
+                                if not acting_player.wins_duel(random_opponent):
+                                    victim = random_opponent
+                                    break
+                                else:
+                                    victim = acting_player.select_opponent(testgame.players)
+                                    
+                        position, random_target = victim.random_remaining_influence
                         acting_player.perform(action, random_target)
-                        random_player.remove_suspicion(str(random_target))
+                        victim.remove_suspicion(str(random_target))
                         self.ACTIONS[acting_player.alpha].append(action)
                         break
                     elif action == 'foreign_aid':
                         for savior in testgame.filter_out_players([acting_player]):
-                            if savior.will_intervene(action, acting_player):
-                                for spectators in testgame.filter_out_players([acting_player, savior]):
-                                    spectators.didnt_block_as['spectator'].extend([action])
-                                
-                                if acting_player.will_callout('block_foreign_aid', savior) and \
-                                    acting_player.plays_numbers and \
-                                    random() > AI_Persona.probability_player_influences(testgame.players, savior, 'Duke', acting_player):                                    
-                                    if action not in savior.valid_blocks:
-                                        acting_player.perform(action)
-                                        self.ACTIONS[acting_player.alpha].append(action)
-                                    raise QuestionInfluence(acting_player, savior, 'Duke', testgame.court_deck, 'foreign_aid')
-                                raise BlockedAction(action, acting_player, None, savior)
+                            if not savior.wins_duel(acting_player):
+                                opponent = savior
+                                break
                         else:
-                            acting_player.perform(action)
-                            self.ACTIONS[acting_player.alpha].append(action)
-                            break
-                    elif action == 'steal':
-                        random_player = acting_player.select_opponent(testgame.players) if not remaining_opponent else remaining_opponent
-                        if action in random_player.calculate('probable', 'blocks'):
-                            raise RethinkAction(action, acting_player, random_player)
-                        elif action in random_player.valid_blocks:
-                            raise BlockedAction(action, acting_player, random_player, None)
-                        else:
-                            for savior in testgame.filter_out_players([acting_player, random_player]):
-                                representing = savior.will_intervene(action, acting_player, random_player)
-                                if representing:
-                                    for spectators in testgame.filter_out_players([acting_player, savior]):
-                                        spectators.didnt_block_as['spectator'].extend([action])
-                                    raise BlockedAction(action, acting_player, random_player, savior)
+                            opponent = None
                                     
-                                    if action not in savior.calculate('judge', 'blocks'):
-                                        raise QuestionInfluence(acting_player, savior, representing, testgame.court_deck, 'steal')
+                        if opponent and opponent.will_intervene(action, acting_player):
+                            for spectators in testgame.filter_out_players([acting_player, opponent]):
+                                spectators.didnt_block_as['spectator'].extend([action])
+                            
+                            if acting_player.will_callout('block_foreign_aid', opponent) and \
+                                acting_player.plays_numbers and \
+                                random() > AI_Persona.probability_player_influences(testgame.players, opponent, 'Duke', acting_player):                                    
+                                if action not in opponent.valid_blocks:
+                                    acting_player.perform(action)
+                                    self.ACTIONS[acting_player.alpha].append(action)
+                                raise QuestionInfluence(acting_player, opponent, 'Duke', testgame.court_deck, 'foreign_aid')
+                            elif action in opponent.valid_blocks:
+                                raise BlockedAction(action, acting_player, None, opponent)
+
+                        acting_player.perform(action)
+                        self.ACTIONS[acting_player.alpha].append(action)
+                        break
+                    elif action == 'steal':
+                        if remaining_opponent:
+                            victim = remaining_opponent
+                        else:
+                            for opponent in testgame.filter_out_players([acting_player]):
+                                if not acting_player.wins_duel(opponent) and action not in opponent.calculate('judge', 'blocks'):
+                                    victim = opponent
+                                    break
+                            else:
+                                victim = acting_player.select_opponent(testgame.players)
+
+                        if action in victim.valid_blocks:
+                            raise BlockedAction(action, acting_player, victim, None)
+                        else:
+                            for savior in testgame.filter_out_players([acting_player, victim]):
+                                representing = savior.will_intervene(action, acting_player, victim)
+                                if representing:
+                                    #logic to doubt savior (ambassador doesnt leave hints, so excess failed callouts)
+                                    '''for doubter in testgame.filter_out_players([acting_player, savior, victim]):
+                                        if doubter.will_callout('block_steal', savior):
+                                            if action not in savior.valid_blocks:
+                                                acting_player.perform(action, victim)
+                                                self.ACTIONS[acting_player.alpha].append(action)
+                                            raise QuestionInfluence(doubter, savior, representing, testgame.court_deck, 'block_steal')
+                                    '''
+                                    for spectators in testgame.filter_out_players([acting_player, savior, victim]):
+                                        spectators.didnt_block_as['spectator'].extend([action])  
+                                    raise BlockedAction(action, acting_player, victim, savior)
+                                    
                             for doubter in testgame.filter_out_players([acting_player]):
                                 if doubter.will_callout(action, acting_player):
                                     if action in acting_player.valid_actions:
-                                        acting_player.perform(action, random_player)
+                                        acting_player.perform(action, victim)
                                         self.ACTIONS[acting_player.alpha].append(action)
                                     raise QuestionInfluence(doubter, acting_player, 'Captain', testgame.court_deck, 'steal')
                         
-                            acting_player.perform(action, random_player)
+                            acting_player.perform(action, victim)
                             self.ACTIONS[acting_player.alpha].append(action)
-                            for spectators in testgame.filter_out_players([acting_player, savior]):
+                            for spectators in testgame.filter_out_players([acting_player]):
                                 spectators.didnt_block_as['spectator'].extend([action])
                             break
                     elif action == 'assassinate':
-                        random_player = acting_player.select_opponent(testgame.players) if not remaining_opponent else remaining_opponent
-                        if action in random_player.calculate('probable', 'blocks'):
-                            raise RethinkAction(action, acting_player, random_player)
-                        elif random() <= AI_Persona.probability_player_influences(testgame.players, random_player, 'Contessa', acting_player):
-                            raise RethinkAction(action, acting_player, random_player)
-                        elif action in random_player.valid_blocks:
-                            raise BlockedAction(action, acting_player, random_player, None)
+                        if remaining_opponent:
+                            victim = remaining_opponent
                         else:
-                            for savior in testgame.filter_out_players([acting_player, random_player]):
-                                if savior.will_intervene(action, acting_player, random_player):
-                                    for spectators in testgame.filter_out_players([acting_player, savior]):
+                            for opponent in testgame.filter_out_players([acting_player]):
+                                if not acting_player.wins_duel(opponent) and \
+                                    random() > AI_Persona.probability_player_influences(testgame.players, opponent, 'Contessa', acting_player):
+                                    victim = opponent
+                                    break
+                            else:
+                                victim = acting_player.select_opponent(testgame.players)
+
+                        if action in victim.valid_blocks:
+                            raise BlockedAction(action, acting_player, victim, None)
+                        else:
+                            for savior in testgame.filter_out_players([acting_player, victim]):
+                                representing = savior.will_intervene(action, acting_player, victim)
+                                if representing:
+                                    for spectators in testgame.filter_out_players([acting_player, savior, victim]):
                                         spectators.didnt_block_as['spectator'].extend([action])
-                                    raise BlockedAction(action, acting_player, random_player, savior)
-                                    
+                                    #omitted logic to doubt savior (contessa doesnt leave hints, so excess failed callouts)
+                                    raise BlockedAction(action, acting_player, victim, savior)
+                            
                             for doubter in testgame.filter_out_players([acting_player]):
                                 if doubter.will_callout(action, acting_player):
                                     if action in acting_player.valid_actions:
-                                        position, random_target = random_player.random_remaining_influence
+                                        position, random_target = victim.random_remaining_influence
                                         acting_player.perform(action, random_target)
                                         self.ACTIONS[acting_player.alpha].append(action)
-                                        random_player.remove_suspicion(str(random_target))
+                                        victim.remove_suspicion(str(random_target))
                                     raise QuestionInfluence(doubter, acting_player, 'Assassin', testgame.court_deck, 'assassinate')
-                            position, random_target = random_player.random_remaining_influence
+
+                            position, random_target = victim.random_remaining_influence
                             acting_player.perform(action, random_target)
-                            random_player.remove_suspicion(str(random_target))
+                            victim.remove_suspicion(str(random_target))
                             self.ACTIONS[acting_player.alpha].append(action)
-                            for spectators in testgame.filter_out_players([acting_player, random_player]):
+                            for spectators in testgame.filter_out_players([acting_player, victim]):
                                 spectators.didnt_block_as['spectator'].extend([action])
                             break
                     elif action == 'exchange':
                         for doubter in testgame.filter_out_players([acting_player]):
-                            probability = AI_Persona.probability_player_influences(testgame.players, acting_player, 'Ambassador', doubter)
                             if doubter.will_callout(action, acting_player) and \
                                 doubter.plays_numbers and \
-                                random() > probability:
+                                random() > AI_Persona.probability_player_influences(testgame.players, acting_player, 'Ambassador', doubter):
                                 if action in acting_player.valid_actions:
                                     acting_player.perform(action, testgame.court_deck)
                                     self.ACTIONS[acting_player.alpha].append(action)
                                 raise QuestionInfluence(doubter, acting_player, 'Ambassador', testgame.court_deck, 'exchange')
+                                
+                        acting_player.perform(action, testgame.court_deck)
                         self.ACTIONS[acting_player.alpha].append(action)
                         break
                 except IllegalAction as e:
