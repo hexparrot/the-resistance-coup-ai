@@ -37,7 +37,7 @@ pairs = ['Ambassador Contessa',
      
 if __name__ == "__main__":
     from scipy.stats import f_oneway
-    from statsmodels.stats.multicomp import pairwise_tukeyhsd, MultiComparison
+    from statsmodels.stats.multicomp import pairwise_tukeyhsd
     
     container = defaultdict(list)
     

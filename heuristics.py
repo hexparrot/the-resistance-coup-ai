@@ -21,7 +21,7 @@ PERSONALITIES = {
             },
         'callout': {
             'threshold': -1,
-            'min_actions': 3,
+            'min_actions': 5,
             'min_inactions': 3,
             'plays_numbers': True
             }
@@ -41,7 +41,7 @@ PERSONALITIES = {
         'calculated_intervention': {},
         'callout': {
             'threshold': -3,
-            'min_actions': 3,
+            'min_actions': 5,
             'min_inactions': 3,
             'plays_numbers': False
             }
