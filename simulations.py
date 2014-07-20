@@ -603,7 +603,7 @@ class simulations(object):
                 except QuestionInfluence:
                     break
 
-    def sim_full_on_yomi(self):
+    def sim_a_full_on_yomi(self):
         testgame = Play_Coup(self.PLAYERS, PERSONALITIES.keys())
 
         for acting_player in cycle(testgame.players):
