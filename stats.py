@@ -44,11 +44,14 @@ if __name__ == "__main__":
     for index, sim in enumerate(simulations().available_simulations()):
         print("{0}: {1}".format(str(index).ljust(2), sim))
     
-    for i in range(SAMPLE_COUNT):
-        for sim in simulations().available_simulations():
-            print ('sample {0}, simulation: {1}'.format(i, sim))
-            for p, wins in simulations().run(sim, GAMES_PER_SAMPLE).items():
-                container[p].append((sim, wins))
+    try:
+        for i in range(SAMPLE_COUNT):
+            for sim in simulations().available_simulations():
+                print ('sample {0}, simulation: {1}'.format(i, sim))
+                for p, wins in simulations().run(sim, GAMES_PER_SAMPLE).items():
+                    container[p].append((sim, wins))
+    except KeyboardInterrupt:
+        pass
 
     for pair in pairs:
         print('')
