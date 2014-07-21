@@ -9,14 +9,18 @@ import numpy
 from collections import defaultdict
 from coup import *
 from simulations import simulations
+from multiprocessing.pool import Pool
+from multiprocessing import TimeoutError
+from itertools import cycle
 
 __author__ = "William Dizon"
 __license__ = "GNU GPL v3.0"
 __version__ = "0.0.1"
 __email__ = "wdchromium@gmail.com"
 
-SAMPLE_COUNT = 5
-GAMES_PER_SAMPLE = 500
+NUMBER_OF_PROCESSES = 2 
+GAMES_PER_SAMPLE = 100
+SIMULATION_TIMEOUT = 25
 
 pairs = ['Ambassador Contessa',
      'Captain Duke',
@@ -33,22 +37,43 @@ pairs = ['Ambassador Contessa',
      'Contessa Contessa',
      'Captain Captain',
      'Assassin Assassin']
-     
-     
+
+def f(sim):
+    return (sim, simulations().run(sim, GAMES_PER_SAMPLE))
+    
 if __name__ == "__main__":
     from scipy.stats import f_oneway
-    from statsmodels.stats.multicomp import pairwise_tukeyhsd, MultiComparison
-    
-    container = defaultdict(list)
-    
-    for index, sim in enumerate(simulations().available_simulations()):
-        print("{0}: {1}".format(str(index).ljust(2), sim))
-    
-    for i in range(SAMPLE_COUNT):
-        for sim in simulations().available_simulations():
-            for p, wins in simulations().run(sim, GAMES_PER_SAMPLE).items():
-                container[p].append((sim, wins))
+    from statsmodels.stats.multicomp import pairwise_tukeyhsd
+    import sys
 
+    container = defaultdict(list)   
+    pool = Pool(processes=NUMBER_OF_PROCESSES,
+                maxtasksperchild=5)
+
+    try:
+        print('press CTRL-c to stop generating samples')
+        it = pool.imap(f, cycle(simulations().available_simulations()))
+        
+        while 1:
+            try:
+                sim, result = it.next(timeout=SIMULATION_TIMEOUT)
+                sys.stdout.write('.')
+                for p, wins in result.items():
+                    container[p].append( (sim, wins) )
+            except (TimeoutError, IndexError):
+                print('simulation timed out')
+                raise
+            
+    except (KeyboardInterrupt, TimeoutError, IndexError):
+        pool.close()
+        print('stopping all simulations...')
+    finally:
+        pool.terminate()
+        pool.join()
+    
+    for idx, sim in enumerate(simulations().available_simulations()):
+        print(idx, sim)
+        
     for pair in pairs:
         print('')
         print(pair)
@@ -65,5 +90,5 @@ if __name__ == "__main__":
             print(pairwise_tukeyhsd(dta2['wins'], dta2['test']))
 
     
-    
+
     

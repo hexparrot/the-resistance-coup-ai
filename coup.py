@@ -212,45 +212,29 @@ class Player(object):
         influences = ['Ambassador', 'Assassin', 'Captain', 'Contessa', 'Duke']
         return tuple(1 if inf in self else 0 for inf in influences)
         
-    @classmethod
-    def actions_for_influences(cls, influences):
-        actions = []
-        for inf in Influence.__subclasses__():
-            if inf.__name__ in influences:
-                actions.extend(inf.ACTIONS)
-        return sorted(actions)
-        
-    @classmethod
-    def blocks_for_influences(cls, influences):
-        blocks = []
-        for inf in Influence.__subclasses__():
-            if inf.__name__ in influences:
-                blocks.extend(inf.BLOCKS)
-        return sorted(blocks)
-        
     def calculate(self, likelihood, type_of_action):
         if type_of_action == 'actions':
             if likelihood == 'probable':
                 infs = sorted(self.probable_influences.items(), reverse=True, key=lambda i: i[1])
                 infs = [inf for inf, score in infs[0:2]]
-                return self.actions_for_influences(infs)
+                return Influence.actions_for_influences(infs)
             elif likelihood == 'improbable':
                 infs = sorted(self.improbable_influences.items(), reverse=True, key=lambda i: i[1])
                 infs = [inf for inf, score in infs[0:2]]
-                return self.actions_for_influences(infs)
+                return Influence.actions_for_influences(infs)
             elif likelihood == 'judge':
-                return self.actions_for_influences(self.best_guess)
+                return Influence.actions_for_influences(self.best_guess)
         elif type_of_action == 'blocks':
             if likelihood == 'probable':
                 infs = sorted(self.probable_influences.items(), reverse=True, key=lambda i: i[1])
                 infs = [inf for inf, score in infs[0:2]]
-                return self.blocks_for_influences(infs)
+                return Influence.blocks_for_influences(infs)
             elif likelihood == 'improbable':
                 infs = sorted(self.improbable_influences.items(), reverse=True, key=lambda i: i[1])
                 infs = [inf for inf, score in infs[0:2]]
-                return self.blocks_for_influences(infs)
+                return Influence.blocks_for_influences(infs)
             elif likelihood == 'judge':
-                return self.blocks_for_influences(self.best_guess)
+                return Influence.blocks_for_influences(self.best_guess)
 
 class AI_Persona(Player):
     OFFENSIVE_PRIORITY = {
@@ -360,14 +344,17 @@ class AI_Persona(Player):
             
     def one_on_one_strategy(self, influences, honest=True):
         action_plan = []
-        if self.coins >= 10:
+        if self.coins >= 7:
             action_plan = ['coup']
         else:
-            try:
-                action_plan.extend(self.OFFENSIVE_PRIORITY[influences])
-                action_plan.extend(self.BUILDUP_PRIORITY[influences])
-            except KeyError:
-                pass
+            action_plan.extend(self.OFFENSIVE_PRIORITY.get(influences,['coup']))
+            action_plan.extend(self.BUILDUP_PRIORITY.get(influences,[]))
+            
+        if self.coins < 7:
+            action_plan.remove('coup')
+        if self.coins < 3:
+            if 'assassinate' in action_plan:
+                action_plan.remove('assassinate')
         
         if honest:
             return [a for a in action_plan if a in self.valid_actions + Play_Coup.ACTIONS['free']]
@@ -383,7 +370,18 @@ class AI_Persona(Player):
                     if lambda_func and not lambda_func(locals()[participant]):
                         break
                 else:
-                    return True  
+                    if action == 'foreign_aid':
+                        return 'Duke'
+                    elif action == 'assassinate':
+                        return 'Contessa'
+                    elif action == 'steal':
+                        if 'Ambassador' in self and 'Captain' in self:
+                            from random import choice
+                            return choice(['Ambassador', 'Captain'])
+                        elif 'Ambassador' in self:
+                            return 'Ambassador'
+                        elif 'Captain' in self:
+                            return 'Captain'
         except KeyError:
             pass
 
@@ -395,21 +393,83 @@ class AI_Persona(Player):
                     if lambda_func and not lambda_func(locals()[participant]):
                         break
                 else:
-                    return True  
+                    if action == 'foreign_aid':
+                        return 'Duke'
+                    elif action == 'assassinate':
+                        return 'Contessa'
+                    elif action == 'steal':
+                        from random import choice
+                        return choice(['Ambassador', 'Captain'])
         except KeyError:
             pass
         
-        return False
+        return None
         
     def will_callout(self, action, performer):
+        if action.startswith('block_'):
+            action = action[6:]
+            try:
+                if sum(len(v) for k,v in performer.public_information.items()) >= self.rules['callout']['min_actions'] and \
+                    sum(len(v) for k,v in performer.didnt_block_as.items()) >= self.rules['callout']['min_inactions'] and \
+                    performer.judge_player[[a.__name__ for a in Influence.__subclasses__() if action in a.BLOCKS][0]] <= self.rules['callout']['threshold']:
+                    return True
+            except KeyError:
+                pass
+            return False
+        else:
+            try:
+                if sum(len(v) for k,v in performer.public_information.items()) >= self.rules['callout']['min_actions'] and \
+                    sum(len(v) for k,v in performer.didnt_block_as.items()) >= self.rules['callout']['min_inactions'] and \
+                    performer.judge_player[[a.__name__ for a in Influence.__subclasses__() if action in a.ACTIONS][0]] <= self.rules['callout']['threshold']:
+                    return True
+            except KeyError:
+                pass
+            return False
+            
+    def wins_duel(self, opponent):
+        from itertools import cycle
+        
+        duel = Play_Coup(2)
+        duel.players[0] = self.clone(self)
+        duel.players[1] = self.clone(opponent)
+        
+        for acting_player in cycle(duel.players):
+            try:
+                if not acting_player.influence_remaining:
+                    continue
+                elif len(duel) == 1:
+                    return acting_player is duel.players[0]
+                    
+                opp = [duel.players[0], duel.players[1]][acting_player is duel.players[0]]
+                assert(acting_player is not opp)
+                action_plan = acting_player.one_on_one_strategy(opp.alpha, True)
+                
+                while 1:
+                    action = action_plan.pop(0)
+                    if action not in acting_player.valid_actions + ['foreign_aid','income','coup']:
+                        pass
+                    elif action in opp.valid_blocks:
+                        break
+                    else:
+                        if action in ['income', 'tax', 'foreign_aid']:
+                            acting_player.perform(action)
+                        elif action in ['assassinate', 'coup']:
+                            position, random_target = opp.random_remaining_influence
+                            acting_player.perform(action, random_target)
+                        elif action in ['exchange']:
+                            acting_player.perform('exchange', duel.players)
+                        elif action in ['steal']:
+                            acting_player.perform('steal', opp)
+                        break
+            except IllegalTarget:
+                continue                        
+        
+    @property
+    def plays_numbers(self):
         try:
-            if sum(len(v) for k,v in performer.public_information.items()) >= self.rules['callout']['min_actions'] and \
-                sum(len(v) for k,v in performer.didnt_block_as.items()) >= self.rules['callout']['min_inactions'] and \
-                performer.judge_player[[a.__name__ for a in Influence.__subclasses__() if action in a.ACTIONS][0]] <= self.rules['callout']['threshold']:
-                return True
+            return self.rules['callout']['plays_numbers']
         except KeyError:
-            pass
-        return False
+            return False
 
     @property
     def random_remaining_influence(self):
@@ -426,11 +486,34 @@ class AI_Persona(Player):
 
     @staticmethod
     def clone(player):
+        from copy import deepcopy
+        
         n = AI_Persona()
         n.coins = player.coins
-        n.left = player.left
-        n.right = player.right
+        n.left = deepcopy(player.left)
+        n.right = deepcopy(player.right)
         return n 
+
+    @staticmethod
+    def probability_player_influences(all_players, target, influence, knowledge):
+        NUMBER_OF_CARDS = 15.0
+        NUMBER_IN_SET = 3.0
+        known = []
+        for player in all_players:
+            if knowledge is player:
+                known.extend([str(p) for p in (player.left, player.right)])
+            else:
+                if str(player.left) == influence and player.left.revealed:
+                    known.append(influence)
+                elif str(player.right) == influence and player.right.revealed:
+                    known.append(influence)
+
+        number_can_draw_from = NUMBER_OF_CARDS - len(known)
+        number_non_influence_1 = (number_can_draw_from - NUMBER_IN_SET + known.count(influence)) / number_can_draw_from
+        number_non_influence_2 = (number_can_draw_from - 1 - NUMBER_IN_SET + known.count(influence)) / (number_can_draw_from - 1)
+        
+        probability_negation = number_non_influence_1 * number_non_influence_2 
+        return 1- probability_negation
 
 class Influence(object):
     def __init__(self):
@@ -457,6 +540,22 @@ class Influence(object):
             inf_target.reveal()
         else:
             raise IllegalAction("insufficient currency to coup")
+
+    @classmethod
+    def actions_for_influences(cls, influences):
+        actions = []
+        for inf in cls.__subclasses__():
+            if inf.__name__ in influences:
+                actions.extend(inf.ACTIONS)
+        return sorted(actions)
+        
+    @classmethod
+    def blocks_for_influences(cls, influences):
+        blocks = []
+        for inf in cls.__subclasses__():
+            if inf.__name__ in influences:
+                blocks.extend(inf.BLOCKS)
+        return sorted(blocks)
 
 class Captain(Influence):
     ACTIONS = ['steal']
@@ -529,9 +628,6 @@ class IllegalAction(Exception):
 class IllegalTarget(Exception):
     pass
 
-class EndTurn(Exception):
-    pass
-
 class RethinkAction(Exception):
     def __init__(self, action, performer, victim):
         self.action = action
@@ -569,24 +665,32 @@ class BlockedAction(Exception):
             self.spectator.public_information['spectator'].append(action)
 
 class QuestionInfluence(Exception):
-    def __init__(self, action, performer, doubter):
-        self.action = action
-        self.performer = performer
+    def __init__(self, doubter, alleged_bluffer, alleged_influence, court_deck, action):
         self.doubter = doubter
+        self.alleged_bluffer = alleged_bluffer
+        self.alleged_influence = alleged_influence
+        self.alleged_bluffer_original = str(alleged_bluffer)
+        self.action = action
         
-        if action in self.performer.valid_actions:
-            self.message = "{0} doubts {1} can {2}: doubter loses one influence!".format(self.doubter,
-                                                                                         self.performer,
-                                                                                         self.action)
-            self.performer_is_honest = True
+        if alleged_influence in alleged_bluffer:
+            self.message = "{0} doubts {1} influences a {2}: former loses one influence!".format(self.doubter,
+                                                                                                 self.alleged_bluffer_original,
+                                                                                                 self.alleged_influence)
+            self.doubter_is_correct = False
             influence = self.doubter.random_remaining_influence[1]
             influence.reveal()
             self.doubter.remove_suspicion(str(influence))
+            
+            if str(self.doubter.left) == alleged_influence and not self.doubter.left.revealed: 
+                self.doubter.restore('left', court_deck)
+            elif str(self.doubter.right) == alleged_influence and not self.doubter.right.revealed: 
+                self.doubter.restore('right', court_deck)
         else:
-            self.message = "{0} doubts {1} can {2}: performer loses one influence!".format(self.doubter,
-                                                                                           self.performer,
-                                                                                           self.action)
-            self.performer_is_honest = False
-            influence = self.performer.random_remaining_influence[1]
+            self.message = "{0} doubts {1} influences a {2}: latter loses one influence!".format(self.doubter,
+                                                                                                 self.alleged_bluffer_original,
+                                                                                                 self.alleged_influence)
+            self.doubter_is_correct = True
+            influence = self.alleged_bluffer.random_remaining_influence[1]
             influence.reveal()
-            self.performer.remove_suspicion(str(influence))
+            self.alleged_bluffer.remove_suspicion(str(influence))
+        

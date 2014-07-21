@@ -14,11 +14,16 @@ PERSONALITIES = {
                 'performer': lambda p: random() > .5
                 }
             },
-        'calculated_intervention': {},
+        'calculated_intervention': {
+            'foreign_aid': {
+                'performer': lambda p: random() > .8
+                },
+            },
         'callout': {
-            'threshold': 0,
-            'min_actions': 3,
-            'min_inactions': 3
+            'threshold': -1,
+            'min_actions': 5,
+            'min_inactions': 3,
+            'plays_numbers': True
             }
         },
     'cautious': {
@@ -36,13 +41,15 @@ PERSONALITIES = {
         'calculated_intervention': {},
         'callout': {
             'threshold': -3,
-            'min_actions': 3,
-            'min_inactions': 3
+            'min_actions': 5,
+            'min_inactions': 3,
+            'plays_numbers': False
             }
         },
     'passive': {
         'honest_intervention': {},
-        'calculated_intervention': {}
+        'calculated_intervention': {},
+        'callout': {}
         }
     }
 
@@ -78,9 +85,9 @@ The following dictionaries weigh in how much a given action should suggest
 a player controls an influence.
 
 For example:
-BEST_GUESS['perform'] = 1, if a captain steals, +1 to "is a captain"
-BEST_GUESS['victim'] = 1, if a captain blocks a steal on himself, +1 to 'is a captain/ambassador'
-BEST_GUESS['spectator'] = if a captain blocks a steal he is not the target of, +2 to "must really be a captain"
+performed_action = 1, if a captain steals, +1 to "is a captain"
+blocked_selfishly = 1, if a captain blocks a steal on himself, +1 to 'is a captain/ambassador'
+blocked_selflessly = if a captain blocks a steal he is not the target of, +2 to "must really be a captain"
 
 These must be integers
 """
