@@ -22,7 +22,7 @@ class simulations(object):
         from collections import Counter
         wins = Counter()
         for _ in range(num):
-            wins.update([getattr(self, simulation_to_run)(),])
+            wins.update([getattr(self, simulation_to_run)().winner.alpha,])
         return dict(wins)
         
     @classmethod
@@ -50,7 +50,7 @@ class simulations(object):
             if not acting_player.influence_remaining:
                 continue
             elif len(testgame) == 1:
-                return acting_player.alpha
+                return testgame
 
             while 1:
                 try:
@@ -98,7 +98,7 @@ class simulations(object):
             if not acting_player.influence_remaining:
                 continue
             elif len(testgame) == 1:
-                return acting_player.alpha
+                return testgame
 
             while 1:
                 try:
@@ -155,7 +155,7 @@ class simulations(object):
             if not acting_player.influence_remaining:
                 continue
             elif len(testgame) == 1:
-                return acting_player.alpha
+                return testgame
 
             while 1:
                 try:
@@ -217,7 +217,7 @@ class simulations(object):
             if not acting_player.influence_remaining:
                 continue
             elif len(testgame) == 1:
-                return acting_player.alpha
+                return testgame
 
             while 1:
                 try:
@@ -290,7 +290,7 @@ class simulations(object):
             if not acting_player.influence_remaining:
                 continue
             elif len(testgame) == 1:
-                return acting_player.alpha
+                return testgame
 
             while 1:
                 try:
@@ -363,7 +363,7 @@ class simulations(object):
             if not acting_player.influence_remaining:
                 continue
             elif len(testgame) == 1:
-                return acting_player.alpha
+                return testgame
 
             while 1:
                 try:
@@ -479,7 +479,7 @@ class simulations(object):
             if not acting_player.influence_remaining:
                 continue
             elif len(testgame) == 1:
-                return acting_player.alpha
+                return testgame
             elif len(testgame) == 2:
                 remaining_opponent = acting_player.select_opponent(testgame.players)
                 action_plan = acting_player.one_on_one_strategy(remaining_opponent.best_guess, True)
@@ -610,7 +610,7 @@ class simulations(object):
             if not acting_player.influence_remaining:
                 continue
             elif len(testgame) == 1:
-                return acting_player.alpha
+                return testgame
                 
             action_plan = []
             remaining_opponent = None
