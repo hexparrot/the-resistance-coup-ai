@@ -86,6 +86,19 @@ class TestCoup(unittest.TestCase):
 
         with self.assertRaises(IllegalAction): 
             p.perform('coup', pp.right)
+            
+    def test_game_winner(self):
+        testgame = Play_Coup(5)
+        
+        self.assertIsNone(testgame.winner)
+        
+        for p in testgame.players:
+            p.left.reveal()
+            p.right.reveal()
+        
+        testgame.players[0].left.revealed = False
+        
+        self.assertIs(testgame.winner, testgame.players[0])
 
     def test_perform(self):
         p = Player()
