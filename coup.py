@@ -55,6 +55,18 @@ class Play_Coup(object):
         return hits
     
     @property
+    def winner(self):
+        candidates = []
+        for p in self.players:
+            if p.influence_remaining > 0:
+                candidates.append(p)
+                
+        if len(candidates) == 1:
+            return candidates[0]
+        else:
+            return None
+    
+    @property
     def playerstate_binary(self):
         from itertools import chain
         return tuple(chain(*[p.influence_binary for p in self.players]))
