@@ -20,7 +20,7 @@ __email__ = "wdchromium@gmail.com"
 
 NUMBER_OF_PROCESSES = 2 
 GAMES_PER_SAMPLE = 100
-SAMPLE_TIMEOUT = 10
+SIMULATION_TIMEOUT = 25
 
 pairs = ['Ambassador Contessa',
      'Captain Duke',
@@ -47,7 +47,8 @@ if __name__ == "__main__":
     import sys
 
     container = defaultdict(list)   
-    pool = Pool(processes=NUMBER_OF_PROCESSES)
+    pool = Pool(processes=NUMBER_OF_PROCESSES,
+                maxtasksperchild=5)
 
     try:
         print('press CTRL-c to stop generating samples')
@@ -55,15 +56,18 @@ if __name__ == "__main__":
         
         while 1:
             try:
-                sim, result = it.next(timeout=SAMPLE_TIMEOUT)
+                sim, result = it.next(timeout=SIMULATION_TIMEOUT)
                 sys.stdout.write('.')
                 for p, wins in result.items():
                     container[p].append( (sim, wins) )
             except (TimeoutError, IndexError):
-                pass
+                print('simulation timed out')
+                raise
             
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, TimeoutError, IndexError):
+        pool.close()
         print('stopping all simulations...')
+    finally:
         pool.terminate()
         pool.join()
     
