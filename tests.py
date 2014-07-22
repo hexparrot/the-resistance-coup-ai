@@ -396,7 +396,7 @@ class TestCoup(unittest.TestCase):
         testgame.players[2].right.reveal()
         self.assertEqual(len(testgame), 0)
     
-    def test_playerstate(self):
+    def test_coup_influence_binary(self):
         testgame = Play_Coup(5)
         testgame.players[0].left = Ambassador()
         testgame.players[0].right = Ambassador()
@@ -409,7 +409,7 @@ class TestCoup(unittest.TestCase):
         testgame.players[4].left = Duke()
         testgame.players[4].right = Duke()
         
-        self.assertEqual(testgame.playerstate_binary, \
+        self.assertEqual(testgame.influence_binary, \
                          (1,0,0,0,0, 0,1,0,0,0, 0,0,1,0,0, 0,0,0,1,0, 0,0,0,0,1))
                          
         testgame.players[0].left = Ambassador()
@@ -423,8 +423,8 @@ class TestCoup(unittest.TestCase):
         testgame.players[4].left = Duke()
         testgame.players[4].right = Ambassador()
         
-        self.assertEqual(testgame.playerstate_binary, \
-                         (1,1,0,0,0, 0,1,1,0,0, 0,0,1,1,0, 0,0,0,1,1, 1,0,0,0,1))   
+        self.assertEqual(testgame.influence_binary, \
+                         (1,1,0,0,0, 0,1,1,0,0, 0,0,1,1,0, 0,0,0,1,1, 1,0,0,0,1))
                          
     def test_influence_binary(self):
         p = Player()

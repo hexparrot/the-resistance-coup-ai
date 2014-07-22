@@ -67,7 +67,7 @@ class Play_Coup(object):
             return None
     
     @property
-    def playerstate_binary(self):
+    def influence_binary(self):
         from itertools import chain
         return tuple(chain(*[p.influence_binary for p in self.players]))
 
