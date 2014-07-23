@@ -47,25 +47,22 @@ class Play_Coup(object):
             
     def __len__(self):
         return sum(1 for p in self.players if p.influence_remaining)
-            
+
     def filter_out_players(self, list_of_players):
         from random import shuffle
         hits = [p for p in self.players if p not in list_of_players and p.influence_remaining]
         shuffle(hits)
         return hits
-    
+
     @property
     def winner(self):
-        candidates = []
-        for p in self.players:
-            if p.influence_remaining > 0:
-                candidates.append(p)
+        candidates = [p for p in self.players if p.influence_remaining]
                 
         if len(candidates) == 1:
             return candidates[0]
         else:
             return None
-    
+
     @property
     def influence_binary(self):
         from itertools import chain
