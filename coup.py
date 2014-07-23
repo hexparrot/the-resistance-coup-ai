@@ -611,22 +611,22 @@ class Ambassador(Influence):
     BLOCKS = ['steal']
     
     @staticmethod
-    def exchange(self, court_deck):
+    def exchange(active_player, court_deck):
         from random import randint
 
         available_influence = []
         available_influence.append(court_deck.pop())
         available_influence.append(court_deck.pop())
 
-        if not self.left.revealed:
-            available_influence.append(self.left)
-        if not self.right.revealed:
-            available_influence.append(self.right)
+        if not active_player.left.revealed:
+            available_influence.append(active_player.left)
+        if not active_player.right.revealed:
+            available_influence.append(active_player.right)
 
-        if not self.left.revealed:
-            self.left = available_influence.pop(randint(0, len(available_influence)-1))
-        if not self.right.revealed:
-            self.right = available_influence.pop(randint(0, len(available_influence)-1))
+        if not active_player.left.revealed:
+            active_player.left = available_influence.pop(randint(0, len(available_influence)-1))
+        if not active_player.right.revealed:
+            active_player.right = available_influence.pop(randint(0, len(available_influence)-1))
 
         court_deck.extend(available_influence)
 
