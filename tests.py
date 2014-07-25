@@ -447,12 +447,11 @@ class TestCoup(unittest.TestCase):
         for i in range(PLAYERS):
             self.assertIsInstance(testgame.players[i].rules, dict)
 
-    def test_ai_persona_replace_player(self):
+    def test_ai_persona_clone(self):
         testgame = Play_Coup(5)
 
         p = testgame.players[0]
-        a = AI_Persona.clone(p)
-        
+        a = p.clone()        
         self.assertEqual(a.coins, p.coins)
         self.assertIsNot(a.left, p.left)
         self.assertIsNot(a.right, p.right)

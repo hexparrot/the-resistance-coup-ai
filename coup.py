@@ -412,8 +412,6 @@ class AI_Persona(Player):
         except KeyError:
             pass
         
-        return None
-        
     def will_callout(self, action, performer):
         if action.startswith('block_'):
             action = action[6:]
@@ -439,8 +437,8 @@ class AI_Persona(Player):
         from itertools import cycle
         
         duel = Play_Coup(2)
-        duel.players[0] = self.clone(self)
-        duel.players[1] = self.clone(opponent)
+        duel.players[0] = self.clone()
+        duel.players[1] = opponent.clone()
         
         for acting_player in cycle(duel.players):
             try:
@@ -493,14 +491,11 @@ class AI_Persona(Player):
         else:
             raise IllegalTarget("player already has no remaining influence")    
 
-    @staticmethod
-    def clone(player):
-        from copy import deepcopy
-        
+    def clone(self):
         n = AI_Persona()
-        n.coins = player.coins
-        n.left = deepcopy(player.left)
-        n.right = deepcopy(player.right)
+        n.coins = self.coins
+        n.left = self.left.__class__()
+        n.right = self.right.__class__()
         return n 
 
     @staticmethod
