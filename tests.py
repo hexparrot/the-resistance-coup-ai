@@ -1063,18 +1063,18 @@ class TestCoup(unittest.TestCase):
         ppp.right = Captain()
 
         pp.coins = 0
-        self.assertFalse(ppp.will_intervene('steal', p, pp))
+        self.assertIsNone(ppp.will_intervene('steal', p, pp))
 
         ppp.rules['calculated_intervention']['steal'] = {
             'victim': lambda q: q.coins
             }
-        self.assertFalse(ppp.will_intervene('steal', p, pp))
+        self.assertIsNone(ppp.will_intervene('steal', p, pp))
 
         pp.coins = 1
-        self.assertTrue(ppp.will_intervene('steal', p, pp))
+        self.assertIsNotNone(ppp.will_intervene('steal', p, pp))
 
         pp.coins = 2
-        self.assertTrue(ppp.will_intervene('steal', p, pp))
+        self.assertIsNotNone(ppp.will_intervene('steal', p, pp))
 
         ppp.rules['calculated_intervention']['steal'] = {
             'victim': lambda q: q.coins >= 5
@@ -1082,7 +1082,7 @@ class TestCoup(unittest.TestCase):
 
         self.assertFalse(ppp.will_intervene('steal', p, pp))
         pp.coins = 5
-        self.assertTrue(ppp.will_intervene('steal', p, pp))
+        self.assertIsNotNone(ppp.will_intervene('steal', p, pp))
 
     def test_will_callout(self):
         testgame = Play_Coup(5)

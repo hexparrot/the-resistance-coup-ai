@@ -296,8 +296,7 @@ class AI_Persona(Player):
         self.personalize(personality)
         
     def personalize(self, personality):
-        from copy import deepcopy
-        self.rules = deepcopy(PERSONALITIES[personality])
+        self.rules = PERSONALITIES[personality]
         self.saved_personality = personality
         
     def select_opponent(self, all_players):
@@ -407,6 +406,8 @@ class AI_Persona(Player):
                     elif action == 'assassinate':
                         return 'Contessa'
                     elif action == 'steal':
+                        if not victim.coins:
+                            return None
                         from random import choice
                         return choice(['Ambassador', 'Captain'])
         except KeyError:
