@@ -767,3 +767,40 @@ class simulations(object):
                     pass
                 except QuestionInfluence:
                     break
+
+    @staticmethod
+    def duel(coup_game):        
+        duel = Play_Coup(2)
+        duel.players[0] = coup_game.players[0].clone()
+        duel.players[1] = coup_game.players[1].clone()
+        
+        for acting_player in cycle(duel.players):
+            try:
+                if not acting_player.influence_remaining:
+                    continue
+                elif len(duel) == 1:
+                    return duel
+                    
+                opp = [duel.players[0], duel.players[1]][acting_player is duel.players[0]]
+                assert(acting_player is not opp)
+                action_plan = acting_player.one_on_one_strategy(opp.alpha, True)
+                
+                while 1:
+                    action = action_plan.pop(0)
+                    if action not in acting_player.valid_actions + ['foreign_aid','income','coup']:
+                        pass
+                    elif action in opp.valid_blocks:
+                        break
+                    else:
+                        if action in ['income', 'tax', 'foreign_aid']:
+                            acting_player.perform(action)
+                        elif action in ['assassinate', 'coup']:
+                            position, random_target = opp.random_remaining_influence
+                            acting_player.perform(action, random_target)
+                        elif action in ['exchange']:
+                            acting_player.perform('exchange', duel.players)
+                        elif action in ['steal']:
+                            acting_player.perform('steal', opp)
+                        break
+            except IllegalTarget:
+                continue
