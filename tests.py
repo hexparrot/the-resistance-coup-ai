@@ -13,7 +13,6 @@ __email__ = "wdchromium@gmail.com"
 
 import unittest
 from coup import *
-from heuristics import *
 
 class TestCoup(unittest.TestCase):
     def setUp(self):
@@ -601,6 +600,8 @@ class TestCoup(unittest.TestCase):
         self.assertEqual(Influence.blocks_for_influences(p), ['assassinate'])
 
     def test_deduce(self):
+        from heuristics import WEIGHTS
+        
         testgame = Play_Coup(5)
 
         p = testgame.players[0]
@@ -642,6 +643,8 @@ class TestCoup(unittest.TestCase):
             })
 
     def test_allowed_others(self):
+        from heuristics import WEIGHTS
+        
         testgame = Play_Coup(5)
         
         p = testgame.players[0]
@@ -672,6 +675,8 @@ class TestCoup(unittest.TestCase):
             })
 
     def test_remove_suspicion(self):
+        from heuristics import WEIGHTS
+        
         p = AI_Persona()
         p.left = Captain()
         p.right = Assassin()

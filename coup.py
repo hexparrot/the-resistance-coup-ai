@@ -10,8 +10,6 @@ __license__ = "GNU GPL v3.0"
 __version__ = "0.0.1"
 __email__ = "wdchromium@gmail.com"
 
-from heuristics import *
-
 class Play_Coup(object):
     ACTIONS = {
         'all': ['income', 'foreign_aid', 'coup', 'steal', 'tax', 'assassinate', 'exchange'],
@@ -113,6 +111,8 @@ class Player(object):
                (not self.right.revealed and str(self.right) == influence)
 
     def remove_suspicion(self, influence):
+        from heuristics import IMPLIED_INFORMATION
+        
         for k,v in IMPLIED_INFORMATION['perform'].items():
             if influence in v:
                 self.public_information['perform'] = [a for a in self.public_information['perform'] if a != k]
@@ -148,6 +148,7 @@ class Player(object):
     def probable_influences(self):
         from collections import Counter
         from itertools import chain
+        from heuristics import IMPLIED_INFORMATION, WEIGHTS
         
         performed = Counter(chain(*[IMPLIED_INFORMATION['perform'][i] for i in self.public_information['perform'] if IMPLIED_INFORMATION['perform'].get(i)]))
         victim = Counter(chain(*[IMPLIED_INFORMATION['block'][i] for i in self.public_information['victim'] if IMPLIED_INFORMATION['block'].get(i)]))
@@ -169,6 +170,7 @@ class Player(object):
     def improbable_influences(self):
         from collections import Counter
         from itertools import chain
+        from heuristics import IMPLIED_INFORMATION, WEIGHTS
         
         performed = Counter(chain(*[IMPLIED_INFORMATION['suboptimal_move'][i] for i in self.public_information['perform'] if IMPLIED_INFORMATION['suboptimal_move'].get(i)]))
         victim = Counter(chain(*[IMPLIED_INFORMATION['block'][i] for i in self.didnt_block_as['victim'] if IMPLIED_INFORMATION['block'].get(i)]))
@@ -296,6 +298,8 @@ class AI_Persona(Player):
         self.personalize(personality)
         
     def personalize(self, personality):
+        from heuristics import PERSONALITIES
+        
         self.rules = PERSONALITIES[personality]
         self.saved_personality = personality
         

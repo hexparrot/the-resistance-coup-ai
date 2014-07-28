@@ -31,9 +31,8 @@ class simulations(object):
     ILL_TAR = defaultdict(list)
     RET_ACT_GOOD = defaultdict(list)
     RET_ACT_REGRET = defaultdict(list)
-    GUESSED_CONTESSA = defaultdict(int)
     
-    def sim_full_on_yomi(self):
+    def sim_a_full_on_yomi(self):
         testgame = Play_Coup(self.PLAYERS, PERSONALITIES.keys())
 
         for acting_player in cycle(testgame.players):
