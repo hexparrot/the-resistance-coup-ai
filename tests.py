@@ -796,11 +796,12 @@ class TestCoup(unittest.TestCase):
             }
 
         self.assertIn(ppp.will_intervene('steal', p, pp), ['Captain', 'Ambassador'])
-
             
     def test_wins_duel(self):
         '''this function may be unreliable because it is random which influence is eliminated.
-        pp starting vs p has variable winners because of random coup/assassinate flip'''
+        pp starting vs p has variable winners because of random coup/assassinate flip.
+        whomever wins the first wins_duel will be that players conviction from then on,
+        which should be hashed on the player + influences'''
         p = AI_Persona()
         p.left = Duke()
         p.right = Assassin()
@@ -820,8 +821,10 @@ class TestCoup(unittest.TestCase):
         pp.left = Contessa()
         pp.right = Contessa()
         
-        self.assertTrue(p.wins_duel(pp)) 
-        self.assertFalse(pp.wins_duel(p))
+        #repeat tests to use saved value   
+        for _ in range(100):
+            self.assertTrue(p.wins_duel(pp)) 
+            self.assertFalse(pp.wins_duel(p))
 
     def test_plays_numbers(self):
         p = AI_Persona()

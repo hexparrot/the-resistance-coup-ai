@@ -296,6 +296,7 @@ class AI_Persona(Player):
     def __init__(self, personality='passive'):
         Player.__init__(self)
         self.personalize(personality)
+        self.will_win_against = {}
         
     def personalize(self, personality):
         from heuristics import PERSONALITIES
@@ -439,6 +440,9 @@ class AI_Persona(Player):
             return False
             
     def wins_duel(self, opponent):
+        if (opponent, opponent.alpha) in self.will_win_against:
+            return self.will_win_against[(opponent, opponent.alpha)]
+
         from itertools import cycle
         
         duel = Play_Coup(2)
@@ -450,6 +454,7 @@ class AI_Persona(Player):
                 if not acting_player.influence_remaining:
                     continue
                 elif len(duel) == 1:
+                    self.will_win_against[(opponent, opponent.alpha)] = acting_player is duel.players[0]
                     return acting_player is duel.players[0]
                     
                 opp = [duel.players[0], duel.players[1]][acting_player is duel.players[0]]

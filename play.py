@@ -229,7 +229,7 @@ class simulations(object):
 if __name__ == "__main__":
     c = Counter()
     for _ in range(1000):
-        c.update([simulations().sim_full_on_yomi().winner.alpha,])
+        c.update([simulations().sim_a_full_on_yomi().winner.alpha,])
         
     for i,v in c.most_common():
         print('{0}{1}'.format(i.ljust(25), v))
