@@ -146,7 +146,7 @@ class Player(object):
     
     @property
     def probable_influences(self):
-        from collections import Counter
+        from collections import Counter, defaultdict
         from itertools import chain
         from heuristics import IMPLIED_INFORMATION, WEIGHTS
         
@@ -154,17 +154,17 @@ class Player(object):
         victim = Counter(chain(*[IMPLIED_INFORMATION['block'][i] for i in self.public_information['victim'] if IMPLIED_INFORMATION['block'].get(i)]))
         spectator = Counter(chain(*[IMPLIED_INFORMATION['block'][i] for i in self.public_information['spectator'] if IMPLIED_INFORMATION['block'].get(i)]))
 
-        result = Counter()
-        for _ in range(WEIGHTS['performed_action']):
-            result.update(performed)
+        result = defaultdict(int)
+        for inf, val in performed.most_common():
+            result[inf] += val * WEIGHTS['performed_action']
+        
+        for inf, val in victim.most_common():
+            result[inf] += val * WEIGHTS['blocked_selfishly']
+        
+        for inf, val in spectator.most_common():
+            result[inf] += val * WEIGHTS['blocked_selflessly']
 
-        for _ in range(WEIGHTS['blocked_selfishly']):
-            result.update(victim)
-
-        for _ in range(WEIGHTS['blocked_selflessly']):
-            result.update(spectator)
-
-        return dict(result.most_common())
+        return result
 
     @property
     def improbable_influences(self):
