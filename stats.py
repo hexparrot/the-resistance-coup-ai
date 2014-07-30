@@ -6,9 +6,8 @@ behaviors and bluffs in order to win the game.
 """
 from __future__ import print_function
 import numpy
+import simulations
 from collections import defaultdict
-from coup import *
-from simulations import simulations
 from multiprocessing.pool import Pool
 from multiprocessing import TimeoutError
 from itertools import cycle
@@ -19,6 +18,7 @@ __version__ = "0.0.1"
 __email__ = "wdchromium@gmail.com"
 
 NUMBER_OF_PROCESSES = 2 
+PLAYERS = 5
 GAMES_PER_SAMPLE = 100
 SIMULATION_TIMEOUT = 25
 
@@ -39,20 +39,23 @@ pairs = ['Ambassador Contessa',
      'Assassin Assassin']
 
 def f(sim):
-    return (sim, simulations().run(sim, GAMES_PER_SAMPLE))
+    return (sim.__name__, simulations.run(sim, PLAYERS, GAMES_PER_SAMPLE))
     
 if __name__ == "__main__":
     from scipy.stats import f_oneway
     from statsmodels.stats.multicomp import pairwise_tukeyhsd
     import sys
+    import inspect
 
     container = defaultdict(list)   
     pool = Pool(processes=NUMBER_OF_PROCESSES,
                 maxtasksperchild=5)
 
+    sim_list = [func for name,func in inspect.getmembers(simulations, inspect.isfunction) if name.startswith('sim_')]
+
     try:
         print('press CTRL-c to stop generating samples')
-        it = pool.imap(f, cycle(simulations().available_simulations()))
+        it = pool.imap(f, cycle(sim_list))
         
         while 1:
             try:
@@ -71,13 +74,13 @@ if __name__ == "__main__":
         pool.terminate()
         pool.join()
     
-    for idx, sim in enumerate(simulations().available_simulations()):
+    for idx, sim in enumerate([s.__name__ for s in sim_list]):
         print(idx, sim)
         
     for pair in pairs:
         print('')
         print(pair)
-        f, p = f_oneway(*[[i[1] for i in container[pair] if i[0] == sim] for sim in simulations().available_simulations()])
+        f, p = f_oneway(*[[i[1] for i in container[pair] if i[0] == sim] for sim in [s.__name__ for s in sim_list]])
         print('F-stat: {0} at sig {1}: {2}'.format(str(round(f, 3)).ljust(7), 
                                                    str(round(p, 3)).ljust(7),
                                                    ['NULL','REJECT'][p <= .05]))
