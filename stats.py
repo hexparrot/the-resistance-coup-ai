@@ -13,7 +13,6 @@ __license__ = "GNU GPL v3.0"
 __version__ = "0.0.1"
 __email__ = "wdchromium@gmail.com"
 
-NUMBER_OF_PROCESSES = 2 
 PLAYERS = 5
 GAMES_PER_SAMPLE = 100
 SIMULATION_TIMEOUT = 25
@@ -49,8 +48,7 @@ if __name__ == "__main__":
 
     completed = []
     container = defaultdict(list)   
-    pool = Pool(processes=NUMBER_OF_PROCESSES,
-                maxtasksperchild=3)
+    pool = Pool()
 
     sim_list = [func for name,func in inspect.getmembers(simulations, inspect.isfunction) if name.startswith('sim_')]
 
