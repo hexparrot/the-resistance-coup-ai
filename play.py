@@ -266,7 +266,7 @@ if __name__ == "__main__":
         print('    {0}{1}'.format(personality.ljust(25), ''.join('{0}:{1}  '.format(str(k).rjust(3),str(v).ljust(3)) for k,v in sorted(Counter(DOUBTS_THRESHOLD_WRONG[personality]).most_common()))))
 
     print('  DOUBTER RIGHT- Threshold:Frequency')
-    for personality in simulations.DOUBTS_THRESHOLD_RIGHT:
+    for personality in DOUBTS_THRESHOLD_RIGHT:
         print('    {0}{1}'.format(personality.ljust(25), ''.join('{0}:{1}  '.format(str(k).rjust(3),str(v).ljust(3)) for k,v in sorted(Counter(DOUBTS_THRESHOLD_RIGHT[personality]).most_common()))))
 
     print('EXCEPTIONS')

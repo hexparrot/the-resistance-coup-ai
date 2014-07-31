@@ -7,10 +7,6 @@ behaviors and bluffs in order to win the game.
 from __future__ import print_function
 import numpy
 import simulations
-from collections import defaultdict
-from multiprocessing.pool import Pool
-from multiprocessing import TimeoutError
-from itertools import cycle
 
 __author__ = "William Dizon"
 __license__ = "GNU GPL v3.0"
@@ -42,24 +38,30 @@ def f(sim):
     return (sim.__name__, simulations.run(sim, PLAYERS, GAMES_PER_SAMPLE))
     
 if __name__ == "__main__":
-    from scipy.stats import f_oneway
-    from statsmodels.stats.multicomp import pairwise_tukeyhsd
     import sys
     import inspect
+    from scipy.stats import f_oneway
+    from statsmodels.stats.multicomp import pairwise_tukeyhsd
+    from collections import defaultdict, Counter
+    from multiprocessing.pool import Pool
+    from multiprocessing import TimeoutError
+    from itertools import cycle
 
+    completed = []
     container = defaultdict(list)   
     pool = Pool(processes=NUMBER_OF_PROCESSES,
-                maxtasksperchild=5)
+                maxtasksperchild=3)
 
     sim_list = [func for name,func in inspect.getmembers(simulations, inspect.isfunction) if name.startswith('sim_')]
 
     try:
         print('press CTRL-c to stop generating samples')
-        it = pool.imap(f, cycle(sim_list))
+        it = pool.imap_unordered(f, cycle(sim_list))
         
         while 1:
             try:
                 sim, result = it.next(timeout=SIMULATION_TIMEOUT)
+                completed.append(sim)
                 sys.stdout.write('.')
                 for p, wins in result.items():
                     container[p].append( (sim, wins) )
@@ -73,9 +75,10 @@ if __name__ == "__main__":
     finally:
         pool.terminate()
         pool.join()
-    
+
+    c = dict(Counter(completed).most_common())
     for idx, sim in enumerate([s.__name__ for s in sim_list]):
-        print(idx, sim)
+        print('Test: {0}, Iterations {1}, Heuristic: {2}'.format(idx, c[sim], sim))
         
     for pair in pairs:
         print('')
