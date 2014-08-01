@@ -12,12 +12,12 @@ __email__ = "wdchromium@gmail.com"
 
 class Play_Coup(object):
     ACTIONS = {
-        'all': ['income', 'foreign_aid', 'coup', 'steal', 'tax', 'assassinate', 'exchange'],
-        'free': ['income', 'foreign_aid', 'coup'],
-        'blockable': ['assassinate', 'steal', 'foreign_aid'],
-        'targets_influence': ['coup', 'assassinate'],
-        'targets_player': ['steal'],
-        'bluffable': ['steal', 'tax', 'assassinate', 'exchange'],
+        'all': set(['income', 'foreign_aid', 'coup', 'steal', 'tax', 'assassinate', 'exchange']),
+        'free': set(['income', 'foreign_aid', 'coup']),
+        'blockable': set(['assassinate', 'steal', 'foreign_aid']),
+        'targets_influence': set(['coup', 'assassinate']),
+        'targets_player': set(['steal']),
+        'bluffable': set(['steal', 'tax', 'assassinate', 'exchange']),
         }
     
     def __init__(self, player_count, personalities=[]):
@@ -370,7 +370,7 @@ class AI_Persona(Player):
                 action_plan.remove('assassinate')
         
         if honest:
-            return [a for a in action_plan if a in self.valid_actions + Play_Coup.ACTIONS['free']]
+            return [a for a in action_plan if a in set(self.valid_actions).union(set(Play_Coup.ACTIONS['free']))]
         else:
             return action_plan
 
