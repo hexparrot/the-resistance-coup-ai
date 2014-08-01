@@ -374,6 +374,13 @@ class AI_Persona(Player):
         else:
             return action_plan
 
+    def potentially_successful_actions(self, all_players):
+        blockable = set()
+
+        for opponent in [v for v in all_players if v is not self and v.influence_remaining]:
+            blockable.update(opponent.calculate('judge', 'blocks'))
+        return set(Play_Coup.ACTIONS['all']) - set(blockable)
+
     def will_intervene(self, action, performer, victim=None):
         try:
             rules = self.rules['honest_intervention'][action].items()

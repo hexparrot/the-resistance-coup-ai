@@ -825,6 +825,21 @@ class TestCoup(unittest.TestCase):
         for _ in range(100):
             self.assertTrue(p.wins_duel(pp)) 
             self.assertFalse(pp.wins_duel(p))
+            
+    def test_potentially_successful_actions(self):
+        testgame = Play_Coup(5)
+
+        p = testgame.players[0]
+        for action in Play_Coup.ACTIONS['all']:
+            self.assertIn(action, p.potentially_successful_actions(testgame.players))
+        
+        testgame.players[1].public_information['perform'].append('steal')
+        testgame.players[1].public_information['perform'].append('assassinate')
+        
+        self.assertNotIn('steal', p.potentially_successful_actions(testgame.players))
+        
+        testgame.players[2].public_information['spectator'].append('foreign_aid')
+        self.assertNotIn('foreign_aid', p.potentially_successful_actions(testgame.players))
 
     def test_plays_numbers(self):
         p = AI_Persona()
