@@ -46,7 +46,7 @@ def sim_random_actions_random_targets_no_blocking(players):
 
         while 1:
             try:
-                action = choice(Play_Coup.ACTIONS['all'])
+                action = choice(list(Play_Coup.ACTIONS['all']))
                 if action == 'steal':
                     random_player = acting_player.select_opponent(testgame.players)
                     acting_player.perform(action, random_player)
@@ -93,7 +93,7 @@ def sim_random_actions_random_targets_selfish_blocks_no_doubts(players):
 
         while 1:
             try:
-                action = choice(Play_Coup.ACTIONS['all'])
+                action = choice(list(Play_Coup.ACTIONS['all']))
                 if action == 'steal':
                     random_player = acting_player.select_opponent(testgame.players)
                     if action in random_player.valid_blocks:
