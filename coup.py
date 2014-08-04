@@ -453,8 +453,8 @@ class AI_Persona(Player):
         from simulations import duel
         
         game = Play_Coup(2)
-        game.players[0] = self.clone()
-        game.players[1] = opponent.clone()
+        game.players[0] = self
+        game.players[1] = opponent
         
         game_result = duel(game)
         
