@@ -609,7 +609,6 @@ def sim_a_full_on_yomi(players):
             except QuestionInfluence:
                 break
 
-@staticmethod
 def duel(coup_game):
     duel = Play_Coup(2)
     duel.players[0] = coup_game.players[0].clone()
