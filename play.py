@@ -27,8 +27,6 @@ DOUBTS_THRESHOLD_WRONG = defaultdict(list)
 WINS = defaultdict(int)
 ILL_ACT = defaultdict(list)
 ILL_TAR = defaultdict(list)
-RET_ACT_GOOD = defaultdict(list)
-RET_ACT_REGRET = defaultdict(list)
     
 def simulation(players):
     testgame = Play_Coup(players, PERSONALITIES.keys())
@@ -206,11 +204,6 @@ def simulation(players):
                 else:
                     BLOCKS_VICTIM[e.victim.saved_personality].append(action)
                 break
-            except RethinkAction as e:
-                if action in e.victim.valid_blocks:
-                    RET_ACT_GOOD[e.victim.status].append(action)
-                else:
-                    RET_ACT_REGRET[e.victim.status].append(action)
             except QuestionInfluence as e:
                 DOUBTS_ACTIONS[e.doubter.saved_personality].append(e.action)
                 DOUBTS_RIGHT[e.doubter.saved_personality].append(e.doubter_is_correct)
@@ -276,11 +269,3 @@ if __name__ == "__main__":
     print('  IllegalTarget')
     for inf in ILL_TAR:
         print('    {0}{1}'.format(inf.ljust(25), dict(Counter(ILL_TAR[inf]).most_common())))
-    print('  RethinkAction (victim influences listed)')
-    print('    Good to rethink')
-    for inf in RET_ACT_GOOD:
-        print('      {0}{1}'.format(inf.ljust(25), dict(Counter(RET_ACT_GOOD[inf]).most_common())))
-    print('    Should have followed through')
-    for inf in RET_ACT_REGRET:
-        print('      {0}{1}'.format(inf.ljust(25), dict(Counter(RET_ACT_REGRET[inf]).most_common())))
-    
