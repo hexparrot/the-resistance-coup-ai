@@ -43,7 +43,6 @@ if __name__ == "__main__":
     from statsmodels.stats.multicomp import pairwise_tukeyhsd
     from collections import defaultdict, Counter
     from multiprocessing.pool import Pool
-    from multiprocessing import TimeoutError
     from itertools import cycle
 
     completed = []
@@ -57,17 +56,13 @@ if __name__ == "__main__":
         it = pool.imap_unordered(f, cycle(sim_list))
         
         while 1:
-            try:
-                sim, result = it.next(timeout=SIMULATION_TIMEOUT)
-                completed.append(sim)
-                sys.stdout.write('.')
-                for p, wins in result.items():
-                    container[p].append( (sim, wins) )
-            except (TimeoutError, IndexError):
-                print('simulation timed out')
-                raise
+            sim, result = it.next(timeout=SIMULATION_TIMEOUT)
+            completed.append(sim)
+            sys.stdout.write('.')
+            for p, wins in result.items():
+                container[p].append( (sim, wins) )
             
-    except (KeyboardInterrupt, TimeoutError, IndexError):
+    except KeyboardInterrupt:
         pool.close()
         print('stopping all simulations...')
     finally:
